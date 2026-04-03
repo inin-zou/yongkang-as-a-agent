@@ -3,7 +3,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Layout from './components/global/Layout'
 import FileSystemLayout from './components/global/FileSystemLayout'
 import NoiseOverlay from './components/global/NoiseOverlay'
-import CrosshairCursor from './components/global/CrosshairCursor'
 import Landing from './pages/Landing'
 import SoulPage from './pages/SoulPage'
 import SkillPage from './pages/SkillPage'
@@ -22,7 +21,6 @@ function LandingLayout() {
   return (
     <>
       <NoiseOverlay />
-      <CrosshairCursor showCellIndicator={false} />
       <Landing />
     </>
   )
