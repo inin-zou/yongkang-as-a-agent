@@ -39,7 +39,7 @@ export default function Landing() {
         Creative Technologist. 9x Hackathon Winner. Ships in 20 hours.
       </p>
       <button
-        onClick={() => navigate('/about')}
+        onClick={() => navigate('/files/soul')}
         style={{
           padding: '1rem 2.5rem',
           background: 'transparent',
@@ -63,7 +63,7 @@ export default function Landing() {
         }}
         data-interactive
       >
-        Enter
+        Access File System
       </button>
     </div>
   )
