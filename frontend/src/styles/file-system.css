@@ -125,3 +125,117 @@
 .fs-layout.no-sidebar .fs-main {
   /* When no sidebar, content takes full width */
 }
+
+/* ===== EDITOR PAGE (Note App document pattern) ===== */
+.editor-page {
+  padding: var(--space-lg) var(--space-lg) var(--space-2xl);
+  max-width: 800px;
+  animation: fadeInFromBlur 0.6s ease forwards;
+}
+
+.editor-meta {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-ink-faint);
+  margin-bottom: var(--space-sm);
+}
+
+.editor-title {
+  font-family: var(--font-sans);
+  font-size: 2rem;
+  font-weight: 400;
+  color: var(--color-ink);
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--space-lg) 0;
+  border: none;
+  background: transparent;
+}
+
+.editor-subtitle {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--color-ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-md);
+}
+
+.editor-content {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--color-ink);
+}
+
+.editor-content p {
+  margin: 0 0 var(--space-md) 0;
+}
+
+.editor-content a {
+  color: var(--color-ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-ink-faint);
+  transition: border-color 0.15s ease, color 0.15s ease;
+  cursor: none;
+}
+
+.editor-content a:hover {
+  border-color: var(--color-ink);
+  color: var(--color-prism-teal);
+}
+
+.editor-divider {
+  height: 1px;
+  background: var(--color-grid);
+  margin: var(--space-lg) 0;
+  opacity: 0.3;
+}
+
+.editor-label {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-ink-muted);
+  margin-bottom: var(--space-sm);
+}
+
+.editor-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-md) 0;
+}
+
+.editor-list li {
+  padding: var(--space-xs) 0;
+  border-bottom: 1px solid var(--color-grid);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  color: var(--color-ink);
+}
+
+.editor-list li:last-child {
+  border-bottom: none;
+}
+
+.editor-links {
+  display: flex;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.editor-links a {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--color-ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-ink-faint);
+  padding-bottom: 2px;
+  cursor: none;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.editor-links a:hover {
+  border-color: var(--color-ink);
+  color: var(--color-prism-teal);
+}
