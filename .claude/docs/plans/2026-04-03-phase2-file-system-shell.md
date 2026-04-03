@@ -118,6 +118,8 @@ export const FILE_TABS: TabConfig[] = [
       { id: 'post-placeholder-2', label: 'Joining Epiminds', date: '2026-02', preview: 'New chapter in the assembling...', routeSegment: 'joining-epiminds' },
       { id: 'leave-note', label: 'LEAVE A NOTE', preview: 'Share your thoughts', routeSegment: 'feedback' },
     ],
+    // defaultItem: null is intentional — tab-level view shows "select a post/track" prompt
+    // rather than auto-selecting the first entry (unlike SKILL.md which defaults to 'skills')
     defaultItem: null,
   },
   {
@@ -136,6 +138,8 @@ export const FILE_TABS: TabConfig[] = [
       { id: 'track-1', label: '失眠', preview: 'Original single', routeSegment: 'track-1' },
       { id: 'track-2', label: 'Inhibitor', preview: 'EP track', routeSegment: 'track-2' },
     ],
+    // defaultItem: null is intentional — tab-level view shows "select a post/track" prompt
+    // rather than auto-selecting the first entry (unlike SKILL.md which defaults to 'skills')
     defaultItem: null,
   },
 ]
@@ -327,7 +331,7 @@ Create `frontend/src/styles/file-system.css` with styles for the sidebar, note-i
 }
 
 .fs-main-inner {
-  padding: var(--space-lg);
+  /* No padding here — individual pages own their own padding */
   max-width: 900px;
 }
 
@@ -447,9 +451,15 @@ export default function Breadcrumb() {
     <div className="breadcrumb">
       <span className="breadcrumb-segment">~/agent</span>
       <span className="breadcrumb-separator">/</span>
-      <Link to={tab.basePath} className="breadcrumb-segment" data-interactive>
-        {tab.label}
-      </Link>
+      {item ? (
+        // When a sub-item is selected, tab name is a clickable link back to tab root
+        <Link to={tab.basePath} className="breadcrumb-segment" data-interactive>
+          {tab.label}
+        </Link>
+      ) : (
+        // When no sub-item, tab name is the terminal node — use current styling, not a link
+        <span className="breadcrumb-current">{tab.label}</span>
+      )}
       {item && (
         <>
           <span className="breadcrumb-separator">/</span>
@@ -463,7 +473,7 @@ export default function Breadcrumb() {
 
 The breadcrumb renders: `~/agent / SKILL.md / HACKATHONS`
 - `~/agent` is static (the "home directory" of the agent)
-- The tab name is a clickable link back to the tab's base path
+- The tab name is a clickable link back to the tab's base path **only when a sub-item is selected**. When no sub-item is selected, the tab name is the terminal node and renders with `.breadcrumb-current` styling (not clickable).
 - The sub-item name (if present) is static text, highlighted as current location
 - Uses `.breadcrumb-*` classes from `file-system.css`
 
@@ -570,10 +580,12 @@ The old `showTabs` and `useOutlet` props are removed. `Layout` is now a pure wra
 
 - [ ] **Step 3: Commit**
 
-```bash
-git add frontend/src/components/global/FileSystemLayout.tsx frontend/src/components/global/Layout.tsx
-git commit -m "feat(frontend): FileSystemLayout three-zone shell (tabs + sidebar + panel)"
-```
+> **WARNING:** Do NOT commit Layout.tsx separately — it will break compilation until App.tsx is also updated in Task 7. Layout.tsx and App.tsx changes MUST happen in the SAME commit. Either commit these files together with Task 7's App.tsx changes, or hold this commit until Task 7 is also complete and commit them all at once:
+>
+> ```bash
+> git add frontend/src/components/global/FileSystemLayout.tsx frontend/src/components/global/Layout.tsx frontend/src/App.tsx frontend/src/pages/Landing.tsx
+> git commit -m "feat(frontend): FileSystemLayout three-zone shell + rewrite routing for file system paths"
+> ```
 
 ---
 
@@ -844,6 +856,8 @@ Delete these files (they are fully replaced by the new page shells):
 - `frontend/src/pages/Projects.tsx`
 - `frontend/src/pages/Contact.tsx`
 
+**Naming convention:** All placeholder pages use the `{Name}Page.tsx` format (e.g., `SoulPage.tsx`, `ContactPage.tsx`). Later phases that replace these placeholders MUST use the same filenames and export names, or explicitly delete the placeholder and update the import in App.tsx.
+
 - [ ] **Step 7: Commit**
 
 ```bash
@@ -866,7 +880,7 @@ git commit -m "feat(frontend): placeholder page shells for SOUL/SKILL/MEMORY/CON
 Replace the entire content of `App.tsx`:
 
 ```typescript
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Navigate, useParams } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Layout from './components/global/Layout'
 import FileSystemLayout from './components/global/FileSystemLayout'
@@ -879,42 +893,11 @@ import MusicPage from './pages/MusicPage'
 
 const queryClient = new QueryClient()
 
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <Layout><Landing /></Layout>,
-  },
-  {
-    path: '/files',
-    element: <Layout><FileSystemLayout /></Layout>,
-    children: [
-      // Redirect /files to /files/soul (handled inside FileSystemLayout via Navigate)
-      { index: true, element: null },
-      {
-        path: ':tab',
-        children: [
-          // Tab-level routes (no sub-item)
-          { index: true, element: <TabRouter /> },
-          // Sub-item routes
-          { path: ':item', element: <TabRouter /> },
-        ],
-      },
-    ],
-  },
-])
-
 /**
  * TabRouter resolves which page component to render based on the :tab param.
  * This avoids duplicating the page imports across multiple route definitions.
  */
 function TabRouter() {
-  // This component is a thin dispatcher — it reads the :tab param
-  // and renders the appropriate page component.
-  // We cannot use useParams outside the router, so this must be a component.
-  return <TabRouterInner />
-}
-
-function TabRouterInner() {
   const { tab } = useParams<{ tab: string }>()
 
   switch (tab) {
@@ -927,6 +910,28 @@ function TabRouterInner() {
   }
 }
 
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Layout><Landing /></Layout>,
+  },
+  // Redirect bare /files to /files/soul
+  {
+    path: '/files',
+    element: <Navigate to="/files/soul" replace />,
+  },
+  {
+    path: '/files/:tab',
+    element: <Layout><FileSystemLayout /></Layout>,
+    children: [
+      // Tab-level routes (no sub-item)
+      { index: true, element: <TabRouter /> },
+      // Sub-item routes
+      { path: ':item', element: <TabRouter /> },
+    ],
+  },
+])
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -936,48 +941,14 @@ export default function App() {
 }
 ```
 
-**Important:** Add the missing imports at the top of the file:
-
-```typescript
-import { useParams, Navigate } from 'react-router-dom'
-```
-
 **Route structure explained:**
 - `/` renders `Landing` inside `Layout` (no tabs, no sidebar)
-- `/files` renders `FileSystemLayout` inside `Layout` (tabs + sidebar + panel)
-- `/files/:tab` renders the correct page shell via `TabRouter`
-- `/files/:tab/:item` renders the same page shell, which internally reads the `:item` param for sub-views (SKILL.md uses this for resume/hackathons/certifications, MEMORY.md for blog posts, MUSIC.md for tracks)
-- Invalid `:tab` values redirect to `/files/soul`
+- `/files` redirects to `/files/soul` (explicit redirect route prevents redirect loops)
+- `/files/:tab` renders `FileSystemLayout` inside `Layout` — `FileSystemLayout` reads `:tab` from `useParams` to determine which tab is active (for sidebar rendering)
+- `/files/:tab/:item` renders the same page shell via `TabRouter`, which internally reads the `:item` param for sub-views (SKILL.md uses this for resume/hackathons/certifications, MEMORY.md for blog posts, MUSIC.md for tracks)
+- Invalid `:tab` values redirect to `/files/soul` (handled inside `TabRouter`'s default case)
 
-**Alternative simpler approach** (if the `TabRouter` pattern feels over-engineered): define each tab route explicitly:
-
-```typescript
-children: [
-  { path: 'soul', element: <SoulPage /> },
-  { path: 'skill', element: <SkillPage /> },
-  { path: 'skill/:item', element: <SkillPage /> },
-  { path: 'memory', element: <MemoryPage /> },
-  { path: 'memory/:item', element: <MemoryPage /> },
-  { path: 'contact', element: <ContactPage /> },
-  { path: 'music', element: <MusicPage /> },
-  { path: 'music/:item', element: <MusicPage /> },
-]
-```
-
-Use whichever approach feels cleaner. The explicit approach is simpler and more readable. The important thing is that `FileSystemLayout` still receives `:tab` via `useParams` to know which tab is active (for sidebar rendering). If using the explicit approach, the route structure under `/files` should be:
-
-```typescript
-{
-  path: '/files/:tab',
-  element: <Layout><FileSystemLayout /></Layout>,
-  children: [
-    { index: true, element: /* resolved by tab */ },
-    { path: ':item', element: /* resolved by tab */ },
-  ],
-}
-```
-
-Pick the pattern that keeps `FileSystemLayout` able to read `:tab` from params. The explicit route approach requires `FileSystemLayout` to be the layout at the `:tab` level.
+**Why `/files/:tab` instead of `/files` with nested `:tab`:** Mounting `FileSystemLayout` at `/files` and using `useParams` to read `:tab` causes a redirect loop because `:tab` is only defined on child routes, not on the `/files` route itself. By mounting at `/files/:tab`, `FileSystemLayout` can always read the active tab from params.
 
 - [ ] **Step 2: Update Landing.tsx**
 

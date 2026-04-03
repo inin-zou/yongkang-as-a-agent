@@ -48,8 +48,8 @@ frontend/src/
 - [ ] **Step 1: Create the RibbonScene component skeleton**
 
 Create `frontend/src/components/landing/RibbonScene.tsx`:
-- Accepts props: `{ onReady?: () => void; reducedMotion: boolean; ribbonGroupRef?: React.MutableRefObject<THREE.Group | null> }`
-- Uses a `<canvas ref={canvasRef}>` element, not `renderer.domElement` appended to DOM (React-friendly)
+- Accepts props: `{ onReady?: () => void; reducedMotion: boolean; ribbonGroupRef?: React.MutableRefObject<THREE.Group | null>; canvasRef?: React.RefObject<HTMLCanvasElement> }`
+- Uses a `<canvas>` element, not `renderer.domElement` appended to DOM (React-friendly). If the parent passes `canvasRef`, wire it to the `<canvas>` element (e.g. `<canvas ref={canvasRef}>`) so the parent (`Landing.tsx`) can access the canvas for the exit transition. If no `canvasRef` is passed, create and use an internal ref.
 - Canvas is `position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 0`
 - On mount: create `THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })`, `THREE.OrthographicCamera`, `THREE.Scene`
 - Scene background: `new THREE.Color(0x1a1a1a)` (matches `--color-void`)
@@ -320,14 +320,15 @@ Create `frontend/src/components/landing/TicketPass.tsx`. This is a DOM component
 interface TicketPassProps {
   onAccessClick: () => void
   ticketRef: React.RefObject<HTMLDivElement>
+  reducedMotion: boolean
 }
 
-export default function TicketPass({ onAccessClick, ticketRef }: TicketPassProps) {
+export default function TicketPass({ onAccessClick, ticketRef, reducedMotion }: TicketPassProps) {
   return (
     <div className="ticket-wrapper" ref={ticketRef}>
       {/* Left: Visual zone */}
       <div className="visual-zone">
-        <HalftoneCanvas />
+        <HalftoneCanvas reducedMotion={reducedMotion} />
         <div className="visual-overlay-text">
           <span>A G E N T</span>
           <span style={{ paddingLeft: '1.5rem' }}>D O S S I E R</span>
@@ -774,7 +775,7 @@ const handleAccess = useCallback(() => {
     canvasEl: canvasRef.current!,
     ribbonGroup: ribbonGroupRef.current!,
     onComplete: () => {
-      navigate('/files') // Navigate to file system route
+      navigate('/files/soul') // Navigate to file system route
     },
   })
 }, [navigate, isTransitioning])
@@ -790,7 +791,7 @@ if (reducedMotion) {
     opacity: 0,
     duration: 0.2,
     onComplete: () => {
-      navigate('/files')
+      navigate('/files/soul')
       gsap.set(document.body, { opacity: 1 })
     },
   })
@@ -811,9 +812,25 @@ git commit -m "feat(landing): GSAP exit transition — ribbons converge, ticket 
 
 **Files:**
 - Modify: `frontend/src/pages/Landing.tsx`
-- Modify: `frontend/src/App.tsx` (if routing changes needed)
+- Modify: `frontend/src/App.tsx`
 
 **Time estimate:** 4 min
+
+- [ ] **Step 0: Create a LandingLayout in App.tsx (no grid, no tabs)**
+
+Create a `LandingLayout` wrapper in `App.tsx` that renders only `<NoiseOverlay />` + `<CrosshairCursor />` + `<Landing />` — NO `<GridBackground />` and NO `<TabNavigation />`. The landing page should NOT show the grid or rulers. Use this `LandingLayout` as the element for the landing route (`/`):
+
+```tsx
+function LandingLayout() {
+  return (
+    <>
+      <NoiseOverlay />
+      <CrosshairCursor />
+      <Landing />
+    </>
+  )
+}
+```
 
 - [ ] **Step 1: Rewrite Landing.tsx as the orchestrator**
 
@@ -843,7 +860,7 @@ export default function Landing() {
     setIsTransitioning(true)
 
     if (reducedMotion) {
-      navigate('/files')
+      navigate('/files/soul')
       return
     }
 
@@ -851,7 +868,7 @@ export default function Landing() {
       ticketEl: ticketRef.current!,
       canvasEl: canvasRef.current!,
       ribbonGroup: ribbonGroupRef.current!,
-      onComplete: () => navigate('/files'),
+      onComplete: () => navigate('/files/soul'),
     })
   }, [navigate, isTransitioning, reducedMotion])
 
@@ -877,36 +894,21 @@ export default function Landing() {
 }
 ```
 
-- [ ] **Step 2: Update Layout/App routing if needed**
+- [ ] **Step 2: Verify Layout/App routing uses LandingLayout from Step 0**
 
-The current `App.tsx` wraps Landing in a `<Layout showTabs={false}>`. Since the landing page has its own full-viewport design with the Three.js canvas, verify that:
-- `GridBackground` is NOT rendered on the landing page (ribbons replace it)
+The `LandingLayout` created in Step 0 replaces the previous `<Layout showTabs={false}>` wrapper for the landing route. Verify that:
+- `GridBackground` is NOT rendered on the landing page (ribbons replace it) — guaranteed by `LandingLayout` from Step 0
 - `NoiseOverlay` IS rendered (it sits above content with `z-index: 3` and `pointer-events: none` — this is correct; it adds grain over the ribbons)
 - `CrosshairCursor` IS rendered (the custom cursor should work on landing too)
-- Tabs are NOT rendered (already handled by `showTabs={false}`)
-
-If `Layout` currently forces `GridBackground` on landing, update the `LandingLayout` in `App.tsx`:
-
-```tsx
-function LandingLayout() {
-  return (
-    <>
-      <NoiseOverlay />
-      <CrosshairCursor />
-      <Landing />
-    </>
-  )
-}
-```
-
-This ensures landing gets noise + cursor but NOT the grid/rulers.
+- `TabNavigation` is NOT rendered — guaranteed by `LandingLayout` from Step 0
+- The landing route (`/`) in `App.tsx` uses `<LandingLayout />` as its element, not the old `<Layout>` wrapper
 
 - [ ] **Step 3: Update route target**
 
-The ticket's "ACCESS FILE SYSTEM" navigates to `/files` (the file system shell from Phase 2). If Phase 2 is not yet complete and `/files` doesn't exist, temporarily navigate to `/about` as a fallback. Add a comment:
+The ticket's "ACCESS FILE SYSTEM" navigates to `/files/soul` (the file system shell from Phase 2). If Phase 2 is not yet complete and `/files/soul` doesn't exist, temporarily navigate to `/about` as a fallback. Add a comment:
 
 ```typescript
-// TODO: Change to '/files' once Phase 2 file system shell is implemented
+// TODO: Change to '/files/soul' once Phase 2 file system shell is implemented
 navigate('/about')
 ```
 
