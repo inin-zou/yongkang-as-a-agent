@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 
-export default function CrosshairCursor() {
+interface CrosshairCursorProps {
+  /** Show the grid cell indicator (only on file system pages, not landing) */
+  showCellIndicator?: boolean
+}
+
+export default function CrosshairCursor({ showCellIndicator = true }: CrosshairCursorProps) {
   const dotRef = useRef<HTMLDivElement>(null)
   const outlineRef = useRef<HTMLDivElement>(null)
   const cellRef = useRef<HTMLDivElement>(null)
@@ -132,49 +137,26 @@ export default function CrosshairCursor() {
           willChange: 'transform',
           transition: 'width 0.2s ease, height 0.2s ease, border-color 0.2s ease',
         }}
-      >
-        {/* Horizontal crosshair line */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '-8px',
-            right: '-8px',
-            height: 1,
-            background: 'var(--color-ink-faint)',
-            transform: 'translateY(-0.5px)',
-          }}
-        />
-        {/* Vertical crosshair line */}
-        <div
-          style={{
-            position: 'absolute',
-            left: '50%',
-            top: '-8px',
-            bottom: '-8px',
-            width: 1,
-            background: 'var(--color-ink-faint)',
-            transform: 'translateX(-0.5px)',
-          }}
-        />
-      </div>
-
-      {/* Active cell indicator */}
-      <div
-        ref={cellRef}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: 'var(--cell-size)',
-          height: 'var(--cell-size)',
-          border: '1px solid var(--color-prism-pink)',
-          opacity: 0.4,
-          pointerEvents: 'none',
-          zIndex: 2,
-          willChange: 'transform',
-        }}
       />
+
+      {/* Active cell indicator — only on file system pages */}
+      {showCellIndicator && (
+        <div
+          ref={cellRef}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: 'var(--cell-size)',
+            height: 'var(--cell-size)',
+            border: '1px solid var(--color-prism-pink)',
+            opacity: 0.4,
+            pointerEvents: 'none',
+            zIndex: 2,
+            willChange: 'transform',
+          }}
+        />
+      )}
     </>
   )
 }

@@ -22,7 +22,7 @@ function LandingLayout() {
   return (
     <>
       <NoiseOverlay />
-      <CrosshairCursor />
+      <CrosshairCursor showCellIndicator={false} />
       <Landing />
     </>
   )
