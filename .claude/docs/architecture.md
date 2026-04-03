@@ -67,14 +67,33 @@ yongkang-as-a-agent/
 
 **API Endpoints:**
 ```
+# Static data (JSON files)
 GET  /api/projects              # List all projects (supports ?category= filter)
 GET  /api/projects/:slug        # Single project detail
 GET  /api/hackathons            # List hackathons (with geo coordinates for map)
 GET  /api/experience            # Work experience entries
 GET  /api/skills                # Skills grouped by domain
-GET  /api/music                 # Music/artist info + platform links
+GET  /api/music/artist          # Music/artist info + platform links
 POST /api/contact               # Contact form submission (honeypot field + rate limit: 3/hour per IP)
 GET  /api/health                # Health check
+
+# Supabase-backed (blog, feedback, tracks)
+GET  /api/posts                 # List published blog posts
+GET  /api/posts/:id             # Single blog post
+POST /api/posts                 # Create blog post (admin auth required)
+PUT  /api/posts/:id             # Update blog post (admin auth required)
+DELETE /api/posts/:id           # Delete blog post (admin auth required)
+
+GET  /api/music/tracks          # List music tracks (from Supabase)
+POST /api/music/tracks          # Upload track metadata (admin auth required)
+DELETE /api/music/tracks/:id    # Delete track (admin auth required)
+
+POST /api/feedback              # Submit visitor feedback (public, rate limited)
+GET  /api/feedback              # List feedback (admin auth required)
+
+POST /api/auth/login            # Admin login (proxies to Supabase Auth)
+POST /api/auth/logout           # Admin logout
+GET  /api/auth/me               # Check current auth status
 ```
 
 **Design Patterns:**
@@ -119,12 +138,59 @@ type PGProjectRepository struct {
 
 | Service | Purpose |
 |---------|---------|
-| Vercel or Cloudflare Pages | Frontend hosting (static SPA) |
-| Fly.io or Railway | Backend hosting (Go binary) |
-| SendGrid or Resend | Transactional email (contact form) |
+| Vercel | Frontend hosting (static SPA) — `yongkang.dev` |
+| Fly.io | Backend hosting (Go binary) — `api.yongkang.dev` |
+| Supabase | Auth (admin login), PostgreSQL (blog posts, feedback), Storage (music files, blog images) |
 | Mapbox | Map tiles for hackathon visualization |
-| Cloudinary (optional) | Image CDN for project screenshots + photos |
-| Supabase (optional future) | PostgreSQL + auth if adding admin panel |
+| SendGrid or Resend | Transactional email (contact form) |
+| Cloudflare | DNS + CDN |
+
+### Supabase Schema
+
+**Tables:**
+
+```sql
+-- Blog posts (admin-only write)
+CREATE TABLE posts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,              -- Markdown content
+  published_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  cover_image_url TEXT,            -- Optional Supabase Storage URL
+  is_published BOOLEAN DEFAULT false
+);
+
+-- Visitor feedback
+CREATE TABLE feedback (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  message TEXT NOT NULL,
+  linkedin_url TEXT,               -- Optional
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Music tracks
+CREATE TABLE tracks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  audio_url TEXT NOT NULL,         -- Supabase Storage URL
+  duration_seconds INTEGER,
+  track_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+**Storage Buckets:**
+- `music` — audio files (.wav, .mp3), public read
+- `blog-images` — embedded images for blog posts, public read
+
+**Auth:**
+- Supabase Auth with email/password
+- Only your account has admin access (check `auth.uid()` in RLS policies)
+- RLS policies: posts/tracks = public read, admin-only write. Feedback = public insert, admin-only read.
+- Scalable: add role column to profiles table later for multi-user
 
 ## Data Models
 
