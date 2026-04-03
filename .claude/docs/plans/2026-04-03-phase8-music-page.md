@@ -69,9 +69,16 @@ backend/
 
 **Estimated time:** 5 minutes
 
-### Step 1: Remap the existing music endpoint
+### Step 1: Remove Phase 6 flat music routes and add subroute group
 
-- [ ] In `backend/cmd/server/main.go`, change the existing `r.Get("/music", h.HandleGetMusic)` to a sub-route group:
+- [ ] **First, remove the flat music routes that Phase 6 added to `backend/cmd/server/main.go`:**
+  - Remove `r.Get("/music", h.HandleGetMusic)` from the static data routes section
+  - Remove `r.Get("/music/tracks", contentH.HandleGetTracks)` from the public content routes section
+  - Remove `r.Post("/music/tracks", contentH.HandleCreateTrack)` from the admin routes section
+  - Remove `r.Delete("/music/tracks/{id}", contentH.HandleDeleteTrack)` from the admin routes section
+  - Also remove the Phase 6 comments about "Phase 8 moves this into r.Route" — those are no longer needed since this IS Phase 8.
+
+- [ ] **Then, add the subroute group** that replaces all of the above. Change the section to a sub-route group:
 
 ```go
 r.Route("/music", func(r chi.Router) {
@@ -197,37 +204,35 @@ export function fetchTracks(): Promise<Track[]> {
   return fetchJSON<Track[]>('/music/tracks')
 }
 
-export async function uploadTrackFile(file: File, token: string): Promise<{ audioUrl: string; filename: string }> {
-  const formData = new FormData()
-  formData.append('file', file)
-  const res = await fetch(`${BASE_URL}/music/tracks/upload`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
-    body: formData,
-  })
-  if (!res.ok) throw new Error(`Upload failed: ${res.status}`)
-  return res.json()
+// Admin API calls use fetchAuthJSON — it handles the auth token internally
+// from the Supabase session. No explicit token argument needed.
+
+export function uploadTrackFile(file: File): Promise<{ audioUrl: string; filename: string }> {
+  // Upload is multipart, so we use fetch directly but still get the token from Supabase session.
+  // Import getSession from supabase.ts to get the current token.
+  return (async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    const formData = new FormData()
+    formData.append('file', file)
+    const res = await fetch(`${BASE_URL}/music/tracks/upload`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${session?.access_token ?? ''}` },
+      body: formData,
+    })
+    if (!res.ok) throw new Error(`Upload failed: ${res.status}`)
+    return res.json()
+  })()
 }
 
-export async function createTrack(data: { title: string; audioUrl: string; durationSeconds?: number; trackOrder: number }, token: string): Promise<Track> {
-  const res = await fetch(`${BASE_URL}/music/tracks`, {
+export function createTrack(data: { title: string; audioUrl: string; durationSeconds?: number; trackOrder: number }): Promise<Track> {
+  return fetchAuthJSON<Track>('/music/tracks', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
     body: JSON.stringify(data),
   })
-  if (!res.ok) throw new Error(`Create track failed: ${res.status}`)
-  return res.json()
 }
 
-export async function deleteTrack(id: string, token: string): Promise<void> {
-  const res = await fetch(`${BASE_URL}/music/tracks/${id}`, {
-    method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (!res.ok) throw new Error(`Delete track failed: ${res.status}`)
+export function deleteTrack(id: string): Promise<void> {
+  return fetchAuthJSON<void>(`/music/tracks/${id}`, { method: 'DELETE' })
 }
 ```
 
@@ -967,9 +972,11 @@ Structure and flow:
 4. **Upload flow (on submit):**
    ```
    a. Set loading state, disable form
-   b. Call uploadTrackFile(file, token) --- uploads file to Supabase Storage, returns { audioUrl }
+   b. Call uploadTrackFile(file) --- uploads file to Supabase Storage, returns { audioUrl }
+      (no token argument — fetchAuthJSON handles auth internally from the Supabase session)
    c. Calculate duration: create a temporary Audio element, load the file as ObjectURL, read duration on 'loadedmetadata'
-   d. Call createTrack({ title, audioUrl, durationSeconds: Math.round(duration), trackOrder }, token)
+   d. Call createTrack({ title, audioUrl, durationSeconds: Math.round(duration), trackOrder })
+      (no token argument — same reason as above)
    e. On success: close modal, call onUploadComplete() to trigger refetch
    f. On error: show error message in the form (red text, --color-prism-pink)
    ```
