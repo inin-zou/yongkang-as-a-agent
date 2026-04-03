@@ -100,7 +100,7 @@
   text-transform: uppercase;
   letter-spacing: 0.15em;
   border-radius: var(--radius-md); /* 8px — interactive element */
-  cursor: none;
+  cursor: pointer;
   transition: background 0.2s ease, color 0.2s ease;
 }
 
