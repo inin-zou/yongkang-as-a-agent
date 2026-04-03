@@ -22,7 +22,7 @@ type Hackathon struct {
 	Name        string     `json:"name"`
 	City        string     `json:"city,omitempty"`
 	Country     string     `json:"country,omitempty"`
-	Coordinates [2]float64 `json:"coordinates,omitempty"`
+	Coordinates *[2]float64 `json:"coordinates,omitempty"`
 	IsRemote    bool       `json:"isRemote,omitempty"`
 	ProjectName string     `json:"projectName"`
 	ProjectSlug string     `json:"projectSlug,omitempty"`
