@@ -1,51 +1,40 @@
-import type { CSSProperties } from 'react'
 import ContactForm from '../components/contact/ContactForm'
-import SocialLinks from '../components/contact/SocialLinks'
-
-const pageStyle: CSSProperties = {
-  padding: 'var(--space-lg)',
-  maxWidth: 640,
-  animation: 'fadeInFromBlur 0.6s ease forwards',
-}
-
-const sectionHeaderStyle: CSSProperties = {
-  fontFamily: 'var(--font-mono)',
-  fontSize: '0.85rem',
-  textTransform: 'uppercase',
-  letterSpacing: '0.1em',
-  color: 'var(--color-ink-muted)',
-  marginBottom: 'var(--space-lg)',
-  marginTop: 0,
-}
-
-const textureDividerStyle: CSSProperties = {
-  fontFamily: 'var(--font-mono)',
-  fontSize: '0.75rem',
-  color: 'var(--color-ink-faint)',
-  opacity: 0.2,
-  letterSpacing: 1,
-  whiteSpace: 'nowrap',
-  overflow: 'hidden',
-  margin: 'var(--space-xl) 0',
-  userSelect: 'none',
-}
 
 export default function ContactPage() {
   return (
-    <div style={pageStyle}>
-      {/* Social links section */}
-      <SocialLinks />
+    <div className="editor-page">
+      {/* Editor meta */}
+      <div className="editor-meta">Signal channels — always open</div>
 
-      {/* Texture divider */}
-      <div style={textureDividerStyle} aria-hidden="true">
-        {'|'.repeat(120)}
-      </div>
+      {/* Title */}
+      <h1 className="editor-title">Contact</h1>
 
-      {/* Contact form section */}
-      <section>
-        <h2 style={sectionHeaderStyle}>Leave a Message</h2>
+      {/* Content — reads like a document */}
+      <div className="editor-content">
+        <p className="editor-label">Direct Channels</p>
+        <ul className="editor-list">
+          <li>
+            <a href="mailto:yongkang.zou1999@gmail.com" data-interactive>
+              yongkang.zou1999@gmail.com
+            </a>
+          </li>
+          <li>
+            <a href="https://github.com/inin-zou" target="_blank" rel="noopener noreferrer" data-interactive>
+              github.com/inin-zou
+            </a>
+          </li>
+          <li>
+            <a href="https://www.linkedin.com/in/yongkang-zou" target="_blank" rel="noopener noreferrer" data-interactive>
+              linkedin.com/in/yongkang-zou
+            </a>
+          </li>
+        </ul>
+
+        <div className="editor-divider" />
+
+        <p className="editor-label">Leave a Message</p>
         <ContactForm />
-      </section>
+      </div>
     </div>
   )
 }
