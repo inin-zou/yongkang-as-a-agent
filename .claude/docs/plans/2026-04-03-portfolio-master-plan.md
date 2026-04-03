@@ -2,35 +2,46 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build Yongkang's portfolio site as a Go + React monorepo with architectural file-system aesthetic, prismatic iridescent color accents, and data-driven content.
+**Goal:** Build Yongkang's portfolio as a Go + React monorepo. Landing page with Temporal Anomaly ribbons + Symmetry Breaking ticket. Inner pages use Note App file system (.md tabs). Supabase for auth, blog, feedback, and music storage.
 
-**Architecture:** Go backend serves JSON data via REST API. React/TS SPA consumes API, renders pages with Three.js 3D scenes, COORDINATE-style grid layout, and glassmorphism effects. Content lives in JSON files — no database initially.
+**Architecture:** Go backend serves static JSON data + proxies Supabase for dynamic content. React/TS SPA with Three.js, GSAP, Mapbox.
 
-**Tech Stack:** Go (chi router), React 19, Vite, Tailwind CSS, Three.js, @react-three/fiber, GSAP, Mapbox GL JS, TanStack Query, React Router v7
+**Tech Stack:** Go (chi), React 19, Vite, Tailwind, Three.js, GSAP, Mapbox GL JS, Supabase (Auth + DB + Storage), TanStack Query
 
 ---
 
 ## Phase Overview
 
-| Phase | Name | Description | Depends On |
-|-------|------|-------------|------------|
-| 1 | **Foundation** | Go backend + React scaffold + theme + grid layout + routing + data files | None |
-| 2 | **Landing Page** | Three.js point cloud + blur-reveal + hero + scroll-to-grid transition | Phase 1 |
-| 3 | **About Page** | Skills grid + trajectory blocks + music section | Phase 1 |
-| 4 | **Projects Page** | Ticket-style cards + filters + detail view + glassmorphism | Phase 1 |
-| 5 | **Hackathon Map & Timeline** | Mapbox map + GSAP timeline animation + data ribbons | Phase 3 |
-| 6 | **Contact + Polish** | Contact form + responsive + performance + deploy | Phase 1 |
+| Phase | Name | Description | Status |
+|-------|------|-------------|--------|
+| 1 | **Foundation** | Go backend + React scaffold + theme + grid + routing + data | DONE |
+| 2 | **File System Shell** | Refactor to Note App layout with .md tabs, sidebar + panel | TODO |
+| 3 | **Landing Page** | Temporal Anomaly ribbons (prismatic) + Symmetry Breaking ticket + transition | TODO |
+| 4 | **SOUL.md + CONTACT.md** | Brief intro page + contact form | TODO |
+| 5 | **SKILL.md** | GSAP progressive animation + resume + hackathon map + certs | TODO |
+| 6 | **Supabase Integration** | Auth, blog posts table, feedback table, music storage | TODO |
+| 7 | **MEMORY.md** | Blog system + admin upload + visitor feedback | TODO |
+| 8 | **MUSIC.md** | Music player + audio visualizer ribbons + track storage | TODO |
+| 9 | **Polish + Deploy** | Responsive, glassmorphism, performance, Vercel + Fly.io + domain | TODO |
 
-**Phases 2, 3, 4 can run in parallel after Phase 1 completes.**
-**Phase 5 depends on Phase 3 (it's a section within the About page).**
-**Phase 6 runs last.**
+**Dependencies:**
+- Phase 2 depends on Phase 1 (done)
+- Phase 3 depends on Phase 2 (needs the transition target)
+- Phases 4, 5 can run in parallel after Phase 2
+- Phase 6 is independent (infra setup)
+- Phases 7, 8 depend on Phase 2 + Phase 6
+- Phase 9 runs last
+
+**Parallelizable after Phase 2:**
+- Phase 3 (landing) + Phase 4 (soul/contact) + Phase 5 (skills) + Phase 6 (supabase) can all run concurrently
 
 ---
 
-## Phase 1: Foundation
+## Phase 1: Foundation — COMPLETED
 
 See: `2026-04-03-phase1-foundation.md`
 
-## Phase 2-6: TBD
+Backend: Go API serving all static data (projects, hackathons, experience, skills, music artist info)
+Frontend: React SPA with grid layout, rulers, cursor, tab navigation, 4 pages with live API data
 
-Written after Phase 1 is implemented and validated. Each phase gets its own plan document.
+## Phases 2-9: Detailed plans written per-phase before execution

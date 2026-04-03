@@ -3,136 +3,208 @@
 ## Visitor Journey
 
 The journey mirrors discovering an agent:
-1. **Detect a signal** (landing) — something is here
-2. **Explore what it does** (skills, projects) — breadth and depth revealed
-3. **Understand who's behind it** (story, journey) — the human context
-4. **Reach out** (contact) — connection
+1. **Detect a signal** (landing) — prismatic data ribbons pulse, a ticket appears
+2. **Access the file system** (click ticket) — the agent's dossier opens
+3. **Browse the files** (.md tabs) — each tab reveals a facet of the agent
+4. **Leave a mark** (feedback) or **reach out** (contact)
 
 ## Site Map
 
 ```
-/                   → Landing (The Signal)
-/about              → The Agent's Story (Trajectory + Dual Nature)
-  ├── #arsenal      → Skills/Domains grid
-  ├── #deployments  → Hackathon map + timeline animation
-  ├── #trajectory   → Work experience as skill assembly
-  └── #music        → The Other Side (inhibitor)
-/projects           → Project Database (filterable grid)
-/projects/:slug     → Individual project detail
-/contact            → Reach the Agent
+/                       → Landing (Temporal Anomaly ribbons + Symmetry Breaking ticket)
+/files                  → File System (Note App layout)
+  ├── SOUL.md           → Brief intro — who is the agent
+  ├── SKILL.md          → Skills (GSAP progressive animation) + sub-items:
+  │   ├── RESUME        → Embedded CV / experience timeline
+  │   ├── HACKATHONS    → Map + timeline animation
+  │   └── CERTIFICATIONS → Certs + education
+  ├── MEMORY.md         → Blog posts + visitor feedback
+  ├── CONTACT.md        → Contact info + form
+  └── MUSIC.md          → Music player + artist page
 ```
 
 ## Page Breakdown
 
 ### 1. Landing — "The Signal" (/)
 
-**Purpose:** First impression. Atmospheric entry that draws the visitor in.
+**Purpose:** First impression. Atmospheric, cinematic. The visitor encounters the agent's credentials before entering.
 
-**Reference:** LUMO Studios adapted
+**References:** Temporal Anomaly (background) + Symmetry Breaking (ticket)
 
 **Structure:**
-- Grey void background
-- 3D particle/point cloud materializing in prismatic iridescent colors — "the signal forming"
-- Blur-reveal interaction on cursor — content is there but blurred, mouse movement "declassifies" it (like wiping dust off a filed document)
-- Hero text: Name + tagline ("Creative Technologist. 9x Hackathon Winner. Ships in 20 hours.")
-- Minimal UI chrome: version number, coordinates, status indicator
-- On scroll → atmospheric void transitions into the COORDINATE grid/file system
+- **Background layer:** Temporal Anomaly data ribbons animated across the viewport, rendered in prismatic iridescent palette (pinks, corals, teals, mints, lavenders) instead of red/purple/cyan. Flowing, pulsing, atmospheric.
+- **Foreground layer:** Symmetry Breaking ticket/pass centered in upper portion of viewport.
+  - Left/visual zone: halftone shader or prismatic particle effect
+  - Right/data zone: agent credentials
 
-**The landing is the cover of the file. Scroll, and you're inside it.**
+**Ticket content (draft):**
+```
+AGENT       > YONGKANG ZOU
+CODENAME    > inhibitor
+BASE        > PARIS, FR
+CLEARANCE   > ALL DOMAINS
 
-### 2. The Agent's Story (/about)
+MISSIONS    > 24
+WINS        > 9
+SPEED       > 0 → DEMO < 20H
 
-**Purpose:** Tell the assembling narrative. Reframe the career as intentional skill-building.
+            [ ACCESS FILE SYSTEM ]
+```
 
-**Layout:** Single scrolling page with sections, file-system grid as structural backbone.
+**Transition on click "ACCESS FILE SYSTEM":**
+- Data ribbons converge/collapse inward
+- Ticket morphs into the Note App tab system
+- Grid/rulers fade in from edges
+- First tab (SOUL.md) becomes active
 
-#### Section: Arsenal (Skills/Domains)
-- Structured grid (COORDINATE-inspired) showing skill domains
-- NOT a flat tag cloud — each domain has context: where it was battle-tested
-- Categories: AI/ML, LLM Frameworks, Data & Visualization, Cloud, DevOps, Frontend, Backend, Databases
-- Hover interaction → prismatic color bleeds in
+### 2. File System — Note App Layout (/files)
 
-#### Section: Field Deployments (Hackathons)
-- **Playable map + timeline animation**
-- World map (primarily Europe) with pins for each hackathon city (Stockholm, Paris, Berlin, MIT/Cambridge, etc.)
-- Online/remote hackathons (no physical location) shown in a "REMOTE" sidebar alongside the map, not as pins
-- Timeline scrubber at bottom (inspired by Temporal Anomaly ruler)
-- Auto-plays chronologically or user can scrub
-- Each pin lights up with: date, hackathon name, project, result
-- Domain tags visible on each entry → visually demonstrates breadth
-- The map sits ON the grid, with ruler coordinates marking cities and dates
-- Feels like a strategic operations map in a field dossier
-- Stats summary computed from data at render time (not hardcoded). "Win" = 1st, 2nd, 3rd place, or Community Win. Finalists and funding are separate indicators.
+**Purpose:** The core navigation shell. All content lives here as `.md` files.
 
-#### Section: Trajectory (Work Experience)
-- NOT a resume list
-- Each role is a narrative block: what skill was assembled
-- Framed as progression:
-  - CITIC Securities → analytical thinking, financial modeling
-  - Smart Gadget Home → ML foundations, optimization
-  - Societe Generale → enterprise AI, RAG systems
-  - Misogi Labs → multi-agent orchestration, drug discovery
-  - Mozart AI → creative AI, music video generation (Oct 2025 - Jan 2026)
-  - Epiminds → marketing AI (Feb 2026 - Mar 2026, team restructured)
-- These are sequential — Mozart AI ended before Epiminds started.
-- The "job-shifting" becomes visibly intentional — each step builds on the last
+**Reference:** Note App (tabs + sidebar + editor panel)
 
-#### Section: The Other Side (Music)
-- The moment the grey surface cracks open and full iridescence comes through
-- Artist name: inhibitor (indie RnB)
-- Platform links: Spotify, Douyin, NetEase (external embeds or links — no self-hosted audio player in v1, since tracks are on streaming platforms)
-- Gallery photos in 3D arrangement (Vortex Portfolio reference)
-- Brief but impactful — proves the dual nature
+**Layout:**
+- **Top:** Tabs styled as `.md` file tabs (trapezoid shape from Note App)
+  - `SOUL.md` | `SKILL.md` | `MEMORY.md` | `CONTACT.md` | `MUSIC.md`
+- **Left sidebar:** Note-items within the active tab (context-dependent)
+- **Right panel:** Main content area (the "editor" pane from Note App)
+- Grid background + rulers visible behind everything
+- Crosshair cursor active
 
-### 3. Projects (/projects)
+### 3. SOUL.md — Brief Intro
 
-**Purpose:** Browsable, filterable project database.
+**Purpose:** First file the visitor sees. Quick, impactful.
 
-**Layout:** Grid of project cards with category tabs.
+**Sidebar:** None (or minimal — just a single "README" item)
 
-**Tabs:** ALL | FAVORITE | HACKATHON | INDUSTRY | ACADEMIC | SIDE
+**Content panel:**
+- Name: Yongkang ZOU
+- One-paragraph thesis: creative technologist, assembling skills across domains, artist × engineer
+- Key stats: hackathon wins, current status, location
+- Profile photo (optional, atmospheric — not a corporate headshot)
+- Links to other tabs as "see also: SKILL.md, MEMORY.md"
 
-**Card design:** Symmetry Breaking ticket/pass aesthetic
-- Left/top: visual (project screenshot or generated thumbnail)
-- Right/bottom: structured data (title, date, tags, result, links)
-- Category color coding via prismatic accent (not neon)
+### 4. SKILL.md — Skills + Resume + Hackathons
 
-**Project detail (/projects/:slug):**
-- Full description with feature highlights
-- Tech stack breakdown
-- Links (GitHub, Demo, DevPost)
-- Related projects (same domain)
+**Purpose:** Show the agent's capabilities with progressive reveal animation.
 
-### 4. Contact (/contact)
+**Sidebar note-items:**
+```
+├── SKILLS (default view)    → GSAP progressive skill animation
+├── RESUME                   → Experience timeline
+├── HACKATHONS               → Map + timeline
+└── CERTIFICATIONS           → Certs + education
+```
 
-**Purpose:** Invite connection. Minimal, warm.
+#### SKILLS (main view — default)
+- GSAP-powered progressive animation: skill domains appear one at a time with staggered timing
+- Within each domain, individual skills "materialize" like tokens being generated
+- Each skill domain is a content card (sharp corners, Note App style)
+- `battleTested` references shown as subtle annotations below each skill
+- Hover → prismatic color bleeds in
 
-**Content:**
+#### RESUME (note-item)
+- Experience timeline in the right panel
+- Each role as a narrative block: what skill was assembled
+- Framed as progression: CITIC → Smart Gadget → SocGen → Misogi → Mozart → Epiminds
+- Sequential timeline — each step builds on the last
+
+#### HACKATHONS (note-item)
+- Interactive map (Mapbox) + GSAP timeline animation
+- World map with pins (primarily Europe + MIT/USA)
+- Remote hackathons in a "REMOTE" section alongside map
+- Timeline scrubber at bottom
+- Auto-plays or user scrubs
+- Stats computed from data at render time
+
+#### CERTIFICATIONS (note-item)
+- Education: Paris Dauphine-PSL, Paris-Saclay, Toulouse
+- Chemistry Olympiad
+- Coursera ML in Production, HuggingFace AI Agents certificate
+
+### 5. MEMORY.md — Blog + Feedback
+
+**Purpose:** The agent's memory log. Your thoughts + visitor notes.
+
+**Sidebar note-items:**
+```
+├── 2026-03: Stockholm Hackathon    → Blog post
+├── 2026-02: Joining Epiminds       → Blog post
+├── 2025-12: 9th Win                → Blog post
+├── ...
+└── [ LEAVE A NOTE ]                → Feedback form
+```
+
+#### Blog Posts
+- Standard blog format: date, title, article body with embedded images
+- Clean readable text in the Note App editor panel style
+- Stored in Supabase `posts` table
+- **Admin only:** When logged in (Supabase auth, your account only), a "+ NEW ENTRY" button appears and the editor panel becomes writable. No one else can create/edit posts.
+- Scalable for more users in future (role-based auth)
+
+#### Visitor Feedback ("LEAVE A NOTE")
+- A note-item at the bottom of the sidebar
+- Opens a simple form: name, message, LinkedIn URL (optional)
+- Stored in Supabase `feedback` table
+- Visible to you only (admin view) or optionally displayed as a "guestbook" section
+
+### 6. CONTACT.md — Contact Info
+
+**Purpose:** Invite connection. Clean, minimal.
+
+**Sidebar:** None needed — single view.
+
+**Content panel:**
 - Email: yongkang.zou1999@gmail.com
 - GitHub: github.com/inin-zou
 - LinkedIn: linkedin.com/in/yongkang-zou
-- Simple contact form (name, email, message)
-- The grey lifts slightly here — more warmth, inviting
+- Simple contact form (name, email, message + honeypot)
+- Social links grid-aligned
+
+### 7. MUSIC.md — Music Player + Artist Page
+
+**Purpose:** The artist side. Full iridescence moment.
+
+**References:** Temporal Anomaly (data ribbons as audio visualizer)
+
+**Layout:**
+- **Background element:** Temporal Anomaly data ribbons reused as audio visualizer — prismatic ribbons react to audio playback
+- **Vertical photo:** Image of Yongkang singing, embedded in the page (provided later)
+- **Sidebar note-items:** Track list (click to play)
+  ```
+  ├── Track 1: 失眠
+  ├── Track 2: Inhibitor
+  └── ...
+  ```
+- **Right panel:** Artist bio, genre, status, platform links (Spotify, Douyin, NetEase)
+- **Mini player:** Bottom of the MUSIC.md panel (contained, not global). Play/pause, progress bar, track name.
+- **Audio files:** Stored in Supabase Storage, streamed on play
+- **Admin:** Can upload new tracks
 
 ## Navigation
 
-**Primary nav:** Tabs at the top (file-system drawer metaphor)
-- About | Projects | Contact
-- Possibly: a "file path" breadcrumb showing current location (e.g., `/agent/deployments/`)
+**Primary nav:** `.md` file tabs at the top (Note App trapezoid style)
+- `SOUL.md` | `SKILL.md` | `MEMORY.md` | `CONTACT.md` | `MUSIC.md`
 
-**Mobile:** Bottom navigation bar or hamburger, maintaining the file-system metaphor
+**Secondary nav:** Sidebar note-items within each tab (context-dependent)
+
+**File path breadcrumb:** Show current location, e.g., `~/agent/SKILL.md/HACKATHONS`
+
+**Mobile:** Bottom tab bar with .md file names, sidebar becomes a dropdown/drawer
 
 ## Interaction Patterns
 
-- **Blur-reveal on cursor** (landing page) — declassifying content
-- **Grid-snap cursor** with crosshair — throughout the site, subtle
-- **Scroll-triggered section reveals** — content emerges as you scroll, not everything visible at once
-- **Prismatic color on hover/interaction** — grey → iridescent on engagement
-- **Map timeline scrubber** — playable animation for hackathon journey
-- **3D gallery rotation** — for photos/music section (Vortex reference)
+- **Landing ribbons** — Temporal Anomaly data ribbons in prismatic palette, always moving
+- **Ticket entry** — Click to transition into file system
+- **GSAP progressive reveal** — Skills materialize like token generation
+- **Grid-snap cursor** with crosshair — throughout file system
+- **Prismatic color on hover** — grey → iridescent on engagement
+- **Map timeline scrubber** — playable hackathon animation
+- **Audio-reactive ribbons** — Temporal Anomaly ribbons respond to music playback in MUSIC.md
+- **Frosted glass panels** — Used on top of photos (hackathon pins, project cards, music page)
 
 ## Responsive Strategy
 
-- **Desktop:** Full file-system grid, rulers visible, cursor interactions
-- **Tablet:** Grid simplifies, ruler markers reduce, touch-friendly
-- **Mobile:** Single column, tabs become bottom nav, map becomes vertical timeline, no cursor effects
+- **Desktop:** Full file system with sidebar + panel, rulers, cursor effects
+- **Tablet:** Sidebar collapses to top selector, panel takes full width
+- **Mobile:** Single column, tabs become bottom nav with .md names, no cursor effects, map becomes vertical timeline
