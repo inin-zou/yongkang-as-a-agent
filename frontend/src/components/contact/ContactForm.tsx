@@ -170,7 +170,7 @@ export default function ContactForm() {
           fontSize: '0.85rem',
           textTransform: 'uppercase',
           letterSpacing: '0.1em',
-          cursor: 'none',
+          cursor: 'pointer',
           alignSelf: 'flex-start',
           opacity: isSending ? 0.6 : 1,
           transition: 'opacity 0.15s ease',
