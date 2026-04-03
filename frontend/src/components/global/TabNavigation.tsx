@@ -1,12 +1,9 @@
-import { NavLink } from 'react-router-dom'
-
-const tabs = [
-  { label: 'About', to: '/about' },
-  { label: 'Projects', to: '/projects' },
-  { label: 'Contact', to: '/contact' },
-]
+import { NavLink, useLocation } from 'react-router-dom'
+import { FILE_TABS } from '../navigation/sidebarConfig'
 
 export default function TabNavigation() {
+  const location = useLocation()
+
   return (
     <nav
       style={{
@@ -17,45 +14,52 @@ export default function TabNavigation() {
         zIndex: 50,
       }}
     >
-      {tabs.map((tab, index) => (
-        <NavLink
-          key={tab.to}
-          to={tab.to}
-          style={({ isActive }) => ({
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: 36,
-            padding: '0 24px',
-            fontFamily: 'var(--font-mono)',
-            fontSize: 14,
-            textTransform: 'uppercase' as const,
-            letterSpacing: '0.1em',
-            textDecoration: 'none',
-            clipPath: 'polygon(10% 0, 90% 0, 100% 100%, 0% 100%)',
-            borderRadius: 'var(--radius-none)',
-            marginRight: -12,
-            cursor: 'none',
-            transition: 'transform 0.15s ease, background 0.15s ease',
-            ...(isActive
-              ? {
-                  zIndex: 3,
-                  background: 'var(--color-surface-0)',
-                  color: 'var(--color-ink)',
-                  fontWeight: 600,
-                }
-              : {
-                  zIndex: 2 - index,
-                  background: 'var(--color-surface-2)',
-                  color: 'var(--color-ink-muted)',
-                  fontWeight: 400,
-                }),
-          })}
-          data-interactive
-        >
-          {tab.label}
-        </NavLink>
-      ))}
+      {FILE_TABS.map((tab, index) => {
+        const isActive =
+          location.pathname === tab.basePath ||
+          location.pathname.startsWith(tab.basePath + '/')
+
+        return (
+          <NavLink
+            key={tab.id}
+            to={tab.basePath}
+            aria-current={isActive ? 'page' : undefined}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: 36,
+              padding: '0 24px',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 14,
+              textTransform: 'uppercase' as const,
+              letterSpacing: '0.1em',
+              textDecoration: 'none',
+              clipPath: 'polygon(10% 0, 90% 0, 100% 100%, 0% 100%)',
+              borderRadius: 'var(--radius-none)',
+              marginRight: -12,
+              cursor: 'none',
+              transition: 'transform 0.15s ease, background 0.15s ease',
+              ...(isActive
+                ? {
+                    zIndex: 3,
+                    background: 'var(--color-surface-0)',
+                    color: 'var(--color-ink)',
+                    fontWeight: 600,
+                  }
+                : {
+                    zIndex: 2 - index,
+                    background: 'var(--color-surface-2)',
+                    color: 'var(--color-ink-muted)',
+                    fontWeight: 400,
+                  }),
+            }}
+            data-interactive
+          >
+            {tab.label}
+          </NavLink>
+        )
+      })}
     </nav>
   )
 }
