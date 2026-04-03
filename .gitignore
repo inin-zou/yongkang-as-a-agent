@@ -1,1 +1,20 @@
+# Dependencies
+frontend/node_modules/
+
+# Build output
+frontend/dist/
+backend/bin/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Superpowers
 .superpowers/
