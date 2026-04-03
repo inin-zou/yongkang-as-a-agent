@@ -1,0 +1,93 @@
+[
+  {
+    "title": "LLM & AI",
+    "icon": "brain",
+    "subcategories": [
+      {
+        "name": "Fine-Tuning",
+        "skills": ["LoRA", "QLoRA", "DPO"]
+      },
+      {
+        "name": "Model Optimization",
+        "skills": ["Pruning", "Quantization", "Knowledge Distillation"]
+      },
+      {
+        "name": "Generative AI",
+        "skills": ["Transformers", "Diffusion Models"]
+      }
+    ],
+    "battleTested": ["LyricMind", "Societe Generale"]
+  },
+  {
+    "title": "LLM Frameworks",
+    "icon": "layers",
+    "skills": ["LangChain", "LangGraph", "LlamaIndex", "SmolAgent", "AutoGen"],
+    "battleTested": ["Misogi Labs", "OnTrack", "Le Scribe Royal"]
+  },
+  {
+    "title": "AI Providers",
+    "icon": "cloud",
+    "skills": ["OpenAI", "Anthropic", "Gemini", "Mistral", "ElevenLabs", "HuggingFace", "vLLM"],
+    "battleTested": ["Deep Search API", "BuzzLab", "VideoStack"]
+  },
+  {
+    "title": "Data & Visualization",
+    "icon": "chart",
+    "subcategories": [
+      {
+        "name": "Visualization",
+        "skills": ["Tableau", "Power BI", "Matplotlib", "Seaborn"]
+      },
+      {
+        "name": "Big Data",
+        "skills": ["Hadoop", "NiFi", "Kafka", "Spark", "Airflow"]
+      }
+    ],
+    "battleTested": ["CITIC Securities", "Smart Gadget Home"]
+  },
+  {
+    "title": "ML Frameworks",
+    "icon": "cpu",
+    "skills": ["PyTorch", "TensorFlow"],
+    "battleTested": ["ZenQ", "Movie Recommendation"]
+  },
+  {
+    "title": "Databases & Storage",
+    "icon": "database",
+    "skills": ["Qdrant", "Weaviate", "Supabase", "ElasticSearch", "PostgreSQL", "MongoDB"],
+    "battleTested": ["Societe Generale", "Wiggly", "GitBeat"]
+  },
+  {
+    "title": "Cloud Platforms",
+    "icon": "server",
+    "subcategories": [
+      {
+        "name": "AWS",
+        "skills": ["EC2", "S3", "Lambda"]
+      },
+      {
+        "name": "GCP",
+        "skills": ["Vertex AI"]
+      }
+    ],
+    "battleTested": ["OnTrack", "Societe Generale"]
+  },
+  {
+    "title": "DevOps",
+    "icon": "git",
+    "skills": ["GitHub Actions", "Docker", "Kubernetes"],
+    "battleTested": ["Misogi Labs", "Mozart AI"]
+  },
+  {
+    "title": "Backend",
+    "icon": "terminal",
+    "skills": ["Python", "JavaScript", "TypeScript", "Go"],
+    "battleTested": ["CITIC Securities", "Smart Gadget Home", "Societe Generale", "Misogi Labs", "Mozart AI", "Epiminds"]
+  },
+  {
+    "title": "Frontend",
+    "icon": "layout",
+    "skills": ["Next.js", "React", "TailwindCSS", "Vue.js", "Three.js"],
+    "battleTested": ["Wiggly", "GitBeat", "Portfolio"]
+  }
+]

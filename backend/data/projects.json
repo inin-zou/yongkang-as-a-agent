@@ -1,0 +1,190 @@
+[
+  {
+    "slug": "dianoia",
+    "title": "Dianoia – AI Crime Scene Investigation",
+    "description": "AI-powered crime scene investigation tool using spatial intelligence to reconstruct and analyze 3D crime scenes, enabling investigators to explore evidence spatially.",
+    "tags": ["Spatial AI", "3D", "Crime Scene", "Solo"],
+    "category": "hackathon",
+    "codeUrl": "https://github.com/inin-zou/Dianoia",
+    "date": "2026-03",
+    "result": "3rd place (solo)"
+  },
+  {
+    "slug": "sherlockos",
+    "title": "SherlockOS – Spatio-temporal Deduction",
+    "description": "A spatio-temporal deduction engine powered by Gemini that reasons across space and time to solve complex investigative scenarios.",
+    "tags": ["Gemini", "Spatial", "Deduction Engine"],
+    "category": "hackathon",
+    "codeUrl": "https://github.com/inin-zou/SherlockOS",
+    "date": "2026-02"
+  },
+  {
+    "slug": "rewind",
+    "title": "Rewind – Memory Revisiting in 3D",
+    "description": "An immersive 3D experience that lets users revisit and explore memories through spatial AI, reconstructing past moments in navigable 3D environments.",
+    "tags": ["3D", "Memory", "Spatial AI"],
+    "category": "hackathon",
+    "codeUrl": "https://github.com/inin-zou/Rewind",
+    "date": "2026-02"
+  },
+  {
+    "slug": "videostack",
+    "title": "VideoStack – AI Video Platform",
+    "description": "AI-powered video creation platform leveraging ElevenLabs for voice synthesis and content generation, enabling rapid professional video production.",
+    "tags": ["AI Video", "ElevenLabs", "Content Creation"],
+    "category": "hackathon",
+    "codeUrl": "https://github.com/VideoStack-PE/videostack-elevenlabs",
+    "date": "2025-12",
+    "result": "87K EUR early interest funding"
+  },
+  {
+    "slug": "deep-search-api",
+    "title": "Eyed Search – Deep Research Platform",
+    "description": "A deep research platform built with Anthropic Claude that performs multi-step web research, synthesizing information from multiple sources into comprehensive answers.",
+    "tags": ["TypeScript", "Anthropic Claude", "Search Engine", "LDM", "Deep Search API"],
+    "category": "hackathon",
+    "date": "2025-11",
+    "result": "1st place",
+    "isFavorite": true
+  },
+  {
+    "slug": "wiggly",
+    "title": "Wiggly – AI 3D T-shirt Design",
+    "description": "AI-powered 3D t-shirt design platform where users generate custom designs with AI and preview them on interactive 3D models rendered with Three.js.",
+    "tags": ["Next.js", "TypeScript", "Three.js", "FastAPI", "Blender", "Modal", "Weaviate"],
+    "category": "hackathon",
+    "codeUrl": "https://github.com/Konsequanzheng/wiggle",
+    "demoUrl": "https://www.youtube.com/watch?v=dTwpdjv4w4k",
+    "date": "2025-10"
+  },
+  {
+    "slug": "le-scribe-royal",
+    "title": "Le Scribe Royal – Versailles Guide",
+    "description": "An AI-powered guide for the Palace of Versailles using RAG and voice UI, providing accessible historical narratives through real-time conversational interactions.",
+    "tags": ["RAG", "Voice UI", "Query Planner", "Real-time APIs", "Accessibility"],
+    "category": "hackathon",
+    "codeUrl": "https://github.com/dorianlagadec/hackathoh-versailles",
+    "date": "2025-10",
+    "result": "3rd place"
+  },
+  {
+    "slug": "lyricmind",
+    "title": "LyricMind – Fine-tuned Lyric Generation",
+    "description": "A fine-tuned language model for generating song lyrics, trained with QLoRA on Qwen2.5-7B and refined using RLAIF-DPO alignment to produce emotionally resonant lyrics.",
+    "tags": ["Qwen2.5-7B", "QLoRA", "RLAIF-DPO", "LLaMA Factory", "Nebius", "Python"],
+    "category": "side",
+    "date": "2025-10",
+    "isFavorite": true
+  },
+  {
+    "slug": "gitbeat",
+    "title": "GitBeat – Repo to Music",
+    "description": "Transforms GitHub repositories into unique musical compositions using AI, analyzing code patterns and commit history to generate songs with Suno AI.",
+    "tags": ["AI Music", "GitHub API", "Suno AI", "Next.js 15", "Supabase", "Leaderboard"],
+    "category": "hackathon",
+    "codeUrl": "https://github.com/imbjdd/gitbeat",
+    "demoUrl": "https://gitbeat.vercel.app/",
+    "date": "2025-09",
+    "result": "Community Win"
+  },
+  {
+    "slug": "musixtral",
+    "title": "Musixtral – AI Music Production",
+    "description": "AI music production assistant powered by Mistral AI and MCP protocol, bridging AI capabilities with digital audio workstations for intelligent music creation workflows.",
+    "tags": ["MCP", "Mistral AI", "Music Production", "DAW", "AI Tools", "Vercel"],
+    "category": "hackathon",
+    "codeUrl": "https://github.com/inin-zou/Musixtral",
+    "date": "2025-09",
+    "isFavorite": true
+  },
+  {
+    "slug": "buzzlab",
+    "title": "BuzzLab – AI Brand Creation",
+    "description": "Multi-agent AI platform for automated brand creation, generating brand identities, marketing content, and promotional videos using CAMEL-AI orchestration.",
+    "tags": ["Multi-Agent", "CAMEL-AI", "Video Generation", "Next.js 15", "FastAPI", "AI Content"],
+    "category": "hackathon",
+    "codeUrl": "https://github.com/inin-zou/BuzzLab",
+    "date": "2025-09",
+    "result": "Finalist (VC phase)",
+    "isFavorite": true
+  },
+  {
+    "slug": "emohunter",
+    "title": "EmoHunter – Emotion Detection",
+    "description": "Emotion detection system combining iOS and Apple Watch biometric data with AI voice analysis and multi-agent reasoning for real-time mental health monitoring.",
+    "tags": ["iOS", "Apple Watch", "AI Voice Agent", "Biometric Data", "Multi-Agent", "Mental Health"],
+    "category": "hackathon",
+    "demoUrl": "https://cryptopond.xyz/arena/gallery/detail/fed26206-e11f-4c6b-86d4-c37896520e88",
+    "date": "2025-08",
+    "result": "1st place ($50K funding)",
+    "isFavorite": true
+  },
+  {
+    "slug": "servethevibe",
+    "title": "ServeTheVibe – Humming to Music",
+    "description": "A creative coding performance tool that transforms humming and vocal input into live-coded music using Strudel, bridging human expression with algorithmic composition.",
+    "tags": ["Live Coding", "Music Generation", "Strudel", "Creative Coding", "Performance"],
+    "category": "hackathon",
+    "demoUrl": "https://serve-the-vibe.vercel.app/",
+    "date": "2025-08",
+    "result": "3rd place (solo)",
+    "isFavorite": true
+  },
+  {
+    "slug": "ontrack",
+    "title": "OnTrack – Multi-Agent Study Planner",
+    "description": "Multi-agent AI study planner that uses LangChain and OpenSearch to create personalized learning paths, coordinating multiple AI agents to optimize study schedules.",
+    "tags": ["LangChain", "OpenSearch", "Claude 3.7", "Python", "AWS"],
+    "category": "hackathon",
+    "codeUrl": "https://github.com/inin-zou/ON-TRACKS-AI-Agents-Hackathon-",
+    "demoUrl": "https://devpost.com/software/on-tracks",
+    "date": "2025-04",
+    "result": "2nd place"
+  },
+  {
+    "slug": "healthodyssey",
+    "title": "HealthOdyssey – OneHealth Dashboard",
+    "description": "Comprehensive health dashboard integrating AI and AutoML for OneHealth data visualization and analysis, providing actionable insights across health metrics.",
+    "tags": ["AI", "ML", "Web Dashboard", "AutoML", "Flask"],
+    "category": "hackathon",
+    "codeUrl": "https://github.com/inin-zou/HealthOdyssey",
+    "date": "2025-04"
+  },
+  {
+    "slug": "zenq",
+    "title": "ZenQ – Quantum ML Framework",
+    "description": "Quantum machine learning framework implementing Quantum Convolutional Neural Networks with Perceval photonic simulator, bridging quantum computing and deep learning.",
+    "tags": ["Quantum ML", "QCNN", "Perceval", "PyTorch", "Python"],
+    "category": "hackathon",
+    "codeUrl": "https://github.com/inin-zou/ZenQ",
+    "date": "2024-01",
+    "result": "Finalist (2nd phase)"
+  },
+  {
+    "slug": "movie-rec",
+    "title": "Movie Recommendation System",
+    "description": "Ensemble-based movie recommendation system combining collaborative and content-based filtering using PyTorch, TensorFlow, and Surprise library.",
+    "tags": ["PyTorch", "TensorFlow", "Surprise", "Ensemble"],
+    "category": "academic",
+    "codeUrl": "https://github.com/inin-zou/MovieRecommendSystem",
+    "date": "2024-12"
+  },
+  {
+    "slug": "mealmate",
+    "title": "MealMate – AI Recipe Recommendations",
+    "description": "AI-powered recipe recommendation system using YOLOv5 for ingredient detection and Meta Llama with RAG for personalized recipe suggestions from available ingredients.",
+    "tags": ["YOLOv5", "Meta Llama", "PostgreSQL", "RAG"],
+    "category": "hackathon",
+    "codeUrl": "https://github.com/Lucine1998/Recipe-Recommandation",
+    "date": "2024-10"
+  },
+  {
+    "slug": "flappy-bird-rl",
+    "title": "Flappy Bird – Reinforcement Learning",
+    "description": "Reinforcement learning agent trained to play Flappy Bird using NEAT evolutionary algorithm, demonstrating neuroevolution for game AI.",
+    "tags": ["NEAT", "Pygame", "Evolutionary Algorithms"],
+    "category": "academic",
+    "codeUrl": "https://github.com/inin-zou/FlappyBird-ReinforcementLearning",
+    "date": "2024-09"
+  }
+]
