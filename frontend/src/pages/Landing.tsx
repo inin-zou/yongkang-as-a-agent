@@ -1,70 +1,75 @@
+import { useRef, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import * as THREE from 'three'
+import gsap from 'gsap'
+import RibbonScene from '../components/landing/RibbonScene'
+import TicketPass from '../components/landing/TicketPass'
+import { playExitTransition } from '../components/landing/LandingTransition'
+import { useReducedMotion } from '../hooks/useReducedMotion'
 
 export default function Landing() {
   const navigate = useNavigate()
+  const [isTransitioning, setIsTransitioning] = useState(false)
+  const ticketRef = useRef<HTMLDivElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const ribbonGroupRef = useRef<THREE.Group | null>(null)
+  const reducedMotion = useReducedMotion()
+
+  const handleAccess = useCallback(() => {
+    if (isTransitioning) return
+    setIsTransitioning(true)
+
+    if (reducedMotion) {
+      // Simple fade for reduced motion
+      gsap.to(document.body, {
+        opacity: 0,
+        duration: 0.2,
+        onComplete: () => {
+          navigate('/files/soul')
+          gsap.set(document.body, { opacity: 1 })
+        },
+      })
+      return
+    }
+
+    // Full cinematic transition
+    if (ticketRef.current && canvasRef.current && ribbonGroupRef.current) {
+      playExitTransition({
+        ticketEl: ticketRef.current,
+        canvasEl: canvasRef.current,
+        ribbonGroup: ribbonGroupRef.current,
+        onComplete: () => navigate('/files/soul'),
+      })
+    } else {
+      // Fallback: just navigate
+      navigate('/files/soul')
+    }
+  }, [navigate, isTransitioning, reducedMotion])
 
   return (
     <div
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: 'calc(100vh - var(--ruler-x-height))',
-        textAlign: 'center',
-        gap: 'var(--space-lg)',
+        position: 'relative',
+        width: '100vw',
+        height: '100vh',
+        overflow: 'hidden',
       }}
     >
-      <h1
-        style={{
-          fontFamily: 'var(--font-sans)',
-          fontSize: '4rem',
-          fontWeight: 300,
-          color: 'var(--color-ink)',
-          margin: 0,
-          letterSpacing: '-0.02em',
-        }}
-      >
-        YONGKANG ZOU
-      </h1>
-      <p
-        style={{
-          fontFamily: 'var(--font-mono)',
-          fontSize: '0.85rem',
-          color: 'var(--color-ink-muted)',
-          margin: 0,
-          maxWidth: '500px',
-        }}
-      >
-        Creative Technologist. 9x Hackathon Winner. Ships in 20 hours.
-      </p>
-      <button
-        onClick={() => navigate('/files/soul')}
-        style={{
-          padding: '1rem 2.5rem',
-          background: 'transparent',
-          border: '1px solid var(--color-ink)',
-          color: 'var(--color-ink)',
-          fontFamily: 'var(--font-mono)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.1em',
-          borderRadius: 'var(--radius-md)',
-          cursor: 'none',
-          fontSize: '0.85rem',
-          transition: 'background 0.2s ease, color 0.2s ease',
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background = 'var(--color-ink)'
-          e.currentTarget.style.color = 'var(--color-void)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'transparent'
-          e.currentTarget.style.color = 'var(--color-ink)'
-        }}
-        data-interactive
-      >
-        Access File System
-      </button>
+      {/* Layer 0: Three.js ribbons + particles */}
+      <RibbonScene
+        reducedMotion={reducedMotion}
+        ribbonGroupRef={ribbonGroupRef}
+        canvasRef={canvasRef}
+      />
+
+      {/* Layer 1: Ticket pass overlay */}
+      <TicketPass
+        onAccessClick={handleAccess}
+        ticketRef={ticketRef}
+        reducedMotion={reducedMotion}
+      />
+
+      {/* Layer 2: Noise overlay is rendered globally by LandingLayout */}
     </div>
   )
 }

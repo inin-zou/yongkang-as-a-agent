@@ -2,6 +2,8 @@ import { createBrowserRouter, RouterProvider, Navigate, useParams } from 'react-
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Layout from './components/global/Layout'
 import FileSystemLayout from './components/global/FileSystemLayout'
+import NoiseOverlay from './components/global/NoiseOverlay'
+import CrosshairCursor from './components/global/CrosshairCursor'
 import Landing from './pages/Landing'
 import SoulPage from './pages/SoulPage'
 import SkillPage from './pages/SkillPage'
@@ -10,6 +12,21 @@ import ContactPage from './pages/ContactPage'
 import MusicPage from './pages/MusicPage'
 
 const queryClient = new QueryClient()
+
+/**
+ * LandingLayout renders only the noise overlay and crosshair cursor
+ * — no grid background, no tab navigation, no margins.
+ * The landing page has its own full-viewport Three.js canvas.
+ */
+function LandingLayout() {
+  return (
+    <>
+      <NoiseOverlay />
+      <CrosshairCursor />
+      <Landing />
+    </>
+  )
+}
 
 /**
  * TabRouter resolves which page component to render based on the :tab param.
@@ -31,7 +48,7 @@ function TabRouter() {
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <Layout><Landing /></Layout>,
+    element: <LandingLayout />,
   },
   // Redirect bare /files to /files/soul
   {
