@@ -1,0 +1,237 @@
+[
+  {
+    "date": "2026.03",
+    "name": "TechEurope Stockholm",
+    "city": "Stockholm",
+    "country": "Sweden",
+    "coordinates": [59.33, 18.07],
+    "projectName": "Dianoia",
+    "projectSlug": "dianoia",
+    "result": "3rd place (solo)",
+    "solo": true,
+    "domain": "Spatial Intelligence"
+  },
+  {
+    "date": "2026.03",
+    "name": "Mistral Online",
+    "isRemote": true,
+    "projectName": "Ethos Studio",
+    "domain": "Emotion & Vision AI"
+  },
+  {
+    "date": "2026.02",
+    "name": "HackEurope",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "YourPath",
+    "domain": "Creative AI"
+  },
+  {
+    "date": "2026.02",
+    "name": "Gemini Hackathon",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "SherlockOS",
+    "projectSlug": "sherlockos",
+    "domain": "Spatial Intelligence"
+  },
+  {
+    "date": "2026.02",
+    "name": "TechEurope Paris",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "Rewind",
+    "projectSlug": "rewind",
+    "domain": "Spatial Intelligence"
+  },
+  {
+    "date": "2025.12",
+    "name": "Project ElevenLabs",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "VideoStack",
+    "projectSlug": "videostack",
+    "result": "87K EUR early interest funding",
+    "domain": "Creative AI"
+  },
+  {
+    "date": "2025.11",
+    "name": "Junction",
+    "city": "Helsinki",
+    "country": "Finland",
+    "coordinates": [60.17, 24.94],
+    "projectName": "Lumina",
+    "domain": "Healthcare & Biotech"
+  },
+  {
+    "date": "2025.10",
+    "name": "Entrepreneurs First",
+    "city": "London",
+    "country": "UK",
+    "coordinates": [51.51, -0.13],
+    "projectName": "Deep Search API",
+    "projectSlug": "deep-search-api",
+    "result": "1st place",
+    "domain": "LLM Infrastructure"
+  },
+  {
+    "date": "2025.10",
+    "name": "Big Berlin",
+    "city": "Berlin",
+    "country": "Germany",
+    "coordinates": [52.52, 13.41],
+    "projectName": "Wiggly",
+    "projectSlug": "wiggly",
+    "domain": "Creative AI"
+  },
+  {
+    "date": "2025.09",
+    "name": "Datacraft",
+    "city": "Versailles",
+    "country": "France",
+    "coordinates": [48.80, 2.12],
+    "projectName": "Le Scribe Royal",
+    "projectSlug": "le-scribe-royal",
+    "result": "3rd place",
+    "domain": "Creative AI"
+  },
+  {
+    "date": "2025.09",
+    "name": "Tech Europe Paris",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "GitBeat",
+    "projectSlug": "gitbeat",
+    "result": "Community Win",
+    "domain": "Music & Audio AI"
+  },
+  {
+    "date": "2025.09",
+    "name": "Mistral AI MCP",
+    "isRemote": true,
+    "projectName": "Musixtral",
+    "projectSlug": "musixtral",
+    "domain": "Music & Audio AI"
+  },
+  {
+    "date": "2025.09",
+    "name": "ShipItSunday",
+    "isRemote": true,
+    "projectName": "I Swear",
+    "domain": "Creative AI"
+  },
+  {
+    "date": "2025.08",
+    "name": "Hack Nation MIT",
+    "city": "Cambridge",
+    "country": "USA",
+    "coordinates": [42.36, -71.09],
+    "projectName": "BuzzLab",
+    "projectSlug": "buzzlab",
+    "result": "Finalist (VC phase)",
+    "domain": "Creative AI"
+  },
+  {
+    "date": "2025.08",
+    "name": "Pond Speedrun",
+    "isRemote": true,
+    "projectName": "EmoHunter",
+    "projectSlug": "emohunter",
+    "result": "1st place ($50K funding)",
+    "domain": "Emotion & Vision AI"
+  },
+  {
+    "date": "2025.07",
+    "name": "AMD Hackathon",
+    "isRemote": true,
+    "projectName": "vLLM speculative prefill",
+    "result": "Finalist",
+    "domain": "LLM Infrastructure"
+  },
+  {
+    "date": "2025.06",
+    "name": "RAISE Summit",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "ServeTheVibe",
+    "projectSlug": "servethevibe",
+    "result": "3rd place (solo)",
+    "solo": true,
+    "domain": "Music & Audio AI"
+  },
+  {
+    "date": "2025.06",
+    "name": "Dify Paris",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "Dify AI Agent",
+    "result": "1st place (solo)",
+    "solo": true,
+    "domain": "LLM Infrastructure"
+  },
+  {
+    "date": "2025.05",
+    "name": "Phagos",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "Genome Classification",
+    "domain": "Healthcare & Biotech"
+  },
+  {
+    "date": "2025.04",
+    "name": "From RAG to Agentic AI",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "OnTrack",
+    "projectSlug": "ontrack",
+    "result": "2nd place",
+    "domain": "LLM Infrastructure"
+  },
+  {
+    "date": "2025.02",
+    "name": "GeoAI Hack",
+    "isRemote": true,
+    "projectName": "InstaGeo",
+    "domain": "Geospatial ML"
+  },
+  {
+    "date": "2025.02",
+    "name": "Doctolib",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "HealthOdyssey",
+    "projectSlug": "healthodyssey",
+    "domain": "Healthcare & Biotech"
+  },
+  {
+    "date": "2024.11",
+    "name": "Quantum Challenge",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "ZenQ",
+    "projectSlug": "zenq",
+    "result": "Finalist (2nd phase)",
+    "domain": "Quantum Computing"
+  },
+  {
+    "date": "2024.11",
+    "name": "SpotOn Edge Device",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "Recipe Recommendation",
+    "projectSlug": "mealmate",
+    "domain": "Creative AI"
+  }
+]
