@@ -337,7 +337,6 @@ export default function RibbonScene({ reducedMotion, ribbonGroupRef, canvasRef }
       particleMaterial.dispose()
 
       renderer.dispose()
-      renderer.forceContextLoss()
 
       if (ribbonGroupRef) {
         ribbonGroupRef.current = null
