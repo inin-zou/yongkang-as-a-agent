@@ -26,8 +26,10 @@ export const FILE_TABS: TabConfig[] = [
     id: 'soul',
     label: 'SOUL.md',
     basePath: '/files/soul',
-    sidebarItems: [],
-    defaultItem: null,
+    sidebarItems: [
+      { id: 'readme', label: 'README', preview: 'Who is the agent', routeSegment: '' },
+    ],
+    defaultItem: 'readme',
   },
   {
     id: 'skill',
@@ -59,8 +61,11 @@ export const FILE_TABS: TabConfig[] = [
     id: 'contact',
     label: 'CONTACT.md',
     basePath: '/files/contact',
-    sidebarItems: [],
-    defaultItem: null,
+    sidebarItems: [
+      { id: 'channels', label: 'Channels', preview: 'Email, GitHub, LinkedIn', routeSegment: '' },
+      { id: 'message', label: 'Leave a Message', preview: 'Contact form', routeSegment: 'message' },
+    ],
+    defaultItem: 'channels',
   },
   {
     id: 'music',
