@@ -1,7 +1,5 @@
 import { type ReactNode } from 'react'
-import GridBackground from './GridBackground'
 import NoiseOverlay from './NoiseOverlay'
-import CrosshairCursor from './CrosshairCursor'
 
 interface LayoutProps {
   children: ReactNode
@@ -10,17 +8,8 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   return (
     <>
-      <GridBackground />
       <NoiseOverlay />
-      <CrosshairCursor />
-      <div
-        style={{
-          position: 'relative',
-          marginTop: 'var(--ruler-x-height)',
-          marginLeft: 'var(--ruler-y-width)',
-          zIndex: 1,
-        }}
-      >
+      <div style={{ position: 'relative', zIndex: 1 }}>
         {children}
       </div>
     </>
