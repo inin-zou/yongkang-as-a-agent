@@ -151,19 +151,6 @@ export default function GridBackground() {
         ))}
       </div>
 
-      {/* Corner piece */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: 'var(--ruler-y-width)',
-          height: 'var(--ruler-x-height)',
-          background: 'var(--color-surface-0)',
-          zIndex: 101,
-        }}
-      />
-
       {/* Coordinates display */}
       <div
         style={{
