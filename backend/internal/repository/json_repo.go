@@ -57,7 +57,7 @@ func (r *JSONRepository) GetProjectsByCategory(category string) ([]model.Project
 		return nil, err
 	}
 
-	var filtered []model.Project
+	filtered := make([]model.Project, 0)
 	for _, p := range projects {
 		if p.Category == category {
 			filtered = append(filtered, p)
