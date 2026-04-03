@@ -1,4 +1,5 @@
 import { type ReactNode } from 'react'
+import { Outlet } from 'react-router-dom'
 import GridBackground from './GridBackground'
 import NoiseOverlay from './NoiseOverlay'
 import CrosshairCursor from './CrosshairCursor'
@@ -6,10 +7,11 @@ import TabNavigation from './TabNavigation'
 
 interface LayoutProps {
   showTabs?: boolean
+  useOutlet?: boolean
   children?: ReactNode
 }
 
-export default function Layout({ showTabs = true, children }: LayoutProps) {
+export default function Layout({ showTabs = true, useOutlet = false, children }: LayoutProps) {
   return (
     <>
       <GridBackground />
@@ -25,7 +27,7 @@ export default function Layout({ showTabs = true, children }: LayoutProps) {
       >
         {showTabs && <TabNavigation />}
         <div style={{ paddingTop: showTabs ? 12 : 0 }}>
-          {children}
+          {useOutlet ? <Outlet /> : children}
         </div>
       </div>
     </>
