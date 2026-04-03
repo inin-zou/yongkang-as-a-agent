@@ -62,22 +62,6 @@ export default function GridBackground() {
 
   return (
     <>
-      {/* Grid background */}
-      <div
-        style={{
-          position: 'fixed',
-          top: 'var(--ruler-x-height)',
-          left: 'var(--ruler-y-width)',
-          width: 'calc(100% - var(--ruler-y-width))',
-          height: 'calc(100% - var(--ruler-x-height))',
-          backgroundImage:
-            'linear-gradient(to right, var(--color-grid) 1px, transparent 1px), linear-gradient(to bottom, var(--color-grid) 1px, transparent 1px)',
-          backgroundSize: 'var(--cell-size) var(--cell-size)',
-          zIndex: 0,
-          pointerEvents: 'none',
-        }}
-      />
-
       {/* X Ruler (top horizontal bar) */}
       <div
         style={{
