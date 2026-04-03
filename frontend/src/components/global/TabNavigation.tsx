@@ -5,15 +5,7 @@ export default function TabNavigation() {
   const location = useLocation()
 
   return (
-    <nav
-      style={{
-        display: 'flex',
-        alignItems: 'flex-end',
-        paddingLeft: 8,
-        position: 'relative',
-        zIndex: 50,
-      }}
-    >
+    <nav className="tab-container">
       {FILE_TABS.map((tab, index) => {
         const isActive =
           location.pathname === tab.basePath ||
@@ -24,36 +16,8 @@ export default function TabNavigation() {
             key={tab.id}
             to={tab.basePath}
             aria-current={isActive ? 'page' : undefined}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: 36,
-              padding: '0 24px',
-              fontFamily: 'var(--font-mono)',
-              fontSize: 14,
-              textTransform: 'uppercase' as const,
-              letterSpacing: '0.1em',
-              textDecoration: 'none',
-              clipPath: 'polygon(10% 0, 90% 0, 100% 100%, 0% 100%)',
-              borderRadius: 'var(--radius-none)',
-              marginRight: -12,
-              cursor: 'none',
-              transition: 'transform 0.15s ease, background 0.15s ease',
-              ...(isActive
-                ? {
-                    zIndex: 3,
-                    background: 'var(--color-surface-0)',
-                    color: 'var(--color-ink)',
-                    fontWeight: 600,
-                  }
-                : {
-                    zIndex: 2 - index,
-                    background: 'var(--color-surface-2)',
-                    color: 'var(--color-ink-muted)',
-                    fontWeight: 400,
-                  }),
-            }}
+            className={`tab ${isActive ? 'tab-active' : 'tab-inactive'}`}
+            style={{ zIndex: isActive ? 3 : 2 - index }}
             data-interactive
           >
             {tab.label}
