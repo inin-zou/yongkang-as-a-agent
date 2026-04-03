@@ -132,13 +132,32 @@ git commit -m "feat(deps): add gsap, @gsap/react, and mapbox-gl for SKILL.md pag
 **Files:**
 - Create: `frontend/src/styles/skill.css`
 - Modify: `frontend/src/index.css` (add import)
+- Possibly modify: `frontend/src/styles/theme.css` (if tokens are missing)
+
+- [ ] **Step 0: Verify required CSS tokens exist in theme.css**
+
+Before creating `skill.css`, verify these CSS custom properties exist in `frontend/src/styles/theme.css`: `--color-grid-major`, `--radius-circle`. They should already be defined from Phase 1. If missing, add them to the `:root` block in `theme.css`:
+
+```css
+--color-grid-major: #444444;
+--radius-circle: 50%;
+```
 
 - [ ] **Step 1: Create skill.css with all SKILL.md view styles**
+
+> **Dependency note:** The `fadeInFromBlur` keyframe animation used below is defined in `frontend/src/styles/theme.css` (added by Phase 4). If Phase 5 is implemented before Phase 4, you must add the following keyframe to `frontend/src/styles/theme.css` as part of this task:
+> ```css
+> @keyframes fadeInFromBlur {
+>   from { opacity: 0; filter: blur(8px); }
+>   to   { opacity: 1; filter: blur(0); }
+> }
+> ```
 
 Create `frontend/src/styles/skill.css`:
 
 ```css
 /* ===== SKILL PAGE SHARED ===== */
+/* NOTE: fadeInFromBlur keyframe is defined in theme.css (Phase 4). */
 .skill-page {
   animation: fadeInFromBlur 0.6s ease forwards;
   padding: var(--space-lg);
@@ -1895,9 +1914,9 @@ git commit -m "feat(skill): add CertificationsView with education, awards, certs
 - Modify or create: `frontend/src/pages/SkillPage.tsx` (the shell that renders sub-views)
 - Modify: `frontend/src/App.tsx` (add nested routes under `/files/skill`)
 
-- [ ] **Step 1: Create/Modify SkillPage.tsx as a route shell**
+- [ ] **Step 1: Create/Modify SkillPage.tsx as a layout route**
 
-If Phase 2 created a placeholder `SkillPage.tsx`, modify it. Otherwise, create it. The component acts as a nested route outlet:
+Replace the Phase 2 placeholder `SkillPage.tsx` (or create it) with **exactly** this content — nothing else:
 
 ```typescript
 import { Outlet } from 'react-router-dom'
@@ -1907,37 +1926,35 @@ export default function SkillPage() {
 }
 ```
 
-This is a thin wrapper. The sidebar is already provided by the Phase 2 `FileSystemLayout` component. `SkillPage` just renders the nested route's matched component (SkillsView, ResumeView, HackathonsView, or CertificationsView) via `<Outlet />`.
+`SkillPage` is a **layout route component**. It renders no UI of its own — the sidebar is already provided by the Phase 2 `FileSystemLayout`. Its sole job is to act as a nested `<Outlet />` so React Router can render the matched child view (SkillsView, ResumeView, HackathonsView, or CertificationsView).
 
-**Alternative:** If the Phase 2 layout already uses `<Outlet />` at the tab level and supports a second level of nesting, then `SkillPage.tsx` is unnecessary -- the routes can be defined flat under the file system layout. Check Phase 2's implementation. If the file system layout renders `<Outlet />` and the sidebar selects sub-routes, then:
+- [ ] **Step 2: Replace the flat `skill` route in App.tsx with a nested layout route**
 
-```
-/files/skill       → SkillsView (index route)
-/files/skill/resume → ResumeView
-/files/skill/hackathons → HackathonsView
-/files/skill/certifications → CertificationsView
-```
+Phase 2 originally wired the `skill` branch as a flat route via `TabRouter`. That must be replaced with a proper nested layout route so that `SkillPage` acts as a parent with children.
 
-- [ ] **Step 2: Add nested routes in App.tsx**
-
-In `frontend/src/App.tsx`, add nested routes under the skill tab. The exact syntax depends on Phase 2's routing structure. The pattern should be:
+In `frontend/src/App.tsx`, find the existing `skill` route (e.g. `{ path: 'skill', element: <SkillPage /> }`) and **replace it** with:
 
 ```typescript
+import SkillPage from './pages/SkillPage'
 import SkillsView from './pages/skill/SkillsView'
 import ResumeView from './pages/skill/ResumeView'
 import HackathonsView from './pages/skill/HackathonsView'
 import CertificationsView from './pages/skill/CertificationsView'
 
-// Inside the route tree, under the file system layout:
-<Route path="skill" element={<SkillPage />}>
-  <Route index element={<SkillsView />} />
-  <Route path="resume" element={<ResumeView />} />
-  <Route path="hackathons" element={<HackathonsView />} />
-  <Route path="certifications" element={<CertificationsView />} />
-</Route>
+// Inside the route tree, under the file system layout, replace the flat skill route with:
+{
+  path: 'skill',
+  element: <SkillPage />,
+  children: [
+    { index: true, element: <SkillsView /> },
+    { path: 'resume', element: <ResumeView /> },
+    { path: 'hackathons', element: <HackathonsView /> },
+    { path: 'certifications', element: <CertificationsView /> },
+  ],
+}
 ```
 
-The `index` route renders `SkillsView` when the user navigates to `/files/skill` (the default view).
+This is the **complete** replacement for the `skill` branch. Do NOT keep the old flat route alongside it. The `index: true` child renders `SkillsView` when the user navigates to `/files/skill` (the default view).
 
 - [ ] **Step 3: Verify sidebar integration**
 

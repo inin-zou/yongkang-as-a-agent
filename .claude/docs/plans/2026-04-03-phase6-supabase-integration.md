@@ -517,7 +517,8 @@ Then implement the following methods on `SupabaseRepository`:
 
 **Posts:**
 - `GetPublishedPosts(ctx) ([]model.Post, error)` — `SELECT * FROM posts WHERE is_published = true ORDER BY published_at DESC`
-- `GetPostByID(ctx, id string) (*model.Post, error)` — `SELECT * FROM posts WHERE id = $1 AND is_published = true`
+- `GetPublishedPostByID(ctx, id string) (*model.Post, error)` — `SELECT * FROM posts WHERE id = $1 AND is_published = true` (used by public handler)
+- `GetPostByID(ctx, id string) (*model.Post, error)` — `SELECT * FROM posts WHERE id = $1` (used by admin handlers — no published filter, so admins can access drafts)
 - `CreatePost(ctx, req model.CreatePostRequest) (*model.Post, error)` — `INSERT INTO posts (...) VALUES (...) RETURNING *`. If `IsPublished` is true, set `published_at = now()`.
 - `UpdatePost(ctx, id string, req model.UpdatePostRequest) (*model.Post, error)` — build dynamic `UPDATE` with only non-nil fields. If transitioning `is_published` to true and `published_at` is null, set `published_at = now()`. Use `RETURNING *`.
 - `DeletePost(ctx, id string) error` — `DELETE FROM posts WHERE id = $1`
@@ -580,7 +581,8 @@ Methods to implement (thin wrappers — validation is handled by `go-playground/
 
 **Posts:**
 - `GetPublishedPosts(ctx) ([]model.Post, error)` — delegates to repo
-- `GetPostByID(ctx, id) (*model.Post, error)` — validates id is non-empty, delegates to repo
+- `GetPublishedPostByID(ctx, id) (*model.Post, error)` — validates id is non-empty, delegates to `repo.GetPublishedPostByID` (public handler — only returns published posts)
+- `GetPostByID(ctx, id) (*model.Post, error)` — validates id is non-empty, delegates to `repo.GetPostByID` (admin handler — returns any post including drafts)
 - `CreatePost(ctx, req) (*model.Post, error)` — validates title and body are non-empty (trimmed), delegates to repo
 - `UpdatePost(ctx, id, req) (*model.Post, error)` — validates id is non-empty, delegates to repo
 - `DeletePost(ctx, id) error` — validates id, delegates to repo
@@ -792,10 +794,10 @@ Methods:
 
 **Posts (public read, admin write):**
 - `HandleGetPosts(w, r)` — `GET /api/posts` — calls `svc.GetPublishedPosts(ctx)`, returns JSON array
-- `HandleGetPost(w, r)` — `GET /api/posts/{id}` — reads `id` from URL param, calls `svc.GetPostByID(ctx, id)`, returns 404 if not found
+- `HandleGetPost(w, r)` — `GET /api/posts/{id}` — reads `id` from URL param, calls `svc.GetPublishedPostByID(ctx, id)`, returns 404 if not found (public — only returns published posts)
 - `HandleCreatePost(w, r)` — `POST /api/posts` — decodes `model.CreatePostRequest`, calls `svc.CreatePost(ctx, req)`, returns 201
-- `HandleUpdatePost(w, r)` — `PUT /api/posts/{id}` — decodes `model.UpdatePostRequest`, calls `svc.UpdatePost(ctx, id, req)`, returns 200
-- `HandleDeletePost(w, r)` — `DELETE /api/posts/{id}` — calls `svc.DeletePost(ctx, id)`, returns 204
+- `HandleUpdatePost(w, r)` — `PUT /api/posts/{id}` — decodes `model.UpdatePostRequest`, calls `svc.GetPostByID(ctx, id)` to verify existence (admin — can access drafts), then `svc.UpdatePost(ctx, id, req)`, returns 200
+- `HandleDeletePost(w, r)` — `DELETE /api/posts/{id}` — calls `svc.GetPostByID(ctx, id)` to verify existence (admin — can access drafts), then `svc.DeletePost(ctx, id)`, returns 204
 
 **Feedback (public insert, admin read):**
 - `HandleSubmitFeedback(w, r)` — `POST /api/feedback` — decodes `model.CreateFeedbackRequest`, validates, calls `svc.SubmitFeedback(ctx, req)`, returns 201
@@ -842,6 +844,9 @@ r.Route("/api", func(r chi.Router) {
     r.Get("/experience", h.HandleGetExperience)
     r.Get("/skills", h.HandleGetSkills)
     r.Get("/music", h.HandleGetMusic)
+    // NOTE: /api/music is kept as a flat route here for backward compatibility.
+    // Phase 8 will refactor this into a subroute group: /api/music/artist + /api/music/tracks
+    // When implementing Phase 8, remove these flat routes and replace with r.Route("/music", ...)
     r.With(middleware.RateLimit(3, time.Hour)).Post("/contact", h.HandleContact)
     r.Get("/health", h.HandleHealth)
 
@@ -853,7 +858,7 @@ r.Route("/api", func(r chi.Router) {
     // Public content routes
     r.Get("/posts", contentH.HandleGetPosts)
     r.Get("/posts/{id}", contentH.HandleGetPost)
-    r.Get("/music/tracks", contentH.HandleGetTracks)
+    r.Get("/music/tracks", contentH.HandleGetTracks)  // flat route — Phase 8 moves this into r.Route("/music", ...)
 
     // Public feedback submission (rate limited)
     r.With(middleware.RateLimit(5, time.Hour)).Post("/feedback", contentH.HandleSubmitFeedback)
@@ -868,8 +873,8 @@ r.Route("/api", func(r chi.Router) {
 
         r.Get("/feedback", contentH.HandleGetFeedback)
 
-        r.Post("/music/tracks", contentH.HandleCreateTrack)
-        r.Delete("/music/tracks/{id}", contentH.HandleDeleteTrack)
+        r.Post("/music/tracks", contentH.HandleCreateTrack)          // flat route — Phase 8 moves into r.Route("/music", ...)
+        r.Delete("/music/tracks/{id}", contentH.HandleDeleteTrack)  // flat route — Phase 8 moves into r.Route("/music", ...)
     })
 })
 ```
@@ -894,6 +899,9 @@ curl -s http://localhost:8080/api/health
 
 # Existing endpoints still work
 curl -s http://localhost:8080/api/projects | head -5
+
+# Existing music endpoint still works (backward-compatible flat route)
+curl -s http://localhost:8080/api/music
 
 # New public endpoints (should return empty arrays initially)
 curl -s http://localhost:8080/api/posts
@@ -1187,21 +1195,13 @@ export function deleteTrack(id: string): Promise<void> {
   return fetchAuthJSON<void>(`/music/tracks/${id}`, { method: 'DELETE' });
 }
 
-// Feedback (public submit)
+// Feedback (public submit — no auth required, but must be POST with JSON body)
 export function submitFeedback(data: CreateFeedbackRequest): Promise<Feedback> {
-  return fetchJSON<Feedback>('/feedback');
-  // Actually needs to be a POST:
-}
-
-// Correction: feedback submit should be:
-export function submitFeedback(data: CreateFeedbackRequest): Promise<Feedback> {
-  return fetchAuthJSON<Feedback>('/feedback', {
+  return fetchJSON<Feedback>('/feedback', {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  // Note: this does NOT require auth — the backend allows public POST to /feedback.
-  // Use fetchAuthJSON anyway so the Content-Type header is set. The missing auth header
-  // is fine; the backend doesn't require it for this endpoint.
 }
 
 // Feedback (admin read)
@@ -1210,7 +1210,7 @@ export function fetchFeedback(): Promise<Feedback[]> {
 }
 ```
 
-Note: The implementer should clean up the duplicate `submitFeedback` — only the corrected version (POST with body) should remain. Use `fetchAuthJSON` for it since it sets `Content-Type: application/json`, but the backend does not enforce auth on `POST /api/feedback`.
+Note: `submitFeedback` uses `fetchJSON` (not `fetchAuthJSON`) because feedback submission is public — no auth required. It explicitly sets the `Content-Type: application/json` header and uses `POST` with a JSON body.
 
 - [ ] **Step 3: Commit**
 
@@ -1270,7 +1270,8 @@ git commit -m "feat(frontend): wrap app with AuthProvider for admin auth state"
 - [ ] `curl localhost:8080/api/health` returns `{"status":"ok"}` (existing routes unbroken)
 - [ ] `curl localhost:8080/api/projects` still returns project data (backward compatible)
 - [ ] `curl localhost:8080/api/posts` returns `[]` (empty array, no error)
-- [ ] `curl localhost:8080/api/music/tracks` returns `[]`
+- [ ] `curl localhost:8080/api/music` returns artist JSON (backward-compatible flat route still works)
+- [ ] `curl localhost:8080/api/music/tracks` returns `[]` (flat tracks route works)
 - [ ] `POST /api/auth/login` with valid admin credentials returns an access token
 - [ ] `GET /api/auth/me` with valid token returns admin user info
 - [ ] `POST /api/posts` with valid token creates a post, returns 201
