@@ -65,7 +65,7 @@ const linkStyle: CSSProperties = {
   textDecoration: 'none',
   borderBottom: '1px solid var(--color-ink-faint)',
   paddingBottom: 2,
-  cursor: 'none',
+  cursor: 'pointer',
   transition: 'border-color 0.15s ease, color 0.15s ease',
 }
 

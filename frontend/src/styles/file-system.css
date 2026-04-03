@@ -21,7 +21,7 @@
   clip-path: polygon(10% 0, 90% 0, 100% 100%, 0% 100%);
   min-width: 130px;
   margin-right: -12px;
-  cursor: none;
+  cursor: pointer;
   transition: transform 0.2s ease;
 }
 
@@ -69,7 +69,7 @@
   border-left: 3px solid transparent;
   border-bottom: 1px solid var(--color-grid);
   text-decoration: none;
-  cursor: none;
+  cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
@@ -251,7 +251,7 @@
   text-decoration: none;
   border-bottom: 1px solid var(--color-ink-faint);
   transition: border-color 0.15s ease, color 0.15s ease;
-  cursor: none;
+  cursor: pointer;
 }
 
 .editor-content a:hover {
@@ -306,7 +306,7 @@
   text-decoration: none;
   border-bottom: 1px solid var(--color-ink-faint);
   padding-bottom: 2px;
-  cursor: none;
+  cursor: pointer;
   transition: border-color 0.15s ease, color 0.15s ease;
 }
 
