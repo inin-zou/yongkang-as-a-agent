@@ -7,7 +7,7 @@ import (
 
 	_ "github.com/lib/pq"
 
-	"github.com/inin-zou/yongkang-as-a-agent/backend/internal/model"
+	"github.com/inin-zou/yongkang-as-a-agent/backend/pkg/model"
 )
 
 // SupabaseRepository handles dynamic data stored in Supabase/PostgreSQL.
