@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/inin-zou/yongkang-as-a-agent/backend/internal/model"
+	"github.com/inin-zou/yongkang-as-a-agent/backend/pkg/model"
 )
 
 // JSONRepository reads portfolio data from JSON files on disk.

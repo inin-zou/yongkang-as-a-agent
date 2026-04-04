@@ -1,9 +1,9 @@
-package main
+package handler
 
 import (
-	"log"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -13,20 +13,20 @@ import (
 	"github.com/inin-zou/yongkang-as-a-agent/backend/pkg/service"
 )
 
-func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
+var (
+	router http.Handler
+	once   sync.Once
+)
 
+func initRouter() {
 	dataDir := os.Getenv("DATA_DIR")
 	if dataDir == "" {
-		dataDir = "./data"
+		dataDir = "./backend/data"
 	}
 
 	frontendURL := os.Getenv("FRONTEND_URL")
 	if frontendURL == "" {
-		frontendURL = "http://localhost:5173"
+		frontendURL = "*"
 	}
 
 	adminEmail := os.Getenv("ADMIN_EMAIL")
@@ -39,26 +39,19 @@ func main() {
 
 	repo := repository.NewJSONRepository(dataDir)
 
-	// Connect to Supabase if DATABASE_URL is set
 	var supabase *repository.SupabaseRepository
 	if dbURL := os.Getenv("DATABASE_URL"); dbURL != "" {
 		var err error
 		supabase, err = repository.NewSupabaseRepository(dbURL)
 		if err != nil {
-			log.Printf("Warning: failed to connect to Supabase: %v (running without database)", err)
-		} else {
-			log.Println("Connected to Supabase")
-			defer supabase.Close()
+			supabase = nil
 		}
-	} else {
-		log.Println("DATABASE_URL not set — running without Supabase")
 	}
 
 	svc := service.NewPortfolioService(repo, supabase)
 	h := handler.NewAPIHandler(svc)
 
 	r := chi.NewRouter()
-
 	r.Use(middleware.Logger)
 	r.Use(middleware.CORS(frontendURL))
 
@@ -97,8 +90,11 @@ func main() {
 		})
 	})
 
-	log.Printf("Server starting on port %s", port)
-	if err := http.ListenAndServe(":"+port, r); err != nil {
-		log.Fatalf("Server failed: %v", err)
-	}
+	router = r
+}
+
+// Handler is the Vercel serverless function entrypoint.
+func Handler(w http.ResponseWriter, r *http.Request) {
+	once.Do(initRouter)
+	router.ServeHTTP(w, r)
 }

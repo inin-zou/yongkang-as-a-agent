@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/inin-zou/yongkang-as-a-agent/backend/internal/model"
-	"github.com/inin-zou/yongkang-as-a-agent/backend/internal/service"
+	"github.com/inin-zou/yongkang-as-a-agent/backend/pkg/model"
+	"github.com/inin-zou/yongkang-as-a-agent/backend/pkg/service"
 )
 
 // APIHandler holds handlers for all API endpoints.
