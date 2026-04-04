@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import type { TabConfig } from './sidebarConfig'
 
 interface SidebarProps {
@@ -23,7 +23,7 @@ export default function Sidebar({ tab }: SidebarProps) {
           const isActive = location.pathname === fullPath
 
           return (
-            <NavLink
+            <Link
               key={item.id}
               to={fullPath}
               className={`note-item ${isActive ? 'active' : ''}`}
@@ -32,7 +32,7 @@ export default function Sidebar({ tab }: SidebarProps) {
               {item.date && <div className="note-item-date">{item.date}</div>}
               <div className="note-item-title">{item.label}</div>
               {item.preview && <div className="note-item-preview">{item.preview}</div>}
-            </NavLink>
+            </Link>
           )
         })}
       </nav>

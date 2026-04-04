@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import gsap from 'gsap'
-import HalftoneCanvas from './HalftoneCanvas'
+import PixelPortrait from './PixelPortrait'
 import './TicketPass.css'
 
 interface TicketPassProps {
@@ -31,7 +31,7 @@ export default function TicketPass({ onAccessClick, ticketRef, reducedMotion }: 
     >
       {/* Left: Visual zone — decorative */}
       <div className="visual-zone" aria-hidden="true">
-        <HalftoneCanvas reducedMotion={reducedMotion} />
+        <PixelPortrait />
         <div className="visual-overlay-text">
           <span>A G E N T</span>
           <span style={{ paddingLeft: '1.5rem' }}>D O S S I E R</span>
@@ -47,15 +47,19 @@ export default function TicketPass({ onAccessClick, ticketRef, reducedMotion }: 
 
           <dt className="col-label">CODENAME</dt>
           <dd className="col-sep">&gt;</dd>
-          <dd className="col-value">inhibitor</dd>
+          <dd className="col-value">
+            <a href="https://github.com/inin-zou" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none', borderBottom: '1px solid var(--color-ink-faint)' }}>
+              @inin-zou
+            </a>
+          </dd>
 
           <dt className="col-label">BASE</dt>
           <dd className="col-sep">&gt;</dd>
           <dd className="col-value">PARIS, FR</dd>
 
-          <dt className="col-label">CLEARANCE</dt>
+          <dt className="col-label">ROLE</dt>
           <dd className="col-sep">&gt;</dd>
-          <dd className="col-value">ALL DOMAINS</dd>
+          <dd className="col-value">AI ENGINEER</dd>
         </dl>
 
         <div className="texture-divider" aria-hidden="true">
@@ -63,17 +67,17 @@ export default function TicketPass({ onAccessClick, ticketRef, reducedMotion }: 
         </div>
 
         <dl className="data-grid">
-          <dt className="col-label">MISSIONS</dt>
+          <dt className="col-label">STACK</dt>
           <dd className="col-sep">&gt;</dd>
-          <dd className="col-value">24</dd>
+          <dd className="col-value">GO / TS / PYTHON</dd>
 
           <dt className="col-label">WINS</dt>
           <dd className="col-sep">&gt;</dd>
-          <dd className="col-value">9</dd>
+          <dd className="col-value">9 / 24 HACKATHONS</dd>
 
           <dt className="col-label">SPEED</dt>
           <dd className="col-sep">&gt;</dd>
-          <dd className="col-value">{'0 \u2192 DEMO < 20H'}</dd>
+          <dd className="col-value">FULL DEMO IN {'<'} 20H AVG</dd>
         </dl>
 
         <div className="ticket-footer">
@@ -86,8 +90,8 @@ export default function TicketPass({ onAccessClick, ticketRef, reducedMotion }: 
             ACCESS FILE SYSTEM
           </button>
           <div className="footer-meta">
-            <span>ID: 0029384-A</span>
-            <span>CLASSIFIED</span>
+            <span>github.com/inin-zou</span>
+            <span>inhibitor</span>
           </div>
         </div>
       </div>

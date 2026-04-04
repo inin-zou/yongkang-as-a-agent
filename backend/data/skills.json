@@ -1,93 +1,68 @@
 [
   {
-    "title": "LLM & AI",
-    "icon": "brain",
-    "subcategories": [
-      {
-        "name": "Fine-Tuning",
-        "skills": ["LoRA", "QLoRA", "DPO"]
-      },
-      {
-        "name": "Model Optimization",
-        "skills": ["Pruning", "Quantization", "Knowledge Distillation"]
-      },
-      {
-        "name": "Generative AI",
-        "skills": ["Transformers", "Diffusion Models"]
-      }
-    ],
-    "battleTested": ["LyricMind", "Societe Generale"]
+    "title": "Model Fine-Tuning",
+    "slug": "yongkang:model-finetune",
+    "skills": ["LoRA", "QLoRA", "DPO", "SFT", "RAFT", "PEFT", "Weights & Biases"],
+    "battleTested": ["Ethos Studio (Voxtral LoRA)", "Societe Generale"]
   },
   {
-    "title": "LLM Frameworks",
-    "icon": "layers",
-    "skills": ["LangChain", "LangGraph", "LlamaIndex", "SmolAgent", "AutoGen"],
-    "battleTested": ["Misogi Labs", "OnTrack", "Le Scribe Royal"]
+    "title": "Agent Orchestration",
+    "slug": "yongkang:agent-orchestration",
+    "skills": ["LangChain", "LangGraph", "LlamaIndex", "AutoGen", "Dify", "n8n", "MCP Protocol"],
+    "battleTested": ["BuzzLab", "OnTrack", "Le Scribe Royal", "Deep Search API", "Musixtral"]
   },
   {
-    "title": "AI Providers",
-    "icon": "cloud",
-    "skills": ["OpenAI", "Anthropic", "Gemini", "Mistral", "ElevenLabs", "HuggingFace", "vLLM"],
-    "battleTested": ["Deep Search API", "BuzzLab", "VideoStack"]
+    "title": "AI Integration",
+    "slug": "yongkang:ai-integration",
+    "skills": ["OpenAI", "Anthropic Claude", "Google Gemini", "Mistral", "ElevenLabs", "HuggingFace", "vLLM", "Groq"],
+    "battleTested": ["Dianoia", "SherlockOS", "VideoStack", "Deep Search API"]
   },
   {
     "title": "Data & Visualization",
-    "icon": "chart",
-    "subcategories": [
-      {
-        "name": "Visualization",
-        "skills": ["Tableau", "Power BI", "Matplotlib", "Seaborn"]
-      },
-      {
-        "name": "Big Data",
-        "skills": ["Hadoop", "NiFi", "Kafka", "Spark", "Airflow"]
-      }
-    ],
-    "battleTested": ["CITIC Securities", "Smart Gadget Home"]
+    "slug": "yongkang:data-viz",
+    "skills": ["Tableau", "Power BI", "Matplotlib", "Seaborn", "Streamlit", "Hadoop", "Kafka", "Spark", "Airflow"],
+    "battleTested": ["CITIC Securities", "Smart Gadget Home", "HealthOdyssey"]
   },
   {
-    "title": "ML Frameworks",
-    "icon": "cpu",
-    "skills": ["PyTorch", "TensorFlow"],
-    "battleTested": ["ZenQ", "Movie Recommendation"]
+    "title": "ML Training",
+    "slug": "yongkang:ml-training",
+    "skills": ["PyTorch", "TensorFlow", "scikit-learn", "ONNX", "Modal GPU", "Transformers", "Diffusion Models"],
+    "battleTested": ["ZenQ", "EmoHunter", "Genome Classification", "Ethos Studio"]
   },
   {
-    "title": "Databases & Storage",
-    "icon": "database",
-    "skills": ["Qdrant", "Weaviate", "Supabase", "ElasticSearch", "PostgreSQL", "MongoDB"],
-    "battleTested": ["Societe Generale", "Wiggly", "GitBeat"]
+    "title": "Database & Storage",
+    "slug": "yongkang:database-storage",
+    "skills": ["Supabase", "PostgreSQL", "MongoDB", "Qdrant", "Weaviate", "ElasticSearch", "Redis", "SQLite"],
+    "battleTested": ["Societe Generale", "Wiggly", "GitBeat", "Dianoia", "SherlockOS"]
   },
   {
-    "title": "Cloud Platforms",
-    "icon": "server",
-    "subcategories": [
-      {
-        "name": "AWS",
-        "skills": ["EC2", "S3", "Lambda"]
-      },
-      {
-        "name": "GCP",
-        "skills": ["Vertex AI"]
-      }
-    ],
-    "battleTested": ["OnTrack", "Societe Generale"]
+    "title": "Cloud & Deploy",
+    "slug": "yongkang:cloud-deploy",
+    "skills": ["AWS (EC2, S3, Lambda)", "GCP (Vertex AI, Cloud Run)", "Modal", "Vercel", "Fly.io", "Replicate"],
+    "battleTested": ["OnTrack", "Societe Generale", "Rewind", "EmoHunter"]
   },
   {
     "title": "DevOps",
-    "icon": "git",
-    "skills": ["GitHub Actions", "Docker", "Kubernetes"],
-    "battleTested": ["Misogi Labs", "Mozart AI"]
+    "slug": "yongkang:devops",
+    "skills": ["Docker", "Kubernetes", "GitHub Actions", "CI/CD"],
+    "battleTested": ["Misogi Labs", "Mozart AI", "Musixtral"]
   },
   {
     "title": "Backend",
-    "icon": "terminal",
-    "skills": ["Python", "JavaScript", "TypeScript", "Go"],
-    "battleTested": ["CITIC Securities", "Smart Gadget Home", "Societe Generale", "Misogi Labs", "Mozart AI", "Epiminds"]
+    "slug": "yongkang:backend",
+    "skills": ["Python", "Go", "TypeScript", "Node.js", "FastAPI", "Chi Router", "Express"],
+    "battleTested": ["CITIC Securities", "Societe Generale", "Misogi Labs", "Mozart AI", "Epiminds", "Dianoia"]
   },
   {
     "title": "Frontend",
-    "icon": "layout",
-    "skills": ["Next.js", "React", "TailwindCSS", "Vue.js", "Three.js"],
-    "battleTested": ["Wiggly", "GitBeat", "Portfolio"]
+    "slug": "yongkang:frontend",
+    "skills": ["React", "Next.js", "Vue.js", "Three.js", "TailwindCSS", "Framer Motion", "GSAP"],
+    "battleTested": ["Wiggly", "GitBeat", "BuzzLab", "YourPath", "Portfolio"]
+  },
+  {
+    "title": "Product Design",
+    "slug": "yongkang:product-design",
+    "skills": ["Figma", "UI/UX Design", "Prototyping", "Design Systems", "User Research"],
+    "battleTested": ["Dianoia", "EmoHunter", "BuzzLab", "Portfolio"]
   }
 ]

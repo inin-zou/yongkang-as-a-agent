@@ -1,24 +1,113 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchHackathons } from '../../lib/api'
+import AsciiTitle from '../global/AsciiTitle'
 import HackathonMap from './HackathonMap'
 import type { Hackathon } from '../../types'
 import '../../styles/skill.css'
 
-function HackathonListItem({ hackathon }: { hackathon: Hackathon }) {
+/* ===== CLI Stats Block ===== */
+function CliStats({ hackathons }: { hackathons: Hackathon[] }) {
+  const wins = hackathons.filter(h => h.result).length
+  const solo = hackathons.filter(h => h.solo).length
+  const funded = hackathons.filter(h => h.result?.toLowerCase().includes('funding') || h.result?.toLowerCase().includes('eur')).length
+  const countries = new Set(hackathons.filter(h => !h.isRemote && h.country).map(h => h.country)).size
+
   return (
-    <div className="hackathon-list-item">
-      <div>
-        <span className="hackathon-list-name">{hackathon.name}</span>
-        <span className="hackathon-list-project"> — {hackathon.projectName}</span>
-        {hackathon.result && (
-          <span className="hackathon-list-result"> · {hackathon.result}</span>
-        )}
+    <div className="cli-block">
+      <div className="cli-prompt">$ agent --stats hackathons</div>
+      <div className="cli-output">
+        <div className="cli-box">
+          <span className="cli-stat">MISSIONS: <strong>{hackathons.length}</strong></span>
+          <span className="cli-divider">│</span>
+          <span className="cli-stat">WINS: <strong>{wins}</strong></span>
+          <span className="cli-divider">│</span>
+          <span className="cli-stat">SOLO: <strong>{solo}</strong></span>
+          <span className="cli-divider">│</span>
+          <span className="cli-stat">COUNTRIES: <strong>{countries}</strong></span>
+          <span className="cli-divider">│</span>
+          <span className="cli-stat">FUNDED: <strong>{funded}</strong></span>
+        </div>
       </div>
-      <span className="hackathon-list-date">{hackathon.date}</span>
     </div>
   )
 }
 
+/* ===== Domain Mind Map (text-based tree) ===== */
+function DomainTree({ hackathons }: { hackathons: Hackathon[] }) {
+  // Group hackathons by domain
+  const domains = new Map<string, string[]>()
+  for (const h of hackathons) {
+    const list = domains.get(h.domain) || []
+    list.push(h.projectName)
+    domains.set(h.domain, list)
+  }
+
+  return (
+    <div className="cli-block">
+      <div className="cli-prompt">$ agent --tree domains</div>
+      <div className="cli-output cli-tree">
+        <div className="cli-tree-root">AI Engineering</div>
+        {Array.from(domains.entries()).map(([domain, projects], i, arr) => {
+          const isLast = i === arr.length - 1
+          const branch = isLast ? '└── ' : '├── '
+          const indent = isLast ? '    ' : '│   '
+          return (
+            <div key={domain}>
+              <span className="cli-tree-branch">{branch}</span>
+              <span className="cli-tree-domain">{domain}</span>
+              {projects.map((proj, j) => {
+                const pBranch = j === projects.length - 1 ? '└── ' : '├── '
+                return (
+                  <div key={j} className="cli-tree-project">
+                    <span className="cli-tree-indent">{indent}</span>
+                    <span className="cli-tree-branch">{pBranch}</span>
+                    <span>{proj}</span>
+                  </div>
+                )
+              })}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/* ===== Terminal Timeline ===== */
+function HackathonTimeline({ hackathons }: { hackathons: Hackathon[] }) {
+  return (
+    <div className="cli-block">
+      <div className="cli-prompt">$ agent --log hackathons --reverse</div>
+      <div className="cli-output">
+        {hackathons.map((h, i) => {
+          const hasWin = !!h.result
+          const trophy = hasWin ? '🏆' : '  '
+          const projectUrl = h.projectUrl || undefined
+
+          return (
+            <div key={i} className={`cli-log-line ${hasWin ? 'cli-log-win' : 'cli-log-default'}`}>
+              <span className="cli-log-date">[{h.date}]</span>
+              <span className="cli-log-trophy">{trophy}</span>
+              <span className="cli-log-name">{h.name}</span>
+              <span className="cli-log-arrow">→</span>
+              {projectUrl ? (
+                <a href={projectUrl} target="_blank" rel="noopener noreferrer" className="cli-log-project">
+                  {h.projectName}
+                </a>
+              ) : (
+                <span className="cli-log-project">{h.projectName}</span>
+              )}
+              {h.result && <span className="cli-log-result">{h.result}</span>}
+              {h.solo && <span className="cli-log-solo">(solo)</span>}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/* ===== Main View ===== */
 export default function HackathonsView() {
   const { data: hackathons, isLoading } = useQuery({
     queryKey: ['hackathons'],
@@ -36,33 +125,28 @@ export default function HackathonsView() {
   }
 
   const all = hackathons || []
-  const inPerson = all.filter(h => !h.isRemote)
-  const remote = all.filter(h => h.isRemote)
-  const wins = all.filter(h => h.result)
-  const countries = new Set(inPerson.map(h => h.country).filter(Boolean))
 
   return (
     <div className="editor-page">
-      <div className="editor-meta">Global hackathon footprint</div>
-      <h1 className="editor-title">Hackathons</h1>
+      <div className="editor-meta">24 missions. 9 wins. Always shipping.</div>
+      <AsciiTitle name="hackathons" />
       <div className="editor-content">
-        <div className="hackathon-stats">
-          <span><strong>{all.length}</strong> hackathons</span>
-          <span><strong>{wins.length}</strong> wins</span>
-          <span><strong>{countries.size}</strong> countries</span>
-        </div>
+        <CliStats hackathons={all} />
 
+        <div className="editor-divider" />
+
+        <p className="editor-label">Domains</p>
+        <DomainTree hackathons={all} />
+
+        <div className="editor-divider" />
+
+        <p className="editor-label">Map</p>
         <HackathonMap hackathons={all} />
 
-        {remote.length > 0 && (
-          <>
-            <div className="editor-divider" />
-            <p className="editor-label">Remote</p>
-            {remote.map((h, i) => (
-              <HackathonListItem key={i} hackathon={h} />
-            ))}
-          </>
-        )}
+        <div className="editor-divider" />
+
+        <p className="editor-label">Timeline</p>
+        <HackathonTimeline hackathons={all} />
       </div>
     </div>
   )
