@@ -5,8 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/inin-zou/yongkang-as-a-agent/backend/internal/model"
-	"github.com/inin-zou/yongkang-as-a-agent/backend/internal/repository"
+	"github.com/inin-zou/yongkang-as-a-agent/backend/pkg/model"
+	"github.com/inin-zou/yongkang-as-a-agent/backend/pkg/repository"
 )
 
 // PortfolioService provides business logic on top of the repository layer.
