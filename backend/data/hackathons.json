@@ -7,6 +7,7 @@
     "coordinates": [59.33, 18.07],
     "projectName": "Dianoia",
     "projectSlug": "dianoia",
+    "projectUrl": "https://github.com/inin-zou/Dianoia",
     "result": "3rd place (solo)",
     "solo": true,
     "domain": "Spatial Intelligence"
@@ -16,6 +17,7 @@
     "name": "Mistral Online",
     "isRemote": true,
     "projectName": "Ethos Studio",
+    "projectUrl": "https://github.com/aytoast/ser",
     "domain": "Emotion & Vision AI"
   },
   {
@@ -25,6 +27,7 @@
     "country": "France",
     "coordinates": [48.86, 2.35],
     "projectName": "YourPath",
+    "projectUrl": "https://github.com/CodyAdam/your-path",
     "domain": "Creative AI"
   },
   {
@@ -34,7 +37,7 @@
     "country": "France",
     "coordinates": [48.86, 2.35],
     "projectName": "SherlockOS",
-    "projectSlug": "sherlockos",
+    "projectUrl": "https://github.com/inin-zou/SherlockOS",
     "domain": "Spatial Intelligence"
   },
   {
@@ -44,7 +47,7 @@
     "country": "France",
     "coordinates": [48.86, 2.35],
     "projectName": "Rewind",
-    "projectSlug": "rewind",
+    "projectUrl": "https://github.com/inin-zou/Rewind",
     "domain": "Spatial Intelligence"
   },
   {
@@ -54,7 +57,7 @@
     "country": "France",
     "coordinates": [48.86, 2.35],
     "projectName": "VideoStack",
-    "projectSlug": "videostack",
+    "projectUrl": "https://github.com/VideoStack-PE/videostack-elevenlabs",
     "result": "87K EUR early interest funding",
     "domain": "Creative AI"
   },
@@ -65,16 +68,17 @@
     "country": "Finland",
     "coordinates": [60.17, 24.94],
     "projectName": "Lumina",
+    "projectUrl": "https://github.com/cesp99/lumina-frontend",
     "domain": "Healthcare & Biotech"
   },
   {
     "date": "2025.10",
     "name": "Entrepreneurs First",
-    "city": "London",
-    "country": "UK",
-    "coordinates": [51.51, -0.13],
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
     "projectName": "Deep Search API",
-    "projectSlug": "deep-search-api",
+    "projectUrl": "https://github.com/Rodrigotari1/deep_research_ef",
     "result": "1st place",
     "domain": "LLM Infrastructure"
   },
@@ -85,7 +89,7 @@
     "country": "Germany",
     "coordinates": [52.52, 13.41],
     "projectName": "Wiggly",
-    "projectSlug": "wiggly",
+    "projectUrl": "https://github.com/Konsequanzheng/wiggle",
     "domain": "Creative AI"
   },
   {
@@ -95,9 +99,9 @@
     "country": "France",
     "coordinates": [48.80, 2.12],
     "projectName": "Le Scribe Royal",
-    "projectSlug": "le-scribe-royal",
+    "projectUrl": "https://github.com/dorianlagadec/hackathoh-versailles",
     "result": "3rd place",
-    "domain": "Creative AI"
+    "domain": "LLM Infrastructure"
   },
   {
     "date": "2025.09",
@@ -106,7 +110,7 @@
     "country": "France",
     "coordinates": [48.86, 2.35],
     "projectName": "GitBeat",
-    "projectSlug": "gitbeat",
+    "projectUrl": "https://github.com/imbjdd/gitbeat",
     "result": "Community Win",
     "domain": "Music & Audio AI"
   },
@@ -115,14 +119,17 @@
     "name": "Mistral AI MCP",
     "isRemote": true,
     "projectName": "Musixtral",
-    "projectSlug": "musixtral",
+    "projectUrl": "https://github.com/inin-zou/Musixtral",
     "domain": "Music & Audio AI"
   },
   {
     "date": "2025.09",
     "name": "ShipItSunday",
-    "isRemote": true,
+    "city": "Shanghai",
+    "country": "China",
+    "coordinates": [31.23, 121.47],
     "projectName": "I Swear",
+    "projectUrl": "https://github.com/inin-zou/damn-it",
     "domain": "Creative AI"
   },
   {
@@ -130,7 +137,7 @@
     "name": "Hack Nation MIT",
     "isRemote": true,
     "projectName": "BuzzLab",
-    "projectSlug": "buzzlab",
+    "projectUrl": "https://github.com/inin-zou/BuzzLab",
     "result": "Finalist (VC phase)",
     "domain": "Creative AI"
   },
@@ -139,7 +146,7 @@
     "name": "Pond Speedrun",
     "isRemote": true,
     "projectName": "EmoHunter",
-    "projectSlug": "emohunter",
+    "projectUrl": "https://github.com/inin-zou/EmoHunter-Pond_Hackathon",
     "result": "1st place ($50K funding)",
     "domain": "Emotion & Vision AI"
   },
@@ -158,7 +165,7 @@
     "country": "France",
     "coordinates": [48.86, 2.35],
     "projectName": "ServeTheVibe",
-    "projectSlug": "servethevibe",
+    "projectUrl": "https://github.com/inin-zou/ServeTheVibe",
     "result": "3rd place (solo)",
     "solo": true,
     "domain": "Music & Audio AI"
@@ -181,6 +188,7 @@
     "country": "France",
     "coordinates": [48.86, 2.35],
     "projectName": "Genome Classification",
+    "projectUrl": "https://github.com/inin-zou/Genome-Embedding-Classification",
     "domain": "Healthcare & Biotech"
   },
   {
@@ -190,7 +198,7 @@
     "country": "France",
     "coordinates": [48.86, 2.35],
     "projectName": "OnTrack",
-    "projectSlug": "ontrack",
+    "projectUrl": "https://github.com/briacSck/ON-TRACKS-AI-Agents-Hackathon-",
     "result": "2nd place",
     "domain": "LLM Infrastructure"
   },
@@ -199,6 +207,7 @@
     "name": "GeoAI Hack",
     "isRemote": true,
     "projectName": "InstaGeo",
+    "projectUrl": "https://github.com/inin-zou/InstaGeo-E2E-Geospatial-ML",
     "domain": "Geospatial ML"
   },
   {
@@ -208,7 +217,7 @@
     "country": "France",
     "coordinates": [48.86, 2.35],
     "projectName": "HealthOdyssey",
-    "projectSlug": "healthodyssey",
+    "projectUrl": "https://github.com/inin-zou/HealthOdyssey",
     "domain": "Healthcare & Biotech"
   },
   {
@@ -218,7 +227,7 @@
     "country": "France",
     "coordinates": [48.86, 2.35],
     "projectName": "ZenQ",
-    "projectSlug": "zenq",
+    "projectUrl": "https://github.com/inin-zou/ZenQuantum",
     "result": "Finalist (2nd phase)",
     "domain": "Quantum Computing"
   },
@@ -229,7 +238,7 @@
     "country": "France",
     "coordinates": [48.86, 2.35],
     "projectName": "Recipe Recommendation",
-    "projectSlug": "mealmate",
+    "projectUrl": "https://github.com/Lucine1998/Recipe-Recommandation",
     "domain": "Creative AI"
   }
 ]

@@ -56,6 +56,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       provider: 'github',
       options: {
         redirectTo: window.location.origin + window.location.pathname,
+        queryParams: {
+          prompt: 'select_account',
+        },
       },
     })
     if (error) throw error

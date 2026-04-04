@@ -36,7 +36,7 @@
 }
 
 .tab-active {
-  background: rgba(120, 120, 125, 0.45);
+  background: rgba(180, 180, 185, 0.35);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
   color: #fff;
@@ -44,8 +44,8 @@
 }
 
 .tab-inactive {
-  background: rgba(32, 32, 34, 0.4);
-  color: var(--color-ink-faint);
+  background: rgba(120, 120, 125, 0.22);
+  color: var(--color-ink-muted);
   font-weight: 400;
 }
 

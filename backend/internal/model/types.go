@@ -53,6 +53,7 @@ type SkillSubcategory struct {
 // SkillDomain represents a top-level skill category.
 type SkillDomain struct {
 	Title         string             `json:"title"`
+	Slug          string             `json:"slug,omitempty"`
 	Icon          string             `json:"icon,omitempty"`
 	Subcategories []SkillSubcategory `json:"subcategories,omitempty"`
 	Skills        []string           `json:"skills,omitempty"`
