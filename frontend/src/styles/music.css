@@ -1,0 +1,209 @@
+/* ===== MUSIC.md — player + artist overview ===== */
+
+/* Default "select a track" prompt (same pattern as memory-prompt) */
+.music-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  text-align: center;
+  animation: fadeInFromBlur 0.6s ease forwards;
+  padding: var(--space-lg);
+}
+
+.music-prompt-icon {
+  font-family: var(--font-mono);
+  font-size: 2rem;
+  color: var(--color-ink-faint);
+  margin-bottom: var(--space-md);
+  opacity: 0.5;
+}
+
+.music-prompt-text {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  color: var(--color-ink-muted);
+  line-height: 1.6;
+  max-width: 360px;
+}
+
+.music-prompt-hint {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: var(--space-sm);
+}
+
+/* ===== Music Player ===== */
+.music-player {
+  background: rgba(26, 26, 26, 0.5);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  margin: var(--space-lg) 0;
+  box-shadow: var(--shadow-glow);
+}
+
+/* Waveform */
+.music-waveform {
+  width: 100%;
+  height: 56px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-1);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: var(--space-md);
+  cursor: pointer;
+}
+
+/* Waveform bars — real audio data, fill the full width */
+.music-waveform-bars {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  gap: 1px;
+  width: 100%;
+}
+
+.music-waveform-bar {
+  flex: 1;
+  min-width: 0;
+  background: var(--color-ink-faint);
+  border-radius: 1px;
+  opacity: 0.35;
+  transition: background 0.05s ease;
+}
+
+.music-waveform-bar-active {
+  background: var(--color-prism-pink);
+  opacity: 0.85;
+}
+
+/* Controls row */
+.music-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* Play button — interactive, rounded */
+.music-play-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-circle);
+  border: 1px solid var(--color-ink-faint);
+  background: transparent;
+  color: var(--color-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.music-play-btn:hover {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-void);
+}
+
+.music-play-btn svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+/* Progress bar */
+.music-progress-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.music-progress {
+  width: 100%;
+  height: 3px;
+  background: var(--color-surface-2);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.music-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--gradient-prismatic);
+  background-size: 300% 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.1s linear;
+}
+
+/* Time display */
+.music-time {
+  display: flex;
+  justify-content: space-between;
+}
+
+.music-time span {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--color-ink-faint);
+  letter-spacing: 0.02em;
+}
+
+/* Platform links */
+.music-platform-links {
+  display: flex;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  margin-top: var(--space-xs);
+}
+
+.music-platform-links a {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--color-ink-muted);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-ink-faint);
+  padding-bottom: 2px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+  text-transform: capitalize;
+}
+
+.music-platform-links a:hover {
+  border-color: var(--color-ink);
+  color: var(--color-prism-teal);
+}
+
+/* Track notes / description */
+.music-track-notes {
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: var(--color-ink-muted);
+  font-style: italic;
+  margin: var(--space-md) 0;
+}
+
+/* Track meta row */
+.music-track-meta {
+  display: flex;
+  gap: var(--space-lg);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-ink-faint);
+  letter-spacing: 0.02em;
+  margin-bottom: var(--space-sm);
+}
+
+.music-track-meta span {
+  color: var(--color-ink-muted);
+}

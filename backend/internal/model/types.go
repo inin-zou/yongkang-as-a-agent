@@ -76,3 +76,86 @@ type ContactRequest struct {
 	Message string `json:"message"`
 	Website string `json:"website"` // honeypot
 }
+
+// BlogPost represents a blog entry in MEMORY.md.
+type BlogPost struct {
+	ID          string `json:"id"`
+	Slug        string `json:"slug"`
+	Title       string `json:"title"`
+	Content     string `json:"content"`
+	Preview     string `json:"preview"`
+	PublishedAt string `json:"publishedAt"`
+}
+
+// Feedback represents a visitor note/feedback entry.
+type Feedback struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	Message   string `json:"message"`
+	CreatedAt string `json:"createdAt"`
+}
+
+// FeedbackRequest represents an incoming feedback submission.
+type FeedbackRequest struct {
+	Name    string `json:"name"`
+	Message string `json:"message"`
+}
+
+// GuestbookEntry represents a GitHub-authenticated visitor comment.
+type GuestbookEntry struct {
+	ID               string `json:"id"`
+	GitHubUsername    string `json:"githubUsername"`
+	GitHubAvatarURL  string `json:"githubAvatarUrl"`
+	GitHubProfileURL string `json:"githubProfileUrl"`
+	Message          string `json:"message"`
+	CreatedAt        string `json:"createdAt"`
+}
+
+// GuestbookRequest represents an incoming guestbook comment.
+type GuestbookRequest struct {
+	GitHubUsername    string `json:"githubUsername"`
+	GitHubAvatarURL  string `json:"githubAvatarUrl"`
+	GitHubProfileURL string `json:"githubProfileUrl"`
+	Message          string `json:"message"`
+}
+
+// PostComment represents a comment on a blog post.
+type PostComment struct {
+	ID               string `json:"id"`
+	PostID           string `json:"postId"`
+	GitHubUsername    string `json:"githubUsername"`
+	GitHubAvatarURL  string `json:"githubAvatarUrl"`
+	GitHubProfileURL string `json:"githubProfileUrl"`
+	Message          string `json:"message"`
+	CreatedAt        string `json:"createdAt"`
+}
+
+// PostCommentRequest represents an incoming comment submission.
+type PostCommentRequest struct {
+	GitHubUsername    string `json:"githubUsername"`
+	GitHubAvatarURL  string `json:"githubAvatarUrl"`
+	GitHubProfileURL string `json:"githubProfileUrl"`
+	Message          string `json:"message"`
+}
+
+// LikeToggleRequest represents a like/unlike action.
+type LikeToggleRequest struct {
+	GitHubUsername string `json:"githubUsername"`
+}
+
+// PostStats represents aggregated stats for a blog post.
+type PostStats struct {
+	LikeCount    int  `json:"likeCount"`
+	CommentCount int  `json:"commentCount"`
+	UserLiked    bool `json:"userLiked"`
+}
+
+// AdminNotification represents a notification for the admin dashboard.
+type AdminNotification struct {
+	ID        string  `json:"id"`
+	Type      string  `json:"type"`
+	Message   string  `json:"message"`
+	PostID    *string `json:"postId"`
+	IsRead    bool    `json:"isRead"`
+	CreatedAt string  `json:"createdAt"`
+}

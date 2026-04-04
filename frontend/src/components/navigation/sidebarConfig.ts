@@ -47,12 +47,8 @@ export const FILE_TABS: TabConfig[] = [
     id: 'memory',
     label: 'MEMORY.md',
     basePath: '/files/memory',
-    sidebarItems: [
-      // Placeholder items — real blog posts come from Supabase in Phase 7
-      { id: 'post-placeholder-1', label: 'Stockholm Hackathon', date: '2026-03', preview: 'Reflections on the trip to Sweden...', routeSegment: 'stockholm-hackathon' },
-      { id: 'post-placeholder-2', label: 'Joining Epiminds', date: '2026-02', preview: 'New chapter in the assembling...', routeSegment: 'joining-epiminds' },
-      { id: 'leave-note', label: 'LEAVE A NOTE', preview: 'Share your thoughts', routeSegment: 'feedback' },
-    ],
+    // Items populated dynamically from blog posts in FileSystemLayout
+    sidebarItems: [],
     // defaultItem: null is intentional — tab-level view shows "select a post/track" prompt
     // rather than auto-selecting the first entry (unlike SKILL.md which defaults to 'skills')
     defaultItem: null,
@@ -72,9 +68,9 @@ export const FILE_TABS: TabConfig[] = [
     label: 'MUSIC.md',
     basePath: '/files/music',
     sidebarItems: [
-      // Placeholder tracks — real tracks come from Supabase Storage in Phase 8
-      { id: 'track-1', label: '失眠', preview: 'Original single', routeSegment: 'track-1' },
-      { id: 'track-2', label: 'Inhibitor', preview: 'EP track', routeSegment: 'track-2' },
+      { id: 'pimmies-dilemma', label: "PIMMIE'S DILEMMA", preview: 'Cover · Pimmie, PND & Drake', routeSegment: 'pimmies-dilemma' },
+      { id: 'soft-spot', label: 'Soft Spot', preview: 'Cover · keshi', routeSegment: 'soft-spot' },
+      { id: 'dream', label: 'Dream', preview: 'Cover · keshi', routeSegment: 'dream' },
     ],
     // defaultItem: null is intentional — tab-level view shows "select a post/track" prompt
     // rather than auto-selecting the first entry (unlike SKILL.md which defaults to 'skills')

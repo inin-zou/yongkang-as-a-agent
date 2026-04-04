@@ -10,8 +10,8 @@ interface SocialEntry {
 const SOCIAL_DATA: SocialEntry[] = [
   {
     label: 'EMAIL',
-    value: 'yongkang.zou1999@gmail.com',
-    href: 'mailto:yongkang.zou1999@gmail.com',
+    value: 'yongkang.zou.ai@gmail.com',
+    href: 'mailto:yongkang.zou.ai@gmail.com',
     external: false,
   },
   {

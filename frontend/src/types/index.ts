@@ -67,3 +67,53 @@ export interface ContactRequest {
   message: string;
   website: string; // honeypot
 }
+
+export interface BlogPost {
+  id: string;
+  slug: string;
+  title: string;
+  content: string;
+  preview: string;
+  publishedAt: string;
+}
+
+export interface Feedback {
+  id: string;
+  name: string;
+  message: string;
+  createdAt: string;
+}
+
+export interface GuestbookEntry {
+  id: string;
+  githubUsername: string;
+  githubAvatarUrl: string;
+  githubProfileUrl: string;
+  message: string;
+  createdAt: string;
+}
+
+export interface PostComment {
+  id: string;
+  postId: string;
+  githubUsername: string;
+  githubAvatarUrl: string;
+  githubProfileUrl: string;
+  message: string;
+  createdAt: string;
+}
+
+export interface PostStats {
+  likeCount: number;
+  commentCount: number;
+  userLiked: boolean;
+}
+
+export interface AdminNotification {
+  id: string;
+  type: string;
+  message: string;
+  postId: string | null;
+  isRead: boolean;
+  createdAt: string;
+}
