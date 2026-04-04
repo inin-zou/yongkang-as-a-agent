@@ -29,8 +29,32 @@ func main() {
 		frontendURL = "http://localhost:5173"
 	}
 
+	adminEmail := os.Getenv("ADMIN_EMAIL")
+	if adminEmail == "" {
+		adminEmail = "yongkang.zou.ai@gmail.com"
+	}
+
+	supabaseURL := os.Getenv("SUPABASE_URL")
+	anonKey := os.Getenv("SUPABASE_ANON_KEY")
+
 	repo := repository.NewJSONRepository(dataDir)
-	svc := service.NewPortfolioService(repo)
+
+	// Connect to Supabase if DATABASE_URL is set
+	var supabase *repository.SupabaseRepository
+	if dbURL := os.Getenv("DATABASE_URL"); dbURL != "" {
+		var err error
+		supabase, err = repository.NewSupabaseRepository(dbURL)
+		if err != nil {
+			log.Printf("Warning: failed to connect to Supabase: %v (running without database)", err)
+		} else {
+			log.Println("Connected to Supabase")
+			defer supabase.Close()
+		}
+	} else {
+		log.Println("DATABASE_URL not set — running without Supabase")
+	}
+
+	svc := service.NewPortfolioService(repo, supabase)
 	h := handler.NewAPIHandler(svc)
 
 	r := chi.NewRouter()
@@ -45,8 +69,32 @@ func main() {
 		r.Get("/experience", h.HandleGetExperience)
 		r.Get("/skills", h.HandleGetSkills)
 		r.Get("/music", h.HandleGetMusic)
+		r.Get("/posts", h.HandleGetBlogPosts)
+		r.Get("/posts/{slug}/stats", h.HandleGetPostStats)
+		r.Get("/posts/{slug}/comments", h.HandleGetComments)
+		r.With(middleware.RateLimit(30, time.Hour)).Post("/posts/{slug}/like", h.HandleToggleLike)
+		r.With(middleware.RateLimit(20, time.Hour)).Post("/posts/{slug}/comments", h.HandleCreateComment)
+		r.Get("/posts/{slug}", h.HandleGetBlogPostBySlug)
 		r.With(middleware.RateLimit(3, time.Hour)).Post("/contact", h.HandleContact)
+		r.With(middleware.RateLimit(10, time.Hour)).Post("/feedback", h.HandleCreateFeedback)
 		r.Get("/health", h.HandleHealth)
+		r.Get("/views", h.HandleGetViews)
+		r.Get("/guestbook", h.HandleGetGuestbook)
+		r.With(middleware.RateLimit(10, time.Hour)).Post("/guestbook", h.HandleCreateGuestbookEntry)
+
+		r.Route("/admin", func(r chi.Router) {
+			r.Use(middleware.AdminOnly(supabaseURL, anonKey, adminEmail))
+			r.Post("/posts", h.HandleCreateBlogPost)
+			r.Put("/posts/{id}", h.HandleUpdateBlogPost)
+			r.Delete("/posts/{id}", h.HandleDeleteBlogPost)
+			r.Get("/feedback", h.HandleGetFeedback)
+			r.Delete("/feedback/{id}", h.HandleDeleteFeedback)
+			r.Delete("/comments/{id}", h.HandleDeleteComment)
+			r.Get("/notifications", h.HandleGetNotifications)
+			r.Get("/notifications/unread", h.HandleGetUnreadCount)
+			r.Put("/notifications/{id}/read", h.HandleMarkNotificationRead)
+			r.Put("/notifications/read-all", h.HandleMarkAllNotificationsRead)
+		})
 	})
 
 	log.Printf("Server starting on port %s", port)

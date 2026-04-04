@@ -1,0 +1,268 @@
+/* ===== MEMORY.md — blog / feedback styles ===== */
+
+/* Default "select a post" prompt */
+.memory-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  text-align: center;
+  animation: fadeInFromBlur 0.6s ease forwards;
+  padding: var(--space-lg);
+}
+
+.memory-prompt-icon {
+  font-family: var(--font-mono);
+  font-size: 2rem;
+  color: var(--color-ink-faint);
+  margin-bottom: var(--space-md);
+  opacity: 0.5;
+}
+
+.memory-prompt-text {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  color: var(--color-ink-muted);
+  line-height: 1.6;
+  max-width: 360px;
+}
+
+.memory-prompt-hint {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: var(--space-sm);
+}
+
+/* ===== Feedback form ===== */
+.memory-feedback-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  max-width: 520px;
+}
+
+.memory-feedback-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-ink-muted);
+  margin-bottom: 6px;
+}
+
+.memory-feedback-input {
+  border: 1px solid var(--glass-border);
+  background: rgba(30, 30, 30, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--color-ink);
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.memory-feedback-input:focus {
+  border-color: rgba(255, 107, 157, 0.3);
+  box-shadow: 0 0 16px rgba(255, 107, 157, 0.06);
+}
+
+.memory-feedback-input::placeholder {
+  color: var(--color-ink-faint);
+}
+
+textarea.memory-feedback-input {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.memory-feedback-submit {
+  padding: 1rem 2.5rem;
+  background: var(--color-ink);
+  color: var(--color-void);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: opacity 0.15s ease;
+}
+
+.memory-feedback-submit:hover {
+  opacity: 0.85;
+}
+
+.memory-feedback-submit:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.memory-feedback-thanks {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--color-win);
+  margin: 0;
+}
+
+/* ===== Guestbook ===== */
+
+.guestbook-github-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 12px 24px;
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.guestbook-github-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.guestbook-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.guestbook-form-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.guestbook-entry {
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.guestbook-entry:last-child {
+  border-bottom: none;
+}
+
+.guestbook-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.guestbook-author {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+
+.guestbook-author:hover {
+  opacity: 0.8;
+}
+
+.guestbook-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-circle);
+  border: 1px solid var(--glass-border);
+}
+
+.guestbook-username {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--color-ink);
+}
+
+.guestbook-time {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--color-ink-faint);
+}
+
+.guestbook-message {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--color-ink-muted);
+  margin: 0;
+}
+
+/* ===== Post Interactions (likes + comments) ===== */
+.post-interactions {
+  margin-top: var(--space-xl);
+  padding-top: var(--space-lg);
+  border-top: 1px solid var(--glass-border);
+}
+
+.post-like-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.post-like-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--color-ink-muted);
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.post-like-btn:hover {
+  color: var(--color-prism-pink);
+  border-color: rgba(255, 107, 157, 0.3);
+  background: rgba(255, 107, 157, 0.05);
+}
+
+.post-like-btn.liked {
+  color: var(--color-prism-pink);
+  border-color: rgba(255, 107, 157, 0.3);
+  background: rgba(255, 107, 157, 0.08);
+}
+
+.post-like-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.post-like-count {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-ink-muted);
+}
+
+.post-stat-separator {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-ink-faint);
+  margin: 0 2px;
+}
+
+.post-comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}

@@ -1,0 +1,259 @@
+/* ===== ADMIN PANEL ===== */
+
+/* Tab navigation */
+.admin-tabs {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-lg);
+}
+
+.admin-tab {
+  padding: 8px 20px;
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-tab:hover {
+  background: var(--glass-highlight);
+  color: var(--color-ink);
+}
+
+.admin-tab-active {
+  background: rgba(255, 107, 157, 0.08);
+  border-color: rgba(255, 107, 157, 0.3);
+  color: var(--color-ink);
+}
+
+/* Post list item */
+.admin-post-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.admin-post-item:last-child {
+  border-bottom: none;
+}
+
+.admin-post-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-post-title {
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  color: var(--color-ink);
+  margin-bottom: 2px;
+}
+
+.admin-post-slug {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-ink-faint);
+}
+
+/* Button group */
+.admin-actions {
+  display: flex;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+  margin-left: var(--space-sm);
+}
+
+/* Base button */
+.admin-btn {
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.admin-btn:hover {
+  background: var(--glass-highlight);
+  color: var(--color-ink);
+}
+
+.admin-btn-danger {
+  color: #ff6b6b;
+  border-color: rgba(255, 107, 107, 0.2);
+}
+
+.admin-btn-danger:hover {
+  background: rgba(255, 107, 107, 0.1);
+  color: #ff6b6b;
+  border-color: rgba(255, 107, 107, 0.4);
+}
+
+.admin-btn-primary {
+  background: var(--color-ink);
+  color: var(--color-void);
+  border-color: transparent;
+}
+
+.admin-btn-primary:hover {
+  opacity: 0.85;
+}
+
+/* Post editor form */
+.admin-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  max-width: 640px;
+}
+
+.admin-editor textarea.memory-feedback-input {
+  min-height: 240px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+/* Feedback list item */
+.admin-feedback-item {
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.admin-feedback-item:last-child {
+  border-bottom: none;
+}
+
+.admin-feedback-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.admin-feedback-name {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.admin-feedback-date {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--color-ink-faint);
+}
+
+.admin-feedback-message {
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: var(--color-ink-muted);
+  line-height: 1.5;
+  margin-bottom: var(--space-xs);
+}
+
+/* Login form */
+.admin-login {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  max-width: 360px;
+  margin: 0 auto;
+  padding-top: var(--space-xl);
+}
+
+.admin-error {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: #ff6b6b;
+  padding: var(--space-xs) var(--space-sm);
+  background: rgba(255, 107, 107, 0.08);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 107, 107, 0.15);
+}
+
+/* Empty state */
+.admin-empty {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--color-ink-faint);
+  padding: var(--space-lg) 0;
+}
+
+/* ===== NOTIFICATIONS ===== */
+.admin-notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-xs);
+  border-bottom: 1px solid var(--glass-border);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  border-radius: var(--radius-sm);
+}
+
+.admin-notification-item:last-child {
+  border-bottom: none;
+}
+
+.admin-notification-item:hover {
+  background: var(--glass-highlight);
+}
+
+.admin-notification-unread {
+  background: rgba(255, 107, 157, 0.04);
+  border-left: 2px solid var(--color-prism-pink);
+}
+
+.admin-notification-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-ink-faint);
+  margin-top: 2px;
+}
+
+.admin-notification-unread .admin-notification-icon {
+  color: var(--color-prism-pink);
+}
+
+.admin-notification-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin-notification-message {
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: var(--color-ink-muted);
+  line-height: 1.4;
+}
+
+.admin-notification-unread .admin-notification-message {
+  color: var(--color-ink);
+}
+
+.admin-notification-time {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--color-ink-faint);
+}

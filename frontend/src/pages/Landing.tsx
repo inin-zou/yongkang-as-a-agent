@@ -4,6 +4,7 @@ import * as THREE from 'three'
 import gsap from 'gsap'
 import RibbonScene from '../components/landing/RibbonScene'
 import TicketPass from '../components/landing/TicketPass'
+import GlitchOverlay from '../components/landing/GlitchOverlay'
 import { playExitTransition } from '../components/landing/LandingTransition'
 import { useReducedMotion } from '../hooks/useReducedMotion'
 
@@ -62,7 +63,10 @@ export default function Landing() {
         canvasRef={canvasRef}
       />
 
-      {/* Layer 1: Ticket pass overlay */}
+      {/* Layer 1: Glitch overlay */}
+      <GlitchOverlay />
+
+      {/* Layer 2: Ticket pass overlay */}
       <TicketPass
         onAccessClick={handleAccess}
         ticketRef={ticketRef}

@@ -25,8 +25,8 @@ export default function ContactPage() {
         <p className="editor-label">Direct Channels</p>
         <ul className="editor-list">
           <li>
-            <a href="mailto:yongkang.zou1999@gmail.com" data-interactive>
-              yongkang.zou1999@gmail.com
+            <a href="mailto:yongkang.zou.ai@gmail.com" data-interactive>
+              yongkang.zou.ai@gmail.com
             </a>
           </li>
           <li>

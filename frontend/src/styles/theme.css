@@ -1,14 +1,14 @@
 :root {
-  /* Achromatic base */
-  --color-void: #1a1a1a;
-  --color-surface-0: #2A2A2A;
-  --color-surface-1: #3a3a3a;
-  --color-surface-2: #4a4a4a;
-  --color-grid: #333333;
-  --color-grid-major: #444444;
-  --color-ink: #E8E4DC;
-  --color-ink-muted: #8a8a8a;
-  --color-ink-faint: #555555;
+  /* Achromatic base — warm medium grey, not black */
+  --color-void: #3a3a3c;
+  --color-surface-0: rgba(50, 50, 52, 0.55);
+  --color-surface-1: rgba(62, 62, 65, 0.4);
+  --color-surface-2: rgba(75, 75, 78, 0.35);
+  --color-grid: rgba(255, 255, 255, 0.07);
+  --color-grid-major: rgba(255, 255, 255, 0.12);
+  --color-ink: #EDEAE4;
+  --color-ink-muted: #a8a8a8;
+  --color-ink-faint: #707070;
 
   /* Prismatic accent spectrum */
   --color-prism-pink: #ff6b9d;
@@ -16,6 +16,24 @@
   --color-prism-teal: #4dd0e1;
   --color-prism-mint: #69f0ae;
   --color-prism-lavender: #b388ff;
+
+  /* Prismatic gradients */
+  --gradient-prismatic: linear-gradient(
+    135deg,
+    var(--color-prism-pink),
+    var(--color-prism-coral),
+    var(--color-prism-teal),
+    var(--color-prism-mint),
+    var(--color-prism-lavender)
+  );
+  --gradient-prismatic-subtle: linear-gradient(
+    135deg,
+    rgba(255, 107, 157, 0.15),
+    rgba(255, 138, 101, 0.12),
+    rgba(77, 208, 225, 0.15),
+    rgba(105, 240, 174, 0.12),
+    rgba(179, 136, 255, 0.15)
+  );
 
   /* Functional */
   --color-win: #69f0ae;
@@ -26,12 +44,13 @@
   --ruler-x-height: 20px;
   --ruler-y-width: 30px;
 
-  /* Frosted glass */
-  --glass-bg: rgba(42, 42, 42, 0.6);
+  /* Frosted glass — translucent so prismatic orbs bleed through */
+  --glass-bg: rgba(30, 30, 30, 0.45);
   --glass-blur: 20px;
-  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-highlight: rgba(255, 255, 255, 0.05);
 
-  /* Border radius scale — sharp default, round = interactive */
+  /* Border radius scale */
   --radius-none: 0px;
   --radius-subtle: 2px;
   --radius-sm: 6px;
@@ -40,10 +59,11 @@
   --radius-full: 9999px;
   --radius-circle: 50%;
 
-  /* Shadows — Apple-style soft and diffused */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+  /* Shadows — with prismatic tint */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.2);
+  --shadow-glow: 0 0 40px rgba(255, 107, 157, 0.06), 0 0 80px rgba(77, 208, 225, 0.04);
   --shadow-card: 10px 10px 0px rgba(0, 0, 0, 0.05);
 
   /* Spacing */
@@ -81,8 +101,8 @@ body {
 /* Scrollbar styling */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--color-surface-2); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--color-ink-muted); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.18); }
 
 /* Selection color */
 ::selection {
@@ -106,10 +126,47 @@ body {
   animation: fadeInFromBlur 0.6s ease forwards;
 }
 
+/* Prismatic shimmer animation */
+@keyframes prismaticShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Utility: prismatic border (apply to ::before pseudo-element) */
+.prismatic-border {
+  position: relative;
+}
+
+.prismatic-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: var(--gradient-prismatic);
+  background-size: 300% 300%;
+  animation: prismaticShift 8s ease infinite;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: -1;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  padding: 1px;
+}
+
+.prismatic-border:hover::before {
+  opacity: 0.5;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in {
     animation: none;
     opacity: 1;
     filter: none;
+  }
+
+  @keyframes prismaticShift {
+    0%, 50%, 100% { background-position: 0% 50%; }
   }
 }

@@ -128,9 +128,7 @@
   {
     "date": "2025.08",
     "name": "Hack Nation MIT",
-    "city": "Cambridge",
-    "country": "USA",
-    "coordinates": [42.36, -71.09],
+    "isRemote": true,
     "projectName": "BuzzLab",
     "projectSlug": "buzzlab",
     "result": "Finalist (VC phase)",

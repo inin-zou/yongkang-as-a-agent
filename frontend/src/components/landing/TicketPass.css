@@ -7,12 +7,15 @@
   width: 800px;
   max-width: 90vw;
   height: 380px;
-  background-color: var(--color-surface-0);
+  background-color: rgba(28, 28, 28, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   display: flex;
   flex-direction: row;
   overflow: hidden;
-  border-radius: 0px; /* Static container — sharp corners */
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8);
+  border-radius: 0px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
 }
 
 .visual-zone {
@@ -48,7 +51,7 @@
   font-family: var(--font-mono);
   font-size: 0.75rem;
   line-height: 1.2;
-  background-color: var(--color-surface-0);
+  background-color: transparent;
   color: var(--color-ink);
 }
 
