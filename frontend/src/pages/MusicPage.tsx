@@ -2,7 +2,10 @@ import { useRef, useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { fetchMusic } from '../lib/api'
+import AsciiTitle from '../components/global/AsciiTitle'
+import PostInteractions from '../components/global/PostInteractions'
 import '../styles/music.css'
+import '../styles/memory.css'
 
 /* ===== Track data ===== */
 const STORAGE_BASE = 'https://ktdvafynhgszkmrgmeyk.supabase.co/storage/v1/object/public/music'
@@ -223,6 +226,8 @@ function TrackView({ trackId }: { trackId: string }) {
         <AudioPlayer src={track.file} />
 
         <p className="music-track-notes">{track.notes}</p>
+
+        <PostInteractions slug={`music-${trackId}`} />
       </div>
     </div>
   )
@@ -249,7 +254,7 @@ function ArtistOverview() {
     return (
       <div className="editor-page">
         <div className="editor-meta">inhibitor — Alternative RnB / Lo-Fi</div>
-        <h1 className="editor-title">MUSIC</h1>
+        <AsciiTitle name="music" />
         <div className="editor-content">
           <p>Could not load artist data.</p>
         </div>
@@ -262,7 +267,7 @@ function ArtistOverview() {
       <div className="editor-meta">
         {music.artistName} — {music.genre}
       </div>
-      <h1 className="editor-title">MUSIC</h1>
+      <AsciiTitle name="music" />
       <div className="editor-content">
         <p>{music.bio}</p>
 

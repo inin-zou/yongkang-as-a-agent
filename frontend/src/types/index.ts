@@ -46,6 +46,7 @@ export interface SkillSubcategory {
 
 export interface SkillDomain {
   title: string;
+  slug?: string;
   icon?: string;
   subcategories?: SkillSubcategory[];
   skills?: string[];

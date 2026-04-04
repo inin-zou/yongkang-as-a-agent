@@ -4,7 +4,7 @@ export default function SkillDomainCard({ domain }: { domain: SkillDomain }) {
   return (
     <div className="skill-domain-card">
       <div className="skill-domain-header">
-        <span className="skill-domain-icon">[{domain.icon}]</span>
+        {domain.slug && <span className="skill-domain-slug">{domain.slug}</span>}
         <span className="skill-domain-title">{domain.title}</span>
       </div>
 
@@ -28,7 +28,7 @@ export default function SkillDomainCard({ domain }: { domain: SkillDomain }) {
       )}
 
       <div className="skill-battle-tested">
-        Battle tested: <span>{domain.battleTested.join(' · ')}</span>
+        ref: <span>{domain.battleTested.join(' · ')}</span>
       </div>
     </div>
   )

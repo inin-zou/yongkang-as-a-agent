@@ -36,10 +36,9 @@ export const FILE_TABS: TabConfig[] = [
     label: 'SKILL.md',
     basePath: '/files/skill',
     sidebarItems: [
-      { id: 'skills', label: 'SKILLS', preview: 'Arsenal overview — all domains', routeSegment: '' },
-      { id: 'resume', label: 'RESUME', preview: 'Experience timeline', routeSegment: 'resume' },
-      { id: 'hackathons', label: 'HACKATHONS', preview: 'Map + timeline animation', routeSegment: 'hackathons' },
-      { id: 'certifications', label: 'CERTIFICATIONS', preview: 'Education + certs', routeSegment: 'certifications' },
+      { id: 'skills', label: 'SKILLS', preview: 'Agent skill manifest — 10 domains', routeSegment: '' },
+      { id: 'resume', label: 'RESUME', preview: 'Experience + education', routeSegment: 'resume' },
+      { id: 'hackathons', label: 'HACKATHONS', preview: '24 missions · 9 wins', routeSegment: 'hackathons' },
     ],
     defaultItem: 'skills',
   },

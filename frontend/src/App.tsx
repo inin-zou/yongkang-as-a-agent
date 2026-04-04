@@ -45,23 +45,23 @@ function LandingLayout() {
 }
 
 function TabRouter() {
-  const { tab, item } = useParams<{ tab: string; item?: string }>()
-  const location = useLocation()
+  const { tab } = useParams<{ tab: string }>()
+  const { pathname } = useLocation()
 
+  // Use pathname as key so React remounts the page component
+  // when navigating between index (/files/skill) and sub-item (/files/skill/resume)
   const page = (() => {
     switch (tab) {
-      case 'soul': return <SoulPage />
-      case 'skill': return <SkillPage />
-      case 'memory': return <MemoryPage />
-      case 'contact': return <ContactPage />
-      case 'music': return <MusicPage />
+      case 'soul': return <SoulPage key={pathname} />
+      case 'skill': return <SkillPage key={pathname} />
+      case 'memory': return <MemoryPage key={pathname} />
+      case 'contact': return <ContactPage key={pathname} />
+      case 'music': return <MusicPage key={pathname} />
       default: return <Navigate to="/files/soul" replace />
     }
   })()
 
-  // Key on the full path to force re-render when navigating between
-  // index route (/files/skill) and sub-item route (/files/skill/resume)
-  return <Suspense key={location.pathname} fallback={<PageLoader />}>{page}</Suspense>
+  return <Suspense fallback={<PageLoader />}>{page}</Suspense>
 }
 
 const router = createBrowserRouter([

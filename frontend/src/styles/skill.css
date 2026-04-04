@@ -13,7 +13,7 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--glass-border);
-  border-radius: 0px; /* sharp = static/structural */
+  border-radius: 0px;
   padding: var(--space-md);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
   position: relative;
@@ -37,6 +37,13 @@
   color: var(--color-ink-faint);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.skill-domain-slug {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--color-prism-teal);
+  opacity: 0.7;
 }
 
 .skill-domain-title {
@@ -97,6 +104,112 @@
 
 .skill-battle-tested span {
   color: var(--color-ink-muted);
+}
+
+/* ===== CLI Skill entries (terminal-style domain list) ===== */
+.cli-skill-entry {
+  padding: var(--space-sm) 0;
+}
+
+.cli-skill-slug {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--color-prism-teal);
+  margin-bottom: 6px;
+}
+
+.cli-skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.cli-skill-tag {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-ink-muted);
+}
+
+.cli-skill-tag::before {
+  content: '·';
+  margin-right: 5px;
+  color: var(--color-ink-faint);
+  opacity: 0.5;
+}
+
+.cli-skill-tag:first-child::before {
+  content: none;
+}
+
+.cli-skill-tested {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--color-ink-faint);
+}
+
+.cli-skill-divider {
+  height: 1px;
+  background: var(--glass-border);
+  margin: 2px 0;
+}
+
+/* ===== Inline link in narrative ===== */
+.skill-inline-link {
+  color: var(--color-ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-prism-pink);
+  transition: color 0.15s ease;
+}
+
+.skill-inline-link:hover {
+  color: var(--color-prism-pink);
+}
+
+/* ===== Nav cards (See Also) ===== */
+.skill-nav-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.skill-nav-card {
+  display: block;
+  padding: var(--space-md);
+  background: var(--color-surface-1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.skill-nav-card:hover {
+  border-color: rgba(255, 107, 157, 0.25);
+  box-shadow: 0 0 20px rgba(255, 107, 157, 0.06);
+}
+
+.skill-nav-card-title {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-ink);
+  margin-bottom: 4px;
+}
+
+.skill-nav-card-stat {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-ink-muted);
+  margin-bottom: var(--space-sm);
+}
+
+.skill-nav-card-link {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-prism-pink);
 }
 
 /* ===== RESUME VIEW — Experience Timeline ===== */
@@ -181,6 +294,35 @@
   font-style: italic;
 }
 
+/* Resume compact lists (education + certs) */
+.resume-compact-list {
+  margin-bottom: var(--space-sm);
+}
+
+.resume-compact-item {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-xs) 0;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.resume-compact-item:last-child {
+  border-bottom: none;
+}
+
+.resume-compact-title {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  color: var(--color-ink);
+}
+
+.resume-compact-detail {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--color-ink-faint);
+  margin-top: 2px;
+}
+
 /* ===== HACKATHONS VIEW — Dotted Map ===== */
 .hackathon-map-container {
   position: relative;
@@ -253,86 +395,140 @@
   color: var(--color-win);
 }
 
-.hackathon-stats {
-  display: flex;
-  gap: var(--space-lg);
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  color: var(--color-ink-muted);
+/* ===== CLI Blocks (terminal style) ===== */
+.cli-block {
+  background: rgba(20, 20, 22, 0.6);
+  border: 1px solid var(--glass-border);
+  border-radius: 0px;
+  overflow: hidden;
   margin-bottom: var(--space-md);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
 }
 
-.hackathon-stats strong {
+.cli-prompt {
+  padding: var(--space-xs) var(--space-sm);
+  color: var(--color-prism-teal);
+  border-bottom: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cli-output {
+  padding: var(--space-sm);
+  color: var(--color-ink-muted);
+  line-height: 1.6;
+  overflow-x: auto;
+}
+
+.cli-box {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  align-items: center;
+}
+
+.cli-stat {
+  color: var(--color-ink-muted);
+}
+
+.cli-stat strong {
+  color: var(--color-ink);
+}
+
+.cli-divider {
+  color: var(--color-ink-faint);
+  opacity: 0.4;
+}
+
+/* CLI Tree (mind map) */
+.cli-tree {
+  white-space: pre;
+}
+
+.cli-tree-root {
   color: var(--color-ink);
   font-weight: 600;
+  margin-bottom: 4px;
 }
 
-.hackathon-list-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding: var(--space-xs) 0;
-  border-bottom: 1px solid var(--color-grid);
-  gap: var(--space-sm);
-}
-
-.hackathon-list-item:last-child {
-  border-bottom: none;
-}
-
-.hackathon-list-name {
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
-  color: var(--color-ink);
-}
-
-.hackathon-list-project {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--color-ink-muted);
-}
-
-.hackathon-list-date {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
+.cli-tree-branch {
   color: var(--color-ink-faint);
-  white-space: nowrap;
 }
 
-.hackathon-list-result {
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  color: var(--color-win);
-  white-space: nowrap;
-}
-
-/* ===== CERTIFICATIONS VIEW ===== */
-.cert-entry {
-  padding: var(--space-sm) 0;
-  border-bottom: 1px solid var(--color-grid);
-}
-
-.cert-entry:last-child {
-  border-bottom: none;
-}
-
-.cert-degree {
-  font-family: var(--font-sans);
-  font-size: 0.95rem;
+.cli-tree-domain {
+  color: var(--color-prism-teal);
   font-weight: 500;
-  color: var(--color-ink);
-  margin-bottom: 2px;
 }
 
-.cert-institution {
-  font-family: var(--font-sans);
-  font-size: 0.85rem;
+.cli-tree-project {
   color: var(--color-ink-muted);
 }
 
-.cert-year {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
+.cli-tree-indent {
   color: var(--color-ink-faint);
-  margin-top: 2px;
+}
+
+/* CLI Log (hackathon timeline) */
+.cli-log-line {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 2px 0;
+  flex-wrap: wrap;
+}
+
+.cli-log-default {
+  opacity: 0.55;
+}
+
+.cli-log-win {
+  opacity: 1;
+}
+
+.cli-log-date {
+  color: var(--color-ink-faint);
+  font-size: 0.72rem;
+  min-width: 70px;
+}
+
+.cli-log-trophy {
+  min-width: 20px;
+  text-align: center;
+}
+
+.cli-log-name {
+  color: var(--color-ink-muted);
+  font-size: 0.72rem;
+}
+
+.cli-log-arrow {
+  color: var(--color-ink-faint);
+  opacity: 0.5;
+}
+
+.cli-log-project {
+  color: var(--color-ink);
+  font-size: 0.72rem;
+  text-decoration: none;
+}
+
+a.cli-log-project {
+  border-bottom: 1px solid var(--color-ink-faint);
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+a.cli-log-project:hover {
+  color: var(--color-prism-teal);
+  border-color: var(--color-prism-teal);
+}
+
+.cli-log-result {
+  color: var(--color-win);
+  font-size: 0.68rem;
+}
+
+.cli-log-solo {
+  color: var(--color-prism-lavender);
+  font-size: 0.65rem;
+  opacity: 0.7;
 }
