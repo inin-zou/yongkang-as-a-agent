@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -11,31 +12,65 @@ import (
 
 // PortfolioService provides business logic on top of the repository layer.
 type PortfolioService struct {
-	repo     *repository.JSONRepository
-	supabase *repository.SupabaseRepository // nil if not configured
+	primary  repository.DataRepository       // Supabase (nil if not configured)
+	fallback repository.DataRepository       // Embedded JSON (always available)
+	supabase *repository.SupabaseRepository  // for blog/guestbook/admin-only methods
 }
 
 // NewPortfolioService creates a new PortfolioService backed by the given repositories.
-func NewPortfolioService(repo *repository.JSONRepository, supabase *repository.SupabaseRepository) *PortfolioService {
-	return &PortfolioService{repo: repo, supabase: supabase}
+// primary is the preferred DataRepository (e.g. Supabase) and may be nil.
+// fallback is always available (e.g. embedded JSON or local JSON).
+func NewPortfolioService(
+	primary repository.DataRepository,
+	fallback repository.DataRepository,
+	supabase *repository.SupabaseRepository,
+) *PortfolioService {
+	return &PortfolioService{primary: primary, fallback: fallback, supabase: supabase}
 }
+
+// getRepo returns primary if available, otherwise fallback.
+// Used for simple single-source reads where primary/fallback logic is not needed.
+// For methods that need len checks, use inline primary/fallback pattern instead.
 
 // GetProjects returns all projects, optionally filtered by category.
 func (s *PortfolioService) GetProjects(category string) ([]model.Project, error) {
 	if category != "" {
-		return s.repo.GetProjectsByCategory(category)
+		if s.primary != nil {
+			if projects, err := s.primary.GetProjectsByCategory(category); err == nil && len(projects) > 0 {
+				return projects, nil
+			}
+		}
+		return s.fallback.GetProjectsByCategory(category)
 	}
-	return s.repo.GetProjects()
+	if s.primary != nil {
+		if projects, err := s.primary.GetProjects(); err == nil && len(projects) > 0 {
+			return projects, nil
+		}
+	}
+	return s.fallback.GetProjects()
 }
 
 // GetProjectBySlug returns a single project by its slug.
 func (s *PortfolioService) GetProjectBySlug(slug string) (*model.Project, error) {
-	return s.repo.GetProjectBySlug(slug)
+	if s.primary != nil {
+		if project, err := s.primary.GetProjectBySlug(slug); err == nil && project != nil {
+			return project, nil
+		}
+	}
+	return s.fallback.GetProjectBySlug(slug)
 }
 
 // GetHackathons returns all hackathons sorted by date descending.
 func (s *PortfolioService) GetHackathons() ([]model.Hackathon, error) {
-	hackathons, err := s.repo.GetHackathons()
+	var hackathons []model.Hackathon
+	var err error
+	if s.primary != nil {
+		if hackathons, err = s.primary.GetHackathons(); err != nil || len(hackathons) == 0 {
+			hackathons, err = s.fallback.GetHackathons()
+		}
+	} else {
+		hackathons, err = s.fallback.GetHackathons()
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -49,17 +84,32 @@ func (s *PortfolioService) GetHackathons() ([]model.Hackathon, error) {
 
 // GetExperience returns all experience entries.
 func (s *PortfolioService) GetExperience() ([]model.Experience, error) {
-	return s.repo.GetExperience()
+	if s.primary != nil {
+		if experience, err := s.primary.GetExperience(); err == nil && len(experience) > 0 {
+			return experience, nil
+		}
+	}
+	return s.fallback.GetExperience()
 }
 
 // GetSkills returns all skill domains.
 func (s *PortfolioService) GetSkills() ([]model.SkillDomain, error) {
-	return s.repo.GetSkills()
+	if s.primary != nil {
+		if skills, err := s.primary.GetSkills(); err == nil && len(skills) > 0 {
+			return skills, nil
+		}
+	}
+	return s.fallback.GetSkills()
 }
 
 // GetMusic returns the music profile.
 func (s *PortfolioService) GetMusic() (*model.Music, error) {
-	return s.repo.GetMusic()
+	if s.primary != nil {
+		if music, err := s.primary.GetMusic(); err == nil && music != nil {
+			return music, nil
+		}
+	}
+	return s.fallback.GetMusic()
 }
 
 // GetBlogPosts returns all published blog posts.
@@ -244,4 +294,125 @@ func (s *PortfolioService) MarkAllNotificationsRead() error {
 		return fmt.Errorf("database not configured")
 	}
 	return s.supabase.MarkAllNotificationsRead()
+}
+
+// GetPage returns the JSONB content for a page by ID.
+// Returns nil, nil if supabase is not configured (frontend has hardcoded fallback).
+func (s *PortfolioService) GetPage(id string) (json.RawMessage, error) {
+	if s.supabase == nil {
+		return nil, nil
+	}
+	return s.supabase.GetPage(id)
+}
+
+// UpdatePage updates the JSONB content for a page by ID.
+func (s *PortfolioService) UpdatePage(id string, content json.RawMessage) (json.RawMessage, error) {
+	if s.supabase == nil {
+		return nil, fmt.Errorf("database not configured")
+	}
+	return s.supabase.UpdatePage(id, content)
+}
+
+// GetMusicTracks returns all music tracks.
+func (s *PortfolioService) GetMusicTracks() ([]model.MusicTrack, error) {
+	if s.supabase == nil {
+		return nil, nil
+	}
+	return s.supabase.GetMusicTracks()
+}
+
+// CreateMusicTrack creates a new music track.
+func (s *PortfolioService) CreateMusicTrack(slug, name, genre, original, notes, fileURL string, sortOrder int) (*model.MusicTrack, error) {
+	if s.supabase == nil {
+		return nil, fmt.Errorf("database not configured")
+	}
+	return s.supabase.CreateMusicTrack(slug, name, genre, original, notes, fileURL, sortOrder)
+}
+
+// UpdateMusicTrack updates an existing music track.
+func (s *PortfolioService) UpdateMusicTrack(id, slug, name, genre, original, notes, fileURL string, sortOrder int) (*model.MusicTrack, error) {
+	if s.supabase == nil {
+		return nil, fmt.Errorf("database not configured")
+	}
+	return s.supabase.UpdateMusicTrack(id, slug, name, genre, original, notes, fileURL, sortOrder)
+}
+
+// DeleteMusicTrack deletes a music track by ID.
+func (s *PortfolioService) DeleteMusicTrack(id string) error {
+	if s.supabase == nil {
+		return fmt.Errorf("database not configured")
+	}
+	return s.supabase.DeleteMusicTrack(id)
+}
+
+// CreateSkill creates a new skill domain.
+func (s *PortfolioService) CreateSkill(title, slug string, skills, battleTested []string, sortOrder int) (*model.SkillDomain, error) {
+	if s.supabase == nil {
+		return nil, fmt.Errorf("database not configured")
+	}
+	return s.supabase.CreateSkill(title, slug, skills, battleTested, sortOrder)
+}
+
+// UpdateSkill updates an existing skill domain.
+func (s *PortfolioService) UpdateSkill(id, title, slug string, skills, battleTested []string, sortOrder int) (*model.SkillDomain, error) {
+	if s.supabase == nil {
+		return nil, fmt.Errorf("database not configured")
+	}
+	return s.supabase.UpdateSkill(id, title, slug, skills, battleTested, sortOrder)
+}
+
+// DeleteSkill deletes a skill domain by ID.
+func (s *PortfolioService) DeleteSkill(id string) error {
+	if s.supabase == nil {
+		return fmt.Errorf("database not configured")
+	}
+	return s.supabase.DeleteSkill(id)
+}
+
+// CreateHackathon creates a new hackathon entry.
+func (s *PortfolioService) CreateHackathon(h model.Hackathon) (*model.Hackathon, error) {
+	if s.supabase == nil {
+		return nil, fmt.Errorf("database not configured")
+	}
+	return s.supabase.CreateHackathon(h)
+}
+
+// UpdateHackathon updates an existing hackathon entry.
+func (s *PortfolioService) UpdateHackathon(id string, h model.Hackathon) (*model.Hackathon, error) {
+	if s.supabase == nil {
+		return nil, fmt.Errorf("database not configured")
+	}
+	return s.supabase.UpdateHackathon(id, h)
+}
+
+// DeleteHackathon deletes a hackathon entry by ID.
+func (s *PortfolioService) DeleteHackathon(id string) error {
+	if s.supabase == nil {
+		return fmt.Errorf("database not configured")
+	}
+	return s.supabase.DeleteHackathon(id)
+}
+
+// CreateExperience creates a new experience entry.
+func (s *PortfolioService) CreateExperience(e model.Experience) (*model.Experience, error) {
+	if s.supabase == nil {
+		return nil, fmt.Errorf("database not configured")
+	}
+	return s.supabase.CreateExperience(e)
+}
+
+// UpdateExperience updates an existing experience entry.
+func (s *PortfolioService) UpdateExperience(id string, e model.Experience) (*model.Experience, error) {
+	if s.supabase == nil {
+		return nil, fmt.Errorf("database not configured")
+	}
+	return s.supabase.UpdateExperience(id, e)
+}
+
+// DeleteExperience deletes an experience entry by ID.
+func (s *PortfolioService) DeleteExperience(id string) error {
+	if s.supabase == nil {
+		return fmt.Errorf("database not configured")
+	}
+	return s.supabase.DeleteExperience(id)
 }

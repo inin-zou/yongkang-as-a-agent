@@ -18,22 +18,26 @@ type Project struct {
 
 // Hackathon represents a hackathon event entry.
 type Hackathon struct {
-	Date        string     `json:"date"` // YYYY.MM
-	Name        string     `json:"name"`
-	City        string     `json:"city,omitempty"`
-	Country     string     `json:"country,omitempty"`
+	ID          string      `json:"id,omitempty"`
+	Date        string      `json:"date"` // YYYY.MM
+	Name        string      `json:"name"`
+	City        string      `json:"city,omitempty"`
+	Country     string      `json:"country,omitempty"`
 	Coordinates *[2]float64 `json:"coordinates,omitempty"`
-	IsRemote    bool       `json:"isRemote,omitempty"`
-	ProjectName string     `json:"projectName"`
-	ProjectSlug string     `json:"projectSlug,omitempty"`
-	ProjectURL  string     `json:"projectUrl,omitempty"`
-	Result      string     `json:"result,omitempty"`
-	Solo        bool       `json:"solo,omitempty"`
-	Domain      string     `json:"domain"`
+	Lat         *float64    `json:"lat,omitempty"`
+	Lng         *float64    `json:"lng,omitempty"`
+	IsRemote    bool        `json:"isRemote,omitempty"`
+	ProjectName string      `json:"projectName"`
+	ProjectSlug string      `json:"projectSlug,omitempty"`
+	ProjectURL  string      `json:"projectUrl,omitempty"`
+	Result      string      `json:"result,omitempty"`
+	Solo        bool        `json:"solo,omitempty"`
+	Domain      string      `json:"domain"`
 }
 
 // Experience represents a professional experience entry.
 type Experience struct {
+	ID             string   `json:"id,omitempty"`
 	Role           string   `json:"role"`
 	Company        string   `json:"company"`
 	Location       string   `json:"location"`
@@ -42,6 +46,7 @@ type Experience struct {
 	SkillAssembled string   `json:"skillAssembled"`
 	Highlights     []string `json:"highlights"`
 	Note           string   `json:"note,omitempty"`
+	SortOrder      int      `json:"sortOrder,omitempty"`
 }
 
 // SkillSubcategory represents a named group of skills within a domain.
@@ -52,12 +57,14 @@ type SkillSubcategory struct {
 
 // SkillDomain represents a top-level skill category.
 type SkillDomain struct {
+	ID            string             `json:"id,omitempty"`
 	Title         string             `json:"title"`
 	Slug          string             `json:"slug,omitempty"`
 	Icon          string             `json:"icon,omitempty"`
 	Subcategories []SkillSubcategory `json:"subcategories,omitempty"`
 	Skills        []string           `json:"skills,omitempty"`
 	BattleTested  []string           `json:"battleTested"`
+	SortOrder     int                `json:"sortOrder,omitempty"`
 }
 
 // Music represents the music artist profile.
@@ -68,6 +75,18 @@ type Music struct {
 	Location   string            `json:"location"`
 	Bio        string            `json:"bio"`
 	Platforms  map[string]string `json:"platforms"` // name -> URL
+}
+
+// MusicTrack represents a single music track entry.
+type MusicTrack struct {
+	ID        string `json:"id,omitempty"`
+	Slug      string `json:"slug"`
+	Name      string `json:"name"`
+	Genre     string `json:"genre"`
+	Original  string `json:"original"`
+	Notes     string `json:"notes"`
+	FileURL   string `json:"fileUrl"`
+	SortOrder int    `json:"sortOrder,omitempty"`
 }
 
 // ContactRequest represents an incoming contact form submission.

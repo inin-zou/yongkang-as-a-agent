@@ -57,6 +57,7 @@ function TabRouter() {
       case 'memory': return <MemoryPage key={pathname} />
       case 'contact': return <ContactPage key={pathname} />
       case 'music': return <MusicPage key={pathname} />
+      case 'admin': return <AdminPage key={pathname} />
       default: return <Navigate to="/files/soul" replace />
     }
   })()
@@ -83,7 +84,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/admin',
-    element: <Layout><Suspense fallback={<PageLoader />}><AdminPage /></Suspense></Layout>,
+    element: <Navigate to="/files/admin" replace />,
   },
 ])
 

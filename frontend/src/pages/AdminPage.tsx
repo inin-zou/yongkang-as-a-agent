@@ -1,19 +1,17 @@
-import { useState, type FormEvent } from 'react'
+import { useState } from 'react'
+import { useParams } from 'react-router-dom'
 import '../styles/memory.css'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../lib/AuthContext'
+import AsciiTitle from '../components/global/AsciiTitle'
 import {
-  fetchBlogPosts,
-  createBlogPost,
-  updateBlogPost,
-  deleteBlogPost,
   fetchFeedback,
   deleteFeedback,
   fetchNotifications,
   markNotificationRead,
   markAllNotificationsRead,
 } from '../lib/api'
-import type { BlogPost, Feedback, AdminNotification } from '../types/index'
+import type { Feedback, AdminNotification } from '../types/index'
 import '../styles/admin.css'
 
 /* ─── Login form (GitHub OAuth) ─── */
@@ -45,184 +43,6 @@ function LoginForm() {
         </button>
       </div>
     </div>
-  )
-}
-
-/* ─── Post editor form ─── */
-
-interface PostEditorProps {
-  initial?: BlogPost
-  onSave: (data: { slug: string; title: string; content: string; preview: string }) => Promise<void>
-  onCancel: () => void
-}
-
-function PostEditor({ initial, onSave, onCancel }: PostEditorProps) {
-  const [slug, setSlug] = useState(initial?.slug ?? '')
-  const [title, setTitle] = useState(initial?.title ?? '')
-  const [preview, setPreview] = useState(initial?.preview ?? '')
-  const [content, setContent] = useState(initial?.content ?? '')
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    setSaving(true)
-    setError('')
-    try {
-      await onSave({ slug, title, content, preview })
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Save failed')
-      setSaving(false)
-    }
-  }
-
-  return (
-    <form className="admin-editor" onSubmit={handleSubmit}>
-      {error && <div className="admin-error">{error}</div>}
-
-      <div>
-        <label htmlFor="post-slug" className="memory-feedback-label">Slug</label>
-        <input
-          id="post-slug"
-          type="text"
-          className="memory-feedback-input"
-          placeholder="my-post-slug"
-          value={slug}
-          onChange={(e) => setSlug(e.target.value)}
-          required
-        />
-      </div>
-
-      <div>
-        <label htmlFor="post-title" className="memory-feedback-label">Title</label>
-        <input
-          id="post-title"
-          type="text"
-          className="memory-feedback-input"
-          placeholder="Post title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-      </div>
-
-      <div>
-        <label htmlFor="post-preview" className="memory-feedback-label">Preview</label>
-        <input
-          id="post-preview"
-          type="text"
-          className="memory-feedback-input"
-          placeholder="Short preview text..."
-          value={preview}
-          onChange={(e) => setPreview(e.target.value)}
-          required
-        />
-      </div>
-
-      <div>
-        <label htmlFor="post-content" className="memory-feedback-label">Content</label>
-        <textarea
-          id="post-content"
-          className="memory-feedback-input"
-          placeholder="Write your post content..."
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          rows={12}
-          required
-        />
-      </div>
-
-      <div className="admin-actions">
-        <button type="submit" className="admin-btn admin-btn-primary" disabled={saving}>
-          {saving ? 'SAVING...' : initial ? 'UPDATE' : 'CREATE'}
-        </button>
-        <button type="button" className="admin-btn" onClick={onCancel}>
-          CANCEL
-        </button>
-      </div>
-    </form>
-  )
-}
-
-/* ─── Posts management tab ─── */
-
-function PostsTab() {
-  const { session } = useAuth()
-  const queryClient = useQueryClient()
-  const token = session?.access_token ?? ''
-
-  const { data: posts, isLoading } = useQuery({
-    queryKey: ['posts'],
-    queryFn: fetchBlogPosts,
-  })
-
-  const [editing, setEditing] = useState<BlogPost | null>(null)
-  const [creating, setCreating] = useState(false)
-
-  async function handleCreate(data: { slug: string; title: string; content: string; preview: string }) {
-    await createBlogPost(token, data)
-    setCreating(false)
-    queryClient.invalidateQueries({ queryKey: ['posts'] })
-  }
-
-  async function handleUpdate(data: { slug: string; title: string; content: string; preview: string }) {
-    if (!editing) return
-    await updateBlogPost(token, editing.id, data)
-    setEditing(null)
-    queryClient.invalidateQueries({ queryKey: ['posts'] })
-  }
-
-  async function handleDelete(post: BlogPost) {
-    if (!confirm(`Delete "${post.title}"?`)) return
-    await deleteBlogPost(token, post.id)
-    queryClient.invalidateQueries({ queryKey: ['posts'] })
-  }
-
-  if (creating) {
-    return (
-      <>
-        <div className="editor-label">New Post</div>
-        <PostEditor onSave={handleCreate} onCancel={() => setCreating(false)} />
-      </>
-    )
-  }
-
-  if (editing) {
-    return (
-      <>
-        <div className="editor-label">Edit Post</div>
-        <PostEditor initial={editing} onSave={handleUpdate} onCancel={() => setEditing(null)} />
-      </>
-    )
-  }
-
-  return (
-    <>
-      <button className="admin-btn admin-btn-primary" onClick={() => setCreating(true)}>
-        + NEW POST
-      </button>
-
-      <div className="editor-divider" />
-
-      {isLoading && <p className="admin-empty">Loading posts...</p>}
-
-      {!isLoading && (!posts || posts.length === 0) && (
-        <p className="admin-empty">No posts yet.</p>
-      )}
-
-      {posts?.map((post) => (
-        <div key={post.id} className="admin-post-item">
-          <div className="admin-post-info">
-            <div className="admin-post-title">{post.title}</div>
-            <div className="admin-post-slug">/{post.slug}</div>
-          </div>
-          <div className="admin-actions">
-            <button className="admin-btn" onClick={() => setEditing(post)}>EDIT</button>
-            <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(post)}>DELETE</button>
-          </div>
-        </div>
-      ))}
-    </>
   )
 }
 
@@ -371,56 +191,11 @@ function NotificationsTab() {
   )
 }
 
-/* ─── Admin dashboard ─── */
-
-function AdminDashboard() {
-  const { logout, user, githubUsername } = useAuth()
-  const [activeTab, setActiveTab] = useState<'posts' | 'feedback' | 'notifications'>('posts')
-
-  return (
-    <div className="editor-page">
-      <div className="editor-meta">Signed in as @{githubUsername || user?.email}</div>
-      <h1 className="editor-title">Admin Panel</h1>
-
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-md)' }}>
-        <div className="admin-tabs">
-          <button
-            className={`admin-tab ${activeTab === 'posts' ? 'admin-tab-active' : ''}`}
-            onClick={() => setActiveTab('posts')}
-          >
-            Posts
-          </button>
-          <button
-            className={`admin-tab ${activeTab === 'feedback' ? 'admin-tab-active' : ''}`}
-            onClick={() => setActiveTab('feedback')}
-          >
-            Feedback
-          </button>
-          <button
-            className={`admin-tab ${activeTab === 'notifications' ? 'admin-tab-active' : ''}`}
-            onClick={() => setActiveTab('notifications')}
-          >
-            Notifications
-          </button>
-        </div>
-        <button className="admin-btn admin-btn-danger" onClick={logout}>
-          SIGN OUT
-        </button>
-      </div>
-
-      <div className="editor-divider" />
-
-      {activeTab === 'posts' && <PostsTab />}
-      {activeTab === 'feedback' && <FeedbackTab />}
-      {activeTab === 'notifications' && <NotificationsTab />}
-    </div>
-  )
-}
-
 /* ─── Main admin page ─── */
 
 export default function AdminPage() {
   const { user, loading } = useAuth()
+  const { item } = useParams<{ item?: string }>()
 
   if (loading) {
     return (
@@ -432,5 +207,36 @@ export default function AdminPage() {
     )
   }
 
-  return user ? <AdminDashboard /> : <LoginForm />
+  if (!user) {
+    return <LoginForm />
+  }
+
+  const sectionMap: Record<string, { label: string; ascii: string }> = {
+    '': { label: 'Feedback', ascii: 'feedback' },
+    feedback: { label: 'Feedback', ascii: 'feedback' },
+    notifications: { label: 'Notifications', ascii: 'notifications' },
+  }
+
+  const section = item || ''
+  const { label, ascii } = sectionMap[section] ?? sectionMap['']
+
+  const content = (() => {
+    switch (section) {
+      case 'notifications': return <NotificationsTab />
+      case '':
+      case 'feedback':
+      default:
+        return <FeedbackTab />
+    }
+  })()
+
+  return (
+    <div className="editor-page">
+      <div className="editor-meta">Admin Panel — {label}</div>
+      <AsciiTitle name={ascii} />
+      <div className="editor-content">
+        {content}
+      </div>
+    </div>
+  )
 }

@@ -256,6 +256,7 @@ function ChromaShift() {
     let active = false
 
     function tick() {
+      if (!el) { rafRef.current = requestAnimationFrame(tick); return }
       const now = performance.now()
 
       if (!active && now >= nextFire) {

@@ -18,3 +18,4 @@ backend/bin/
 
 # Superpowers
 .superpowers/
+.vercel

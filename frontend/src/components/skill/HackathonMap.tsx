@@ -66,19 +66,10 @@ export default function HackathonMap({ hackathons }: { hackathons: Hackathon[] }
       backgroundColor: 'transparent',
     })
 
-    // Get all points to find pin positions for labels + hover
-    const allPoints = map.getPoints()
     const pins = clusters.map(cluster => {
-      // Find the point closest to this cluster's coordinates
-      let bestPoint = null
-      let bestDist = Infinity
-      for (const pt of allPoints) {
-        if (!pt.data) continue // skip land dots
-        const dist = Math.abs(pt.data - cluster.lat) // rough match
-      }
       // Use getPin for position (returns {x, y} in SVG coordinate space)
       const pinPos = map.getPin({ lat: cluster.lat, lng: cluster.lng })
-      return { ...cluster, x: pinPos.x, y: pinPos.y }
+      return { ...cluster, x: pinPos?.x ?? 0, y: pinPos?.y ?? 0 }
     })
 
     return { svgContent: svg, pinPoints: pins }

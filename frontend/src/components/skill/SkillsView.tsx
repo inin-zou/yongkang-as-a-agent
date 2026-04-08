@@ -1,6 +1,11 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { fetchSkills } from '../../lib/api'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { fetchSkills, createSkill, updateSkill, deleteSkill } from '../../lib/api'
+import { useAdminEdit } from '../../hooks/useAdminEdit'
+import AdminBar from '../admin/AdminBar'
+import EditableItem from '../admin/EditableItem'
+import SkillEditor from '../admin/SkillEditor'
 import AsciiTitle from '../global/AsciiTitle'
 import type { SkillDomain } from '../../types'
 import '../../styles/skill.css'
@@ -27,6 +32,12 @@ function SkillEntry({ domain }: { domain: SkillDomain }) {
 }
 
 export default function SkillsView() {
+  const { isAdmin, token } = useAdminEdit()
+  const queryClient = useQueryClient()
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editingSkill, setEditingSkill] = useState<SkillDomain | null>(null)
+  const [creating, setCreating] = useState(false)
+
   const { data: skills, isLoading } = useQuery({
     queryKey: ['skills'],
     queryFn: fetchSkills,
@@ -46,6 +57,26 @@ export default function SkillsView() {
     <div className="editor-page">
       <div className="editor-meta">Agent skill manifest — {skills?.length || 0} domains, 24 missions</div>
       <AsciiTitle name="skills" />
+
+      {isAdmin && (
+        <AdminBar
+          isEditing={isEditMode}
+          onToggleEdit={() => { setIsEditMode(!isEditMode); setEditingSkill(null); setCreating(false) }}
+          onAdd={isEditMode ? () => { setCreating(true); setEditingSkill(null) } : undefined}
+        />
+      )}
+
+      {creating && (
+        <SkillEditor
+          onSave={async (data) => {
+            await createSkill(token, data)
+            queryClient.invalidateQueries({ queryKey: ['skills'] })
+            setCreating(false)
+          }}
+          onCancel={() => setCreating(false)}
+        />
+      )}
+
       <div className="editor-content">
         <p>
           Creative technologist assembling skills across domains. From enterprise RAG pipelines
@@ -64,7 +95,29 @@ export default function SkillsView() {
           <div className="cli-output">
             {skills?.map((domain, i) => (
               <div key={domain.title}>
-                <SkillEntry domain={domain} />
+                {isEditMode && editingSkill?.id === domain.id && domain.id ? (
+                  <SkillEditor
+                    initial={domain}
+                    onSave={async (data) => {
+                      await updateSkill(token, domain.id!, data)
+                      queryClient.invalidateQueries({ queryKey: ['skills'] })
+                      setEditingSkill(null)
+                    }}
+                    onCancel={() => setEditingSkill(null)}
+                  />
+                ) : (
+                  <EditableItem
+                    isEditMode={isEditMode}
+                    onEdit={() => setEditingSkill(domain)}
+                    onDelete={async () => {
+                      if (!confirm(`Delete "${domain.title}"?`)) return
+                      await deleteSkill(token, domain.id!)
+                      queryClient.invalidateQueries({ queryKey: ['skills'] })
+                    }}
+                  >
+                    <SkillEntry domain={domain} />
+                  </EditableItem>
+                )}
                 {i < (skills.length - 1) && <div className="cli-skill-divider" />}
               </div>
             ))}

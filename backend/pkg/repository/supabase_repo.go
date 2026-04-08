@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -439,4 +440,599 @@ func (r *SupabaseRepository) GetViews() (int64, error) {
 		return 0, fmt.Errorf("failed to get views: %w", err)
 	}
 	return count, nil
+}
+
+// GetSkills returns all skill domains ordered by sort_order.
+func (r *SupabaseRepository) GetSkills() ([]model.SkillDomain, error) {
+	rows, err := r.db.Query(`
+		SELECT id, title, slug, skills, battle_tested, sort_order
+		FROM skills
+		ORDER BY sort_order
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query skills: %w", err)
+	}
+	defer rows.Close()
+
+	var domains []model.SkillDomain
+	for rows.Next() {
+		var d model.SkillDomain
+		var slug sql.NullString
+		var skillsRaw, battleTestedRaw []byte
+		if err := rows.Scan(&d.ID, &d.Title, &slug, &skillsRaw, &battleTestedRaw, &d.SortOrder); err != nil {
+			return nil, fmt.Errorf("failed to scan skill domain: %w", err)
+		}
+		if slug.Valid {
+			d.Slug = slug.String
+		}
+		if len(skillsRaw) > 0 {
+			if err := json.Unmarshal(skillsRaw, &d.Skills); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal skills: %w", err)
+			}
+		}
+		if len(battleTestedRaw) > 0 {
+			if err := json.Unmarshal(battleTestedRaw, &d.BattleTested); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal battle_tested: %w", err)
+			}
+		}
+		domains = append(domains, d)
+	}
+
+	return domains, rows.Err()
+}
+
+// GetHackathons returns all hackathon entries from the hackathons table.
+func (r *SupabaseRepository) GetHackathons() ([]model.Hackathon, error) {
+	rows, err := r.db.Query(`
+		SELECT id, date, name, city, country, lat, lng, is_remote, project_name, project_slug, project_url, result, solo, domain
+		FROM hackathons
+		ORDER BY date DESC
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query hackathons: %w", err)
+	}
+	defer rows.Close()
+
+	var hackathons []model.Hackathon
+	for rows.Next() {
+		var h model.Hackathon
+		var city, country, projectSlug, projectURL, result sql.NullString
+		var lat, lng sql.NullFloat64
+		var isRemote, solo sql.NullBool
+		if err := rows.Scan(
+			&h.ID, &h.Date, &h.Name, &city, &country, &lat, &lng,
+			&isRemote, &h.ProjectName, &projectSlug, &projectURL, &result, &solo, &h.Domain,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan hackathon: %w", err)
+		}
+		if city.Valid {
+			h.City = city.String
+		}
+		if country.Valid {
+			h.Country = country.String
+		}
+		if lat.Valid && lng.Valid {
+			coords := [2]float64{lat.Float64, lng.Float64}
+			h.Coordinates = &coords
+		}
+		if isRemote.Valid {
+			h.IsRemote = isRemote.Bool
+		}
+		if projectSlug.Valid {
+			h.ProjectSlug = projectSlug.String
+		}
+		if projectURL.Valid {
+			h.ProjectURL = projectURL.String
+		}
+		if result.Valid {
+			h.Result = result.String
+		}
+		if solo.Valid {
+			h.Solo = solo.Bool
+		}
+		hackathons = append(hackathons, h)
+	}
+
+	return hackathons, rows.Err()
+}
+
+// GetExperience returns all experience entries ordered by sort_order.
+func (r *SupabaseRepository) GetExperience() ([]model.Experience, error) {
+	rows, err := r.db.Query(`
+		SELECT id, role, company, location, start_date, end_date, skill_assembled, highlights, note, sort_order
+		FROM experience
+		ORDER BY sort_order
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query experience: %w", err)
+	}
+	defer rows.Close()
+
+	var experiences []model.Experience
+	for rows.Next() {
+		var e model.Experience
+		var endDate, note sql.NullString
+		var highlightsRaw []byte
+		if err := rows.Scan(
+			&e.ID, &e.Role, &e.Company, &e.Location, &e.StartDate, &endDate,
+			&e.SkillAssembled, &highlightsRaw, &note, &e.SortOrder,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan experience: %w", err)
+		}
+		if endDate.Valid {
+			e.EndDate = endDate.String
+		}
+		if note.Valid {
+			e.Note = note.String
+		}
+		if len(highlightsRaw) > 0 {
+			if err := json.Unmarshal(highlightsRaw, &e.Highlights); err != nil {
+				return nil, fmt.Errorf("failed to unmarshal highlights: %w", err)
+			}
+		}
+		experiences = append(experiences, e)
+	}
+
+	return experiences, rows.Err()
+}
+
+// CreateSkill creates a new skill domain and returns it.
+func (r *SupabaseRepository) CreateSkill(title, slug string, skills, battleTested []string, sortOrder int) (*model.SkillDomain, error) {
+	skillsJSON, err := json.Marshal(skills)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal skills: %w", err)
+	}
+	battleTestedJSON, err := json.Marshal(battleTested)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal battle_tested: %w", err)
+	}
+
+	var d model.SkillDomain
+	var slugNull sql.NullString
+	var skillsRaw, battleTestedRaw []byte
+	err = r.db.QueryRow(`
+		INSERT INTO skills (title, slug, skills, battle_tested, sort_order)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, title, slug, skills, battle_tested, sort_order
+	`, title, slug, skillsJSON, battleTestedJSON, sortOrder).Scan(&d.ID, &d.Title, &slugNull, &skillsRaw, &battleTestedRaw, &d.SortOrder)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create skill: %w", err)
+	}
+	if slugNull.Valid {
+		d.Slug = slugNull.String
+	}
+	if len(skillsRaw) > 0 {
+		if err := json.Unmarshal(skillsRaw, &d.Skills); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal skills: %w", err)
+		}
+	}
+	if len(battleTestedRaw) > 0 {
+		if err := json.Unmarshal(battleTestedRaw, &d.BattleTested); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal battle_tested: %w", err)
+		}
+	}
+	return &d, nil
+}
+
+// UpdateSkill updates an existing skill domain and returns it.
+func (r *SupabaseRepository) UpdateSkill(id, title, slug string, skills, battleTested []string, sortOrder int) (*model.SkillDomain, error) {
+	skillsJSON, err := json.Marshal(skills)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal skills: %w", err)
+	}
+	battleTestedJSON, err := json.Marshal(battleTested)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal battle_tested: %w", err)
+	}
+
+	var d model.SkillDomain
+	var slugNull sql.NullString
+	var skillsRaw, battleTestedRaw []byte
+	err = r.db.QueryRow(`
+		UPDATE skills
+		SET title = $2, slug = $3, skills = $4, battle_tested = $5, sort_order = $6
+		WHERE id = $1
+		RETURNING id, title, slug, skills, battle_tested, sort_order
+	`, id, title, slug, skillsJSON, battleTestedJSON, sortOrder).Scan(&d.ID, &d.Title, &slugNull, &skillsRaw, &battleTestedRaw, &d.SortOrder)
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("skill with id %q not found", id)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to update skill: %w", err)
+	}
+	if slugNull.Valid {
+		d.Slug = slugNull.String
+	}
+	if len(skillsRaw) > 0 {
+		if err := json.Unmarshal(skillsRaw, &d.Skills); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal skills: %w", err)
+		}
+	}
+	if len(battleTestedRaw) > 0 {
+		if err := json.Unmarshal(battleTestedRaw, &d.BattleTested); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal battle_tested: %w", err)
+		}
+	}
+	return &d, nil
+}
+
+// DeleteSkill deletes a skill domain by ID.
+func (r *SupabaseRepository) DeleteSkill(id string) error {
+	result, err := r.db.Exec(`DELETE FROM skills WHERE id = $1`, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete skill: %w", err)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to check rows affected: %w", err)
+	}
+	if rows == 0 {
+		return fmt.Errorf("skill with id %q not found", id)
+	}
+	return nil
+}
+
+// CreateHackathon creates a new hackathon entry and returns it.
+func (r *SupabaseRepository) CreateHackathon(h model.Hackathon) (*model.Hackathon, error) {
+	var lat, lng *float64
+	if h.Coordinates != nil {
+		lat = &h.Coordinates[0]
+		lng = &h.Coordinates[1]
+	} else if h.Lat != nil && h.Lng != nil {
+		lat = h.Lat
+		lng = h.Lng
+	}
+
+	var result model.Hackathon
+	var city, country, projectSlug, projectURL, resultStr sql.NullString
+	var latNull, lngNull sql.NullFloat64
+	var isRemote, solo sql.NullBool
+	err := r.db.QueryRow(`
+		INSERT INTO hackathons (date, name, city, country, lat, lng, is_remote, project_name, project_slug, project_url, result, solo, domain)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+		RETURNING id, date, name, city, country, lat, lng, is_remote, project_name, project_slug, project_url, result, solo, domain
+	`, h.Date, h.Name, nullStr(h.City), nullStr(h.Country), lat, lng,
+		h.IsRemote, h.ProjectName, nullStr(h.ProjectSlug), nullStr(h.ProjectURL),
+		nullStr(h.Result), h.Solo, h.Domain,
+	).Scan(
+		&result.ID, &result.Date, &result.Name, &city, &country, &latNull, &lngNull,
+		&isRemote, &result.ProjectName, &projectSlug, &projectURL, &resultStr, &solo, &result.Domain,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create hackathon: %w", err)
+	}
+	if city.Valid {
+		result.City = city.String
+	}
+	if country.Valid {
+		result.Country = country.String
+	}
+	if latNull.Valid && lngNull.Valid {
+		coords := [2]float64{latNull.Float64, lngNull.Float64}
+		result.Coordinates = &coords
+	}
+	if isRemote.Valid {
+		result.IsRemote = isRemote.Bool
+	}
+	if projectSlug.Valid {
+		result.ProjectSlug = projectSlug.String
+	}
+	if projectURL.Valid {
+		result.ProjectURL = projectURL.String
+	}
+	if resultStr.Valid {
+		result.Result = resultStr.String
+	}
+	if solo.Valid {
+		result.Solo = solo.Bool
+	}
+	return &result, nil
+}
+
+// UpdateHackathon updates an existing hackathon entry and returns it.
+func (r *SupabaseRepository) UpdateHackathon(id string, h model.Hackathon) (*model.Hackathon, error) {
+	var lat, lng *float64
+	if h.Coordinates != nil {
+		lat = &h.Coordinates[0]
+		lng = &h.Coordinates[1]
+	} else if h.Lat != nil && h.Lng != nil {
+		lat = h.Lat
+		lng = h.Lng
+	}
+
+	var result model.Hackathon
+	var city, country, projectSlug, projectURL, resultStr sql.NullString
+	var latNull, lngNull sql.NullFloat64
+	var isRemote, solo sql.NullBool
+	err := r.db.QueryRow(`
+		UPDATE hackathons
+		SET date = $2, name = $3, city = $4, country = $5, lat = $6, lng = $7,
+		    is_remote = $8, project_name = $9, project_slug = $10, project_url = $11,
+		    result = $12, solo = $13, domain = $14
+		WHERE id = $1
+		RETURNING id, date, name, city, country, lat, lng, is_remote, project_name, project_slug, project_url, result, solo, domain
+	`, id, h.Date, h.Name, nullStr(h.City), nullStr(h.Country), lat, lng,
+		h.IsRemote, h.ProjectName, nullStr(h.ProjectSlug), nullStr(h.ProjectURL),
+		nullStr(h.Result), h.Solo, h.Domain,
+	).Scan(
+		&result.ID, &result.Date, &result.Name, &city, &country, &latNull, &lngNull,
+		&isRemote, &result.ProjectName, &projectSlug, &projectURL, &resultStr, &solo, &result.Domain,
+	)
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("hackathon with id %q not found", id)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to update hackathon: %w", err)
+	}
+	if city.Valid {
+		result.City = city.String
+	}
+	if country.Valid {
+		result.Country = country.String
+	}
+	if latNull.Valid && lngNull.Valid {
+		coords := [2]float64{latNull.Float64, lngNull.Float64}
+		result.Coordinates = &coords
+	}
+	if isRemote.Valid {
+		result.IsRemote = isRemote.Bool
+	}
+	if projectSlug.Valid {
+		result.ProjectSlug = projectSlug.String
+	}
+	if projectURL.Valid {
+		result.ProjectURL = projectURL.String
+	}
+	if resultStr.Valid {
+		result.Result = resultStr.String
+	}
+	if solo.Valid {
+		result.Solo = solo.Bool
+	}
+	return &result, nil
+}
+
+// DeleteHackathon deletes a hackathon entry by ID.
+func (r *SupabaseRepository) DeleteHackathon(id string) error {
+	result, err := r.db.Exec(`DELETE FROM hackathons WHERE id = $1`, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete hackathon: %w", err)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to check rows affected: %w", err)
+	}
+	if rows == 0 {
+		return fmt.Errorf("hackathon with id %q not found", id)
+	}
+	return nil
+}
+
+// CreateExperience creates a new experience entry and returns it.
+func (r *SupabaseRepository) CreateExperience(e model.Experience) (*model.Experience, error) {
+	highlightsJSON, err := json.Marshal(e.Highlights)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal highlights: %w", err)
+	}
+
+	var result model.Experience
+	var endDate, note sql.NullString
+	var highlightsRaw []byte
+	err = r.db.QueryRow(`
+		INSERT INTO experience (role, company, location, start_date, end_date, skill_assembled, highlights, note, sort_order)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		RETURNING id, role, company, location, start_date, end_date, skill_assembled, highlights, note, sort_order
+	`, e.Role, e.Company, e.Location, e.StartDate, nullStr(e.EndDate),
+		e.SkillAssembled, highlightsJSON, nullStr(e.Note), e.SortOrder,
+	).Scan(
+		&result.ID, &result.Role, &result.Company, &result.Location, &result.StartDate,
+		&endDate, &result.SkillAssembled, &highlightsRaw, &note, &result.SortOrder,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create experience: %w", err)
+	}
+	if endDate.Valid {
+		result.EndDate = endDate.String
+	}
+	if note.Valid {
+		result.Note = note.String
+	}
+	if len(highlightsRaw) > 0 {
+		if err := json.Unmarshal(highlightsRaw, &result.Highlights); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal highlights: %w", err)
+		}
+	}
+	return &result, nil
+}
+
+// UpdateExperience updates an existing experience entry and returns it.
+func (r *SupabaseRepository) UpdateExperience(id string, e model.Experience) (*model.Experience, error) {
+	highlightsJSON, err := json.Marshal(e.Highlights)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal highlights: %w", err)
+	}
+
+	var result model.Experience
+	var endDate, note sql.NullString
+	var highlightsRaw []byte
+	err = r.db.QueryRow(`
+		UPDATE experience
+		SET role = $2, company = $3, location = $4, start_date = $5, end_date = $6,
+		    skill_assembled = $7, highlights = $8, note = $9, sort_order = $10
+		WHERE id = $1
+		RETURNING id, role, company, location, start_date, end_date, skill_assembled, highlights, note, sort_order
+	`, id, e.Role, e.Company, e.Location, e.StartDate, nullStr(e.EndDate),
+		e.SkillAssembled, highlightsJSON, nullStr(e.Note), e.SortOrder,
+	).Scan(
+		&result.ID, &result.Role, &result.Company, &result.Location, &result.StartDate,
+		&endDate, &result.SkillAssembled, &highlightsRaw, &note, &result.SortOrder,
+	)
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("experience with id %q not found", id)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to update experience: %w", err)
+	}
+	if endDate.Valid {
+		result.EndDate = endDate.String
+	}
+	if note.Valid {
+		result.Note = note.String
+	}
+	if len(highlightsRaw) > 0 {
+		if err := json.Unmarshal(highlightsRaw, &result.Highlights); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal highlights: %w", err)
+		}
+	}
+	return &result, nil
+}
+
+// DeleteExperience deletes an experience entry by ID.
+func (r *SupabaseRepository) DeleteExperience(id string) error {
+	result, err := r.db.Exec(`DELETE FROM experience WHERE id = $1`, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete experience: %w", err)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to check rows affected: %w", err)
+	}
+	if rows == 0 {
+		return fmt.Errorf("experience with id %q not found", id)
+	}
+	return nil
+}
+
+// nullStr returns a *string pointer: nil if empty, otherwise a pointer to the value.
+func nullStr(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
+// GetPage returns the JSONB content of a page by ID.
+func (r *SupabaseRepository) GetPage(id string) (json.RawMessage, error) {
+	var content json.RawMessage
+	err := r.db.QueryRow(`
+		SELECT content FROM pages WHERE id = $1
+	`, id).Scan(&content)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get page %q: %w", id, err)
+	}
+	return content, nil
+}
+
+// UpdatePage updates the JSONB content of a page and returns it.
+func (r *SupabaseRepository) UpdatePage(id string, content json.RawMessage) (json.RawMessage, error) {
+	var updated json.RawMessage
+	err := r.db.QueryRow(`
+		UPDATE pages SET content = $1, updated_at = now() WHERE id = $2 RETURNING content
+	`, content, id).Scan(&updated)
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("page with id %q not found", id)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to update page %q: %w", id, err)
+	}
+	return updated, nil
+}
+
+// GetMusicTracks returns all music tracks ordered by sort_order.
+func (r *SupabaseRepository) GetMusicTracks() ([]model.MusicTrack, error) {
+	rows, err := r.db.Query(`
+		SELECT id, slug, name, genre, original, notes, file_url, sort_order
+		FROM music_tracks
+		ORDER BY sort_order
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query music tracks: %w", err)
+	}
+	defer rows.Close()
+
+	var tracks []model.MusicTrack
+	for rows.Next() {
+		var t model.MusicTrack
+		if err := rows.Scan(&t.ID, &t.Slug, &t.Name, &t.Genre, &t.Original, &t.Notes, &t.FileURL, &t.SortOrder); err != nil {
+			return nil, fmt.Errorf("failed to scan music track: %w", err)
+		}
+		tracks = append(tracks, t)
+	}
+
+	return tracks, rows.Err()
+}
+
+// CreateMusicTrack creates a new music track and returns it.
+func (r *SupabaseRepository) CreateMusicTrack(slug, name, genre, original, notes, fileURL string, sortOrder int) (*model.MusicTrack, error) {
+	var t model.MusicTrack
+	err := r.db.QueryRow(`
+		INSERT INTO music_tracks (slug, name, genre, original, notes, file_url, sort_order)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id, slug, name, genre, original, notes, file_url, sort_order
+	`, slug, name, genre, original, notes, fileURL, sortOrder).Scan(
+		&t.ID, &t.Slug, &t.Name, &t.Genre, &t.Original, &t.Notes, &t.FileURL, &t.SortOrder,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create music track: %w", err)
+	}
+	return &t, nil
+}
+
+// UpdateMusicTrack updates an existing music track and returns it.
+func (r *SupabaseRepository) UpdateMusicTrack(id, slug, name, genre, original, notes, fileURL string, sortOrder int) (*model.MusicTrack, error) {
+	var t model.MusicTrack
+	err := r.db.QueryRow(`
+		UPDATE music_tracks
+		SET slug = $2, name = $3, genre = $4, original = $5, notes = $6, file_url = $7, sort_order = $8
+		WHERE id = $1
+		RETURNING id, slug, name, genre, original, notes, file_url, sort_order
+	`, id, slug, name, genre, original, notes, fileURL, sortOrder).Scan(
+		&t.ID, &t.Slug, &t.Name, &t.Genre, &t.Original, &t.Notes, &t.FileURL, &t.SortOrder,
+	)
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("music track with id %q not found", id)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to update music track: %w", err)
+	}
+	return &t, nil
+}
+
+// DeleteMusicTrack deletes a music track by ID.
+func (r *SupabaseRepository) DeleteMusicTrack(id string) error {
+	result, err := r.db.Exec(`DELETE FROM music_tracks WHERE id = $1`, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete music track: %w", err)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to check rows affected: %w", err)
+	}
+	if rows == 0 {
+		return fmt.Errorf("music track with id %q not found", id)
+	}
+	return nil
+}
+
+// GetProjects is not available in Supabase.
+func (r *SupabaseRepository) GetProjects() ([]model.Project, error) {
+	return nil, fmt.Errorf("not available in supabase")
+}
+
+// GetProjectBySlug is not available in Supabase.
+func (r *SupabaseRepository) GetProjectBySlug(slug string) (*model.Project, error) {
+	return nil, fmt.Errorf("not available in supabase")
+}
+
+// GetProjectsByCategory is not available in Supabase.
+func (r *SupabaseRepository) GetProjectsByCategory(category string) ([]model.Project, error) {
+	return nil, fmt.Errorf("not available in supabase")
+}
+
+// GetMusic is not available in Supabase.
+func (r *SupabaseRepository) GetMusic() (*model.Music, error) {
+	return nil, fmt.Errorf("not available in supabase")
 }

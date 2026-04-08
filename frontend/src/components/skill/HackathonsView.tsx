@@ -1,5 +1,10 @@
-import { useQuery } from '@tanstack/react-query'
-import { fetchHackathons } from '../../lib/api'
+import { useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { fetchHackathons, createHackathon, updateHackathon, deleteHackathon } from '../../lib/api'
+import { useAdminEdit } from '../../hooks/useAdminEdit'
+import AdminBar from '../admin/AdminBar'
+import EditableItem from '../admin/EditableItem'
+import HackathonEditor from '../admin/HackathonEditor'
 import AsciiTitle from '../global/AsciiTitle'
 import HackathonMap from './HackathonMap'
 import type { Hackathon } from '../../types'
@@ -74,32 +79,66 @@ function DomainTree({ hackathons }: { hackathons: Hackathon[] }) {
 }
 
 /* ===== Terminal Timeline ===== */
-function HackathonTimeline({ hackathons }: { hackathons: Hackathon[] }) {
+function HackathonTimeline({
+  hackathons,
+  isEditMode,
+  editingHackathon,
+  onEdit,
+  onDelete,
+  onSaveEdit,
+  onCancelEdit,
+}: {
+  hackathons: Hackathon[]
+  isEditMode: boolean
+  editingHackathon: Hackathon | null
+  onEdit: (h: Hackathon) => void
+  onDelete: (h: Hackathon) => void
+  onSaveEdit: (h: Hackathon, data: Hackathon) => Promise<void>
+  onCancelEdit: () => void
+}) {
   return (
     <div className="cli-block">
       <div className="cli-prompt">$ agent --log hackathons --reverse</div>
       <div className="cli-output">
         {hackathons.map((h, i) => {
+          if (isEditMode && editingHackathon?.id === h.id && h.id) {
+            return (
+              <HackathonEditor
+                key={i}
+                initial={h}
+                onSave={(data) => onSaveEdit(h, data)}
+                onCancel={onCancelEdit}
+              />
+            )
+          }
+
           const hasWin = !!h.result
           const trophy = hasWin ? '🏆' : '  '
           const projectUrl = h.projectUrl || undefined
 
           return (
-            <div key={i} className={`cli-log-line ${hasWin ? 'cli-log-win' : 'cli-log-default'}`}>
-              <span className="cli-log-date">[{h.date}]</span>
-              <span className="cli-log-trophy">{trophy}</span>
-              <span className="cli-log-name">{h.name}</span>
-              <span className="cli-log-arrow">→</span>
-              {projectUrl ? (
-                <a href={projectUrl} target="_blank" rel="noopener noreferrer" className="cli-log-project">
-                  {h.projectName}
-                </a>
-              ) : (
-                <span className="cli-log-project">{h.projectName}</span>
-              )}
-              {h.result && <span className="cli-log-result">{h.result}</span>}
-              {h.solo && <span className="cli-log-solo">(solo)</span>}
-            </div>
+            <EditableItem
+              key={i}
+              isEditMode={isEditMode}
+              onEdit={() => onEdit(h)}
+              onDelete={() => onDelete(h)}
+            >
+              <div className={`cli-log-line ${hasWin ? 'cli-log-win' : 'cli-log-default'}`}>
+                <span className="cli-log-date">[{h.date}]</span>
+                <span className="cli-log-trophy">{trophy}</span>
+                <span className="cli-log-name">{h.name}</span>
+                <span className="cli-log-arrow">→</span>
+                {projectUrl ? (
+                  <a href={projectUrl} target="_blank" rel="noopener noreferrer" className="cli-log-project">
+                    {h.projectName}
+                  </a>
+                ) : (
+                  <span className="cli-log-project">{h.projectName}</span>
+                )}
+                {h.result && <span className="cli-log-result">{h.result}</span>}
+                {h.solo && <span className="cli-log-solo">(solo)</span>}
+              </div>
+            </EditableItem>
           )
         })}
       </div>
@@ -109,6 +148,12 @@ function HackathonTimeline({ hackathons }: { hackathons: Hackathon[] }) {
 
 /* ===== Main View ===== */
 export default function HackathonsView() {
+  const { isAdmin, token } = useAdminEdit()
+  const queryClient = useQueryClient()
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editingHackathon, setEditingHackathon] = useState<Hackathon | null>(null)
+  const [creating, setCreating] = useState(false)
+
   const { data: hackathons, isLoading } = useQuery({
     queryKey: ['hackathons'],
     queryFn: fetchHackathons,
@@ -130,6 +175,26 @@ export default function HackathonsView() {
     <div className="editor-page">
       <div className="editor-meta">24 missions. 9 wins. Always shipping.</div>
       <AsciiTitle name="hackathons" />
+
+      {isAdmin && (
+        <AdminBar
+          isEditing={isEditMode}
+          onToggleEdit={() => { setIsEditMode(!isEditMode); setEditingHackathon(null); setCreating(false) }}
+          onAdd={isEditMode ? () => { setCreating(true); setEditingHackathon(null) } : undefined}
+        />
+      )}
+
+      {creating && (
+        <HackathonEditor
+          onSave={async (data) => {
+            await createHackathon(token, data)
+            queryClient.invalidateQueries({ queryKey: ['hackathons'] })
+            setCreating(false)
+          }}
+          onCancel={() => setCreating(false)}
+        />
+      )}
+
       <div className="editor-content">
         <CliStats hackathons={all} />
 
@@ -146,7 +211,23 @@ export default function HackathonsView() {
         <div className="editor-divider" />
 
         <p className="editor-label">Timeline</p>
-        <HackathonTimeline hackathons={all} />
+        <HackathonTimeline
+          hackathons={all}
+          isEditMode={isEditMode}
+          editingHackathon={editingHackathon}
+          onEdit={(h) => setEditingHackathon(h)}
+          onDelete={async (h) => {
+            if (!confirm(`Delete "${h.name}"?`)) return
+            await deleteHackathon(token, h.id!)
+            queryClient.invalidateQueries({ queryKey: ['hackathons'] })
+          }}
+          onSaveEdit={async (h, data) => {
+            await updateHackathon(token, h.id!, data)
+            queryClient.invalidateQueries({ queryKey: ['hackathons'] })
+            setEditingHackathon(null)
+          }}
+          onCancelEdit={() => setEditingHackathon(null)}
+        />
       </div>
     </div>
   )

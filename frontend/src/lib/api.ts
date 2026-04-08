@@ -4,6 +4,7 @@ import type {
   Experience,
   SkillDomain,
   Music,
+  MusicTrack,
   ContactRequest,
   BlogPost,
   Feedback,
@@ -16,7 +17,7 @@ import type {
 const BASE_URL = '/api';
 
 async function fetchJSON<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`);
+  const res = await fetch(`${BASE_URL}${path}`, { cache: 'no-store' });
   if (!res.ok) throw new Error(`API error: ${res.status} ${res.statusText}`);
   return res.json();
 }
@@ -200,6 +201,135 @@ export async function createPostComment(
   return res.json();
 }
 
+/* ─── Admin Skills CRUD ─── */
+
+export async function createSkill(
+  token: string,
+  data: { title: string; slug: string; skills: string[]; battleTested: string[]; sortOrder: number },
+): Promise<SkillDomain> {
+  const res = await fetch(`${BASE_URL}/admin/skills`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+export async function updateSkill(
+  token: string,
+  id: string,
+  data: { title: string; slug: string; skills: string[]; battleTested: string[]; sortOrder: number },
+): Promise<SkillDomain> {
+  const res = await fetch(`${BASE_URL}/admin/skills/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+export async function deleteSkill(token: string, id: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/admin/skills/${id}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+}
+
+/* ─── Admin Hackathons CRUD ─── */
+
+export async function createHackathon(
+  token: string,
+  data: Hackathon,
+): Promise<Hackathon> {
+  const res = await fetch(`${BASE_URL}/admin/hackathons`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+export async function updateHackathon(
+  token: string,
+  id: string,
+  data: Hackathon,
+): Promise<Hackathon> {
+  const res = await fetch(`${BASE_URL}/admin/hackathons/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+export async function deleteHackathon(token: string, id: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/admin/hackathons/${id}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+}
+
+/* ─── Admin Experience CRUD ─── */
+
+export async function createExperience(
+  token: string,
+  data: Experience,
+): Promise<Experience> {
+  const res = await fetch(`${BASE_URL}/admin/experience`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+export async function updateExperience(
+  token: string,
+  id: string,
+  data: Experience,
+): Promise<Experience> {
+  const res = await fetch(`${BASE_URL}/admin/experience/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+export async function deleteExperience(token: string, id: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/admin/experience/${id}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+}
+
 /* ─── Admin notifications ─── */
 
 export async function fetchNotifications(token: string): Promise<AdminNotification[]> {
@@ -229,6 +359,76 @@ export async function markNotificationRead(token: string, id: string): Promise<v
 export async function markAllNotificationsRead(token: string): Promise<void> {
   const res = await fetch(`${BASE_URL}/admin/notifications/read-all`, {
     method: 'PUT',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+}
+
+/* ─── Pages (generic page content) ─── */
+
+export async function fetchPage(id: string): Promise<Record<string, unknown>> {
+  return fetchJSON<Record<string, unknown>>(`/pages/${id}`);
+}
+
+export async function updatePage(
+  token: string,
+  id: string,
+  content: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  const res = await fetch(`${BASE_URL}/admin/pages/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(content),
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+/* ─── Music tracks CRUD ─── */
+
+export function fetchMusicTracks(): Promise<MusicTrack[]> {
+  return fetchJSON<MusicTrack[]>('/music-tracks');
+}
+
+export async function createMusicTrack(
+  token: string,
+  data: Omit<MusicTrack, 'id'>,
+): Promise<MusicTrack> {
+  const res = await fetch(`${BASE_URL}/admin/music-tracks`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+export async function updateMusicTrack(
+  token: string,
+  id: string,
+  data: Omit<MusicTrack, 'id'>,
+): Promise<MusicTrack> {
+  const res = await fetch(`${BASE_URL}/admin/music-tracks/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+export async function deleteMusicTrack(token: string, id: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/admin/music-tracks/${id}`, {
+    method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error(`API error: ${res.status}`);

@@ -71,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.clear()
   }, [queryClient])
 
-  const getAuthHeaders = useCallback(() => {
+  const getAuthHeaders = useCallback((): Record<string, string> => {
     const token = session?.access_token
     if (!token) return {}
     return { Authorization: `Bearer ${token}` }

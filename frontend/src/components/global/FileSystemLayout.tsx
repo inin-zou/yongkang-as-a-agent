@@ -1,16 +1,35 @@
 import { useMemo } from 'react'
-import { Outlet, useParams, Navigate } from 'react-router-dom'
+import { Outlet, useParams, Navigate, NavLink, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import TabNavigation from './TabNavigation'
 import AuthButton from './AuthButton'
 import Sidebar from '../navigation/Sidebar'
 import Breadcrumb from '../navigation/Breadcrumb'
-import { FILE_TABS, type TabConfig, type SidebarItem } from '../navigation/sidebarConfig'
-import { fetchBlogPosts } from '../../lib/api'
+import { FILE_TABS, ADMIN_TAB, type TabConfig, type SidebarItem } from '../navigation/sidebarConfig'
+import { fetchBlogPosts, fetchMusicTracks } from '../../lib/api'
+import { useAuth } from '../../lib/AuthContext'
+
+function AdminTabLink() {
+  const { user } = useAuth()
+  const location = useLocation()
+  if (!user) return null
+
+  const isActive = location.pathname.startsWith(ADMIN_TAB.basePath)
+
+  return (
+    <NavLink
+      to={ADMIN_TAB.basePath}
+      className={`tab ${isActive ? 'tab-active' : 'tab-inactive'}`}
+      data-interactive
+    >
+      {ADMIN_TAB.label}
+    </NavLink>
+  )
+}
 
 export default function FileSystemLayout() {
   const { tab } = useParams<{ tab: string }>()
-  const activeTab = FILE_TABS.find((t) => t.id === tab)
+  const activeTab = FILE_TABS.find((t) => t.id === tab) || (tab === 'admin' ? ADMIN_TAB : undefined)
 
   // Fetch blog posts when memory tab is active
   const isMemory = activeTab?.id === 'memory'
@@ -20,9 +39,28 @@ export default function FileSystemLayout() {
     enabled: isMemory,
   })
 
-  // Build the effective tab config — for memory, override sidebar items with live posts
+  // Fetch music tracks when music tab is active
+  const isMusic = activeTab?.id === 'music'
+  const { data: musicTracks } = useQuery({
+    queryKey: ['music-tracks'],
+    queryFn: fetchMusicTracks,
+    enabled: isMusic,
+  })
+
+  // Build the effective tab config — for memory/music, override sidebar items with live data
   const effectiveTab: TabConfig | undefined = useMemo(() => {
     if (!activeTab) return undefined
+
+    if (isMusic && musicTracks) {
+      const dynamicItems: SidebarItem[] = musicTracks.map((track) => ({
+        id: track.slug,
+        label: track.name,
+        preview: `Cover · ${track.original}`,
+        routeSegment: track.slug,
+      }))
+      return { ...activeTab, sidebarItems: dynamicItems }
+    }
+
     if (!isMemory) return activeTab
 
     const dynamicItems: SidebarItem[] = (posts ?? []).map((post) => ({
@@ -42,7 +80,7 @@ export default function FileSystemLayout() {
     })
 
     return { ...activeTab, sidebarItems: dynamicItems }
-  }, [activeTab, isMemory, posts])
+  }, [activeTab, isMemory, isMusic, posts, musicTracks])
 
   if (!effectiveTab) {
     return <Navigate to="/files/soul" replace />
@@ -53,10 +91,13 @@ export default function FileSystemLayout() {
   return (
     <div className="app-window-wrapper">
       <div className="app-window">
-        {/* Tabs + auth button sit on top of the window */}
+        {/* Tabs + admin link + auth button sit on top of the window */}
         <div className="tab-bar">
           <TabNavigation />
-          <AuthButton />
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
+            <AdminTabLink />
+            <AuthButton />
+          </div>
         </div>
 
         {/* Window body: sidebar + editor */}

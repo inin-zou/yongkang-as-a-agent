@@ -1,44 +1,15 @@
 import { useRef, useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { fetchMusic } from '../lib/api'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { fetchMusic, fetchMusicTracks, fetchPage, updatePage, createMusicTrack, updateMusicTrack, deleteMusicTrack } from '../lib/api'
+import { useAdminEdit } from '../hooks/useAdminEdit'
+import AdminBar from '../components/admin/AdminBar'
+import TrackEditor from '../components/admin/TrackEditor'
 import AsciiTitle from '../components/global/AsciiTitle'
 import PostInteractions from '../components/global/PostInteractions'
+import type { MusicTrack } from '../types/index'
 import '../styles/music.css'
 import '../styles/memory.css'
-
-/* ===== Track data ===== */
-const STORAGE_BASE = 'https://ktdvafynhgszkmrgmeyk.supabase.co/storage/v1/object/public/music'
-
-const TRACKS: Record<string, {
-  name: string
-  genre: string
-  original: string
-  notes: string
-  file: string
-}> = {
-  'pimmies-dilemma': {
-    name: "PIMMIE'S DILEMMA",
-    genre: 'Alternative RnB',
-    original: 'Pimmie, PARTYNEXTDOOR & Drake',
-    notes: 'A cover of the standout track from $ome $exy $ongs 4 U. Stripped back, rebuilt with just a voice and a late-night atmosphere.',
-    file: `${STORAGE_BASE}/PIMMIE'S%20DILEMMA.mp3`,
-  },
-  'soft-spot': {
-    name: 'Soft Spot',
-    genre: 'Lo-Fi RnB',
-    original: 'keshi',
-    notes: 'A quiet cover of keshi\'s Soft Spot. Recorded in one take, keeping the vulnerability raw and unpolished.',
-    file: `${STORAGE_BASE}/Soft%20Spot.mp3`,
-  },
-  'dream': {
-    name: 'Dream',
-    genre: 'Lo-Fi RnB',
-    original: 'keshi',
-    notes: 'keshi\'s Dream, reimagined with layered vocals and a slower, more introspective arrangement.',
-    file: `${STORAGE_BASE}/Dream.mp3`,
-  },
-}
 
 /* ===== Extract real waveform from audio ===== */
 async function extractWaveform(url: string, barCount: number): Promise<number[]> {
@@ -197,18 +168,24 @@ function AudioPlayer({ src }: { src: string }) {
 }
 
 /* ===== Track Detail View ===== */
-function TrackView({ trackId }: { trackId: string }) {
-  const track = TRACKS[trackId]
-  if (!track) {
-    return (
-      <div className="editor-page">
-        <div className="editor-meta">Track not found</div>
-        <h1 className="editor-title">Unknown Track</h1>
-        <div className="editor-content">
-          <p>This track does not exist.</p>
-        </div>
-      </div>
-    )
+function TrackView({ track }: { track: MusicTrack }) {
+  const { isAdmin, token } = useAdminEdit()
+  const [isEditing, setIsEditing] = useState(false)
+  const queryClient = useQueryClient()
+
+  async function handleSaveTrack(data: { slug: string; name: string; genre: string; original: string; notes: string; fileUrl: string; sortOrder: number }) {
+    if (track.id) {
+      await updateMusicTrack(token, track.id, data)
+    }
+    await queryClient.invalidateQueries({ queryKey: ['music-tracks'] })
+    setIsEditing(false)
+  }
+
+  async function handleDeleteTrack() {
+    if (!track.id) return
+    if (!window.confirm(`Delete track "${track.name}"?`)) return
+    await deleteMusicTrack(token, track.id)
+    await queryClient.invalidateQueries({ queryKey: ['music-tracks'] })
   }
 
   return (
@@ -218,16 +195,45 @@ function TrackView({ trackId }: { trackId: string }) {
       </div>
       <h1 className="editor-title">{track.name}</h1>
       <div className="editor-content">
-        <div className="music-track-meta">
-          <span>Original: {track.original}</span>
-          <span>Genre: {track.genre}</span>
-        </div>
+        {isAdmin && (
+          <AdminBar
+            isEditing={isEditing}
+            onToggleEdit={() => setIsEditing(!isEditing)}
+          />
+        )}
 
-        <AudioPlayer src={track.file} />
+        {isEditing ? (
+          <div>
+            <TrackEditor
+              initial={track}
+              onSave={handleSaveTrack}
+              onCancel={() => setIsEditing(false)}
+            />
+            {track.id && (
+              <button
+                type="button"
+                className="admin-btn"
+                style={{ marginTop: 'var(--space-sm)', color: '#e55' }}
+                onClick={handleDeleteTrack}
+              >
+                DELETE TRACK
+              </button>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="music-track-meta">
+              <span>Original: {track.original}</span>
+              <span>Genre: {track.genre}</span>
+            </div>
 
-        <p className="music-track-notes">{track.notes}</p>
+            <AudioPlayer src={track.fileUrl} />
 
-        <PostInteractions slug={`music-${trackId}`} />
+            <p className="music-track-notes">{track.notes}</p>
+
+            <PostInteractions slug={`music-${track.slug}`} />
+          </>
+        )}
       </div>
     </div>
   )
@@ -235,10 +241,77 @@ function TrackView({ trackId }: { trackId: string }) {
 
 /* ===== Artist Overview (default view) ===== */
 function ArtistOverview() {
+  const { isAdmin, token } = useAdminEdit()
+  const [isEditing, setIsEditing] = useState(false)
+  const [addingTrack, setAddingTrack] = useState(false)
+  const queryClient = useQueryClient()
+
   const { data: music, isLoading, error } = useQuery({
     queryKey: ['music'],
     queryFn: fetchMusic,
   })
+
+  const { data: musicProfile } = useQuery({
+    queryKey: ['pages', 'music'],
+    queryFn: () => fetchPage('music'),
+  })
+
+  // Edit form state for overview
+  const [editArtistName, setEditArtistName] = useState('')
+  const [editGenre, setEditGenre] = useState('')
+  const [editBio, setEditBio] = useState('')
+  const [editStatus, setEditStatus] = useState('')
+  const [editLocation, setEditLocation] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
+
+  // Merge page data with music API data, page data takes priority
+  const artistName = (musicProfile?.artistName as string) ?? music?.artistName ?? 'inhibitor'
+  const genre = (musicProfile?.genre as string) ?? music?.genre ?? 'Alternative RnB / Lo-Fi'
+  const bio = (musicProfile?.bio as string) ?? music?.bio ?? ''
+  const status = (musicProfile?.status as string) ?? music?.status ?? ''
+  const location = (musicProfile?.location as string) ?? music?.location ?? ''
+  const platforms = music?.platforms ?? {}
+
+  function toggleEditing() {
+    if (isEditing) {
+      setIsEditing(false)
+      setSaveError('')
+    } else {
+      setEditArtistName(artistName)
+      setEditGenre(genre)
+      setEditBio(bio)
+      setEditStatus(status)
+      setEditLocation(location)
+      setIsEditing(true)
+    }
+  }
+
+  async function handleSave() {
+    setSaving(true)
+    setSaveError('')
+    try {
+      const updated = await updatePage(token, 'music', {
+        artistName: editArtistName,
+        genre: editGenre,
+        bio: editBio,
+        status: editStatus,
+        location: editLocation,
+      })
+      queryClient.setQueryData(['pages', 'music'], updated)
+      setIsEditing(false)
+    } catch (err: unknown) {
+      setSaveError(err instanceof Error ? err.message : 'Save failed')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleCreateTrack(data: { slug: string; name: string; genre: string; original: string; notes: string; fileUrl: string; sortOrder: number }) {
+    await createMusicTrack(token, data)
+    await queryClient.invalidateQueries({ queryKey: ['music-tracks'] })
+    setAddingTrack(false)
+  }
 
   if (isLoading) {
     return (
@@ -250,7 +323,7 @@ function ArtistOverview() {
     )
   }
 
-  if (error || !music) {
+  if (error && !musicProfile) {
     return (
       <div className="editor-page">
         <div className="editor-meta">inhibitor — Alternative RnB / Lo-Fi</div>
@@ -265,39 +338,126 @@ function ArtistOverview() {
   return (
     <div className="editor-page">
       <div className="editor-meta">
-        {music.artistName} — {music.genre}
+        {artistName} — {genre}
       </div>
       <AsciiTitle name="music" />
       <div className="editor-content">
-        <p>{music.bio}</p>
+        {isAdmin && (
+          <AdminBar
+            isEditing={isEditing}
+            onToggleEdit={toggleEditing}
+            onSave={handleSave}
+            saving={saving}
+            onAdd={() => setAddingTrack(true)}
+            addLabel="NEW TRACK"
+          />
+        )}
 
-        <div className="editor-divider" />
+        {addingTrack && (
+          <div style={{ marginBottom: 'var(--space-md)' }}>
+            <h3 style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', marginBottom: 'var(--space-sm)' }}>
+              New Track
+            </h3>
+            <TrackEditor
+              onSave={handleCreateTrack}
+              onCancel={() => setAddingTrack(false)}
+            />
+          </div>
+        )}
 
-        <p className="editor-label">Status</p>
-        <p>{music.status}</p>
+        {isEditing ? (
+          <div className="admin-editor">
+            {saveError && <div className="admin-error">{saveError}</div>}
 
-        <p className="editor-label">Location</p>
-        <p>{music.location}</p>
+            <div>
+              <label htmlFor="music-artist" className="memory-feedback-label">Artist Name</label>
+              <input
+                id="music-artist"
+                type="text"
+                className="memory-feedback-input"
+                value={editArtistName}
+                onChange={(e) => setEditArtistName(e.target.value)}
+              />
+            </div>
 
-        <p className="editor-label">Genre</p>
-        <p>{music.genre}</p>
+            <div>
+              <label htmlFor="music-genre" className="memory-feedback-label">Genre</label>
+              <input
+                id="music-genre"
+                type="text"
+                className="memory-feedback-input"
+                value={editGenre}
+                onChange={(e) => setEditGenre(e.target.value)}
+              />
+            </div>
 
-        <div className="editor-divider" />
+            <div>
+              <label htmlFor="music-bio" className="memory-feedback-label">Bio</label>
+              <textarea
+                id="music-bio"
+                className="memory-feedback-input"
+                value={editBio}
+                onChange={(e) => setEditBio(e.target.value)}
+                rows={4}
+              />
+            </div>
 
-        <p className="editor-label">Platforms</p>
-        <div className="music-platform-links">
-          {Object.entries(music.platforms).map(([name, url]) => (
-            <a
-              key={name}
-              href={url}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-interactive
-            >
-              {name}
-            </a>
-          ))}
-        </div>
+            <div>
+              <label htmlFor="music-status" className="memory-feedback-label">Status</label>
+              <input
+                id="music-status"
+                type="text"
+                className="memory-feedback-input"
+                value={editStatus}
+                onChange={(e) => setEditStatus(e.target.value)}
+              />
+            </div>
+
+            <div>
+              <label htmlFor="music-location" className="memory-feedback-label">Location</label>
+              <input
+                id="music-location"
+                type="text"
+                className="memory-feedback-input"
+                value={editLocation}
+                onChange={(e) => setEditLocation(e.target.value)}
+              />
+            </div>
+
+          </div>
+        ) : (
+          <>
+            <p>{bio}</p>
+
+            <div className="editor-divider" />
+
+            <p className="editor-label">Status</p>
+            <p>{status}</p>
+
+            <p className="editor-label">Location</p>
+            <p>{location}</p>
+
+            <p className="editor-label">Genre</p>
+            <p>{genre}</p>
+
+            <div className="editor-divider" />
+
+            <p className="editor-label">Platforms</p>
+            <div className="music-platform-links">
+              {Object.entries(platforms).map(([name, url]) => (
+                <a
+                  key={name}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-interactive
+                >
+                  {name}
+                </a>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   )
@@ -307,9 +467,27 @@ function ArtistOverview() {
 export default function MusicPage() {
   const { item } = useParams<{ item?: string }>()
 
+  const { data: tracks } = useQuery({
+    queryKey: ['music-tracks'],
+    queryFn: fetchMusicTracks,
+  })
+
   if (!item) return <ArtistOverview />
 
-  if (TRACKS[item]) return <TrackView trackId={item} />
+  const currentTrack = tracks?.find(t => t.slug === item)
+
+  if (currentTrack) return <TrackView track={currentTrack} />
+
+  // Fallback: if tracks haven't loaded yet, show loading
+  if (!tracks) {
+    return (
+      <div className="editor-page">
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--color-ink-faint)' }}>
+          Loading...
+        </p>
+      </div>
+    )
+  }
 
   return <ArtistOverview />
 }
