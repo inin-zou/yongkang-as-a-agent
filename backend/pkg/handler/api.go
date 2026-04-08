@@ -2,6 +2,8 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strings"
@@ -30,6 +32,17 @@ func writeJSON(w http.ResponseWriter, status int, data interface{}) {
 	}
 }
 
+// writeCachedJSON sets Cache-Control headers for browser and CDN, then writes JSON.
+// Vercel-CDN-Cache-Control controls Vercel's edge cache (stripped before reaching client).
+// Cache-Control controls the browser cache.
+func writeCachedJSON(w http.ResponseWriter, status int, data interface{}, cdnMaxAge int) {
+	cdnVal := fmt.Sprintf("public, s-maxage=%d, stale-while-revalidate=%d", cdnMaxAge, cdnMaxAge/24)
+	w.Header().Set("Vercel-CDN-Cache-Control", cdnVal)
+	w.Header().Set("CDN-Cache-Control", cdnVal)
+	w.Header().Set("Cache-Control", "public, max-age=10")
+	writeJSON(w, status, data)
+}
+
 // writeError writes a JSON error response with the given status code and message.
 func writeError(w http.ResponseWriter, status int, message string) {
 	writeJSON(w, status, map[string]string{"error": message})
@@ -45,7 +58,7 @@ func (h *APIHandler) HandleGetProjects(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, projects)
+	writeCachedJSON(w, http.StatusOK, projects, 86400)
 }
 
 // HandleGetProjectBySlug returns a single project by its URL slug.
@@ -62,7 +75,7 @@ func (h *APIHandler) HandleGetProjectBySlug(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	writeJSON(w, http.StatusOK, project)
+	writeCachedJSON(w, http.StatusOK, project, 86400)
 }
 
 // HandleGetHackathons returns all hackathons sorted by date descending.
@@ -73,7 +86,7 @@ func (h *APIHandler) HandleGetHackathons(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	writeJSON(w, http.StatusOK, hackathons)
+	writeCachedJSON(w, http.StatusOK, hackathons, 86400)
 }
 
 // HandleGetExperience returns all experience entries.
@@ -84,7 +97,7 @@ func (h *APIHandler) HandleGetExperience(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	writeJSON(w, http.StatusOK, experience)
+	writeCachedJSON(w, http.StatusOK, experience, 86400)
 }
 
 // HandleGetSkills returns all skill domains.
@@ -95,7 +108,7 @@ func (h *APIHandler) HandleGetSkills(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, skills)
+	writeCachedJSON(w, http.StatusOK, skills, 86400)
 }
 
 // HandleGetMusic returns the music profile.
@@ -106,7 +119,7 @@ func (h *APIHandler) HandleGetMusic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeJSON(w, http.StatusOK, music)
+	writeCachedJSON(w, http.StatusOK, music, 86400)
 }
 
 // HandleContact processes a contact form submission.
@@ -151,7 +164,7 @@ func (h *APIHandler) HandleGetBlogPosts(w http.ResponseWriter, r *http.Request) 
 		posts = []model.BlogPost{}
 	}
 
-	writeJSON(w, http.StatusOK, posts)
+	writeCachedJSON(w, http.StatusOK, posts, 60)
 }
 
 // HandleGetBlogPostBySlug returns a single blog post by slug.
@@ -168,7 +181,7 @@ func (h *APIHandler) HandleGetBlogPostBySlug(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	writeJSON(w, http.StatusOK, post)
+	writeCachedJSON(w, http.StatusOK, post, 60)
 }
 
 // HandleCreateFeedback processes a visitor feedback submission.
@@ -207,7 +220,7 @@ func (h *APIHandler) HandleGetGuestbook(w http.ResponseWriter, r *http.Request) 
 	if entries == nil {
 		entries = []model.GuestbookEntry{}
 	}
-	writeJSON(w, http.StatusOK, entries)
+	writeCachedJSON(w, http.StatusOK, entries, 60)
 }
 
 // HandleCreateGuestbookEntry adds a new guestbook comment.
@@ -237,6 +250,166 @@ func (h *APIHandler) HandleGetViews(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	writeJSON(w, http.StatusOK, map[string]int64{"views": count})
+}
+
+// --- Page handlers ---
+
+// validPageIDs defines the allowed page IDs for the pages endpoint.
+var validPageIDs = map[string]bool{
+	"soul":    true,
+	"contact": true,
+	"music":   true,
+}
+
+// HandleGetPage returns the JSONB content of a page by ID.
+func (h *APIHandler) HandleGetPage(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	if !validPageIDs[id] {
+		writeError(w, http.StatusNotFound, fmt.Sprintf("page %q not found", id))
+		return
+	}
+
+	content, err := h.svc.GetPage(id)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if content == nil {
+		writeCachedJSON(w, http.StatusOK, json.RawMessage(`{}`), 86400)
+		return
+	}
+
+	writeCachedJSON(w, http.StatusOK, content, 86400)
+}
+
+// HandleUpdatePage updates the JSONB content of a page by ID (admin only).
+func (h *APIHandler) HandleUpdatePage(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	if !validPageIDs[id] {
+		writeError(w, http.StatusNotFound, fmt.Sprintf("page %q not found", id))
+		return
+	}
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		writeError(w, http.StatusBadRequest, "failed to read request body")
+		return
+	}
+
+	if !json.Valid(body) {
+		writeError(w, http.StatusBadRequest, "invalid JSON")
+		return
+	}
+
+	content := json.RawMessage(body)
+	updated, err := h.svc.UpdatePage(id, content)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			writeError(w, http.StatusNotFound, err.Error())
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, updated)
+}
+
+// --- Music track handlers ---
+
+// HandleGetMusicTracks returns all music tracks.
+func (h *APIHandler) HandleGetMusicTracks(w http.ResponseWriter, r *http.Request) {
+	tracks, err := h.svc.GetMusicTracks()
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if tracks == nil {
+		tracks = []model.MusicTrack{}
+	}
+
+	writeCachedJSON(w, http.StatusOK, tracks, 86400)
+}
+
+// musicTrackRequest is the JSON body for create/update music track requests.
+type musicTrackRequest struct {
+	Slug      string `json:"slug"`
+	Name      string `json:"name"`
+	Genre     string `json:"genre"`
+	Original  string `json:"original"`
+	Notes     string `json:"notes"`
+	FileURL   string `json:"fileUrl"`
+	SortOrder int    `json:"sortOrder"`
+}
+
+// HandleCreateMusicTrack creates a new music track (admin only).
+func (h *APIHandler) HandleCreateMusicTrack(w http.ResponseWriter, r *http.Request) {
+	var req musicTrackRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if strings.TrimSpace(req.Name) == "" || strings.TrimSpace(req.Slug) == "" || strings.TrimSpace(req.Genre) == "" || strings.TrimSpace(req.Original) == "" || strings.TrimSpace(req.FileURL) == "" {
+		writeError(w, http.StatusBadRequest, "name, slug, genre, original, and fileUrl are required")
+		return
+	}
+
+	track, err := h.svc.CreateMusicTrack(req.Slug, req.Name, req.Genre, req.Original, req.Notes, req.FileURL, req.SortOrder)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, track)
+}
+
+// HandleUpdateMusicTrack updates an existing music track (admin only).
+func (h *APIHandler) HandleUpdateMusicTrack(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	var req musicTrackRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if strings.TrimSpace(req.Name) == "" || strings.TrimSpace(req.Slug) == "" || strings.TrimSpace(req.Genre) == "" || strings.TrimSpace(req.Original) == "" || strings.TrimSpace(req.FileURL) == "" {
+		writeError(w, http.StatusBadRequest, "name, slug, genre, original, and fileUrl are required")
+		return
+	}
+
+	track, err := h.svc.UpdateMusicTrack(id, req.Slug, req.Name, req.Genre, req.Original, req.Notes, req.FileURL, req.SortOrder)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			writeError(w, http.StatusNotFound, err.Error())
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, track)
+}
+
+// HandleDeleteMusicTrack deletes a music track by ID (admin only).
+func (h *APIHandler) HandleDeleteMusicTrack(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	if err := h.svc.DeleteMusicTrack(id); err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			writeError(w, http.StatusNotFound, err.Error())
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
 }
 
 // --- Admin handlers ---
@@ -327,7 +500,7 @@ func (h *APIHandler) HandleGetFeedback(w http.ResponseWriter, r *http.Request) {
 		feedback = []model.Feedback{}
 	}
 
-	writeJSON(w, http.StatusOK, feedback)
+	writeCachedJSON(w, http.StatusOK, feedback, 60)
 }
 
 // HandleDeleteFeedback deletes a feedback entry by ID (admin only).
@@ -363,7 +536,7 @@ func (h *APIHandler) HandleGetPostStats(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	writeJSON(w, http.StatusOK, stats)
+	writeCachedJSON(w, http.StatusOK, stats, 60)
 }
 
 // HandleGetComments returns all comments for a post.
@@ -380,7 +553,7 @@ func (h *APIHandler) HandleGetComments(w http.ResponseWriter, r *http.Request) {
 		comments = []model.PostComment{}
 	}
 
-	writeJSON(w, http.StatusOK, comments)
+	writeCachedJSON(w, http.StatusOK, comments, 60)
 }
 
 // HandleToggleLike toggles a like on a post for a GitHub user.
@@ -497,4 +670,213 @@ func (h *APIHandler) HandleMarkAllNotificationsRead(w http.ResponseWriter, r *ht
 	}
 
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+// --- Admin CRUD for skills, hackathons, experience ---
+
+// skillRequest is the JSON body for create/update skill requests.
+type skillRequest struct {
+	Title        string   `json:"title"`
+	Slug         string   `json:"slug"`
+	Skills       []string `json:"skills"`
+	BattleTested []string `json:"battleTested"`
+	SortOrder    int      `json:"sortOrder"`
+}
+
+// HandleCreateSkill creates a new skill domain (admin only).
+func (h *APIHandler) HandleCreateSkill(w http.ResponseWriter, r *http.Request) {
+	var req skillRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if strings.TrimSpace(req.Title) == "" {
+		writeError(w, http.StatusBadRequest, "title is required")
+		return
+	}
+
+	skill, err := h.svc.CreateSkill(req.Title, req.Slug, req.Skills, req.BattleTested, req.SortOrder)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, skill)
+}
+
+// HandleUpdateSkill updates an existing skill domain (admin only).
+func (h *APIHandler) HandleUpdateSkill(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	var req skillRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if strings.TrimSpace(req.Title) == "" {
+		writeError(w, http.StatusBadRequest, "title is required")
+		return
+	}
+
+	skill, err := h.svc.UpdateSkill(id, req.Title, req.Slug, req.Skills, req.BattleTested, req.SortOrder)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			writeError(w, http.StatusNotFound, err.Error())
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, skill)
+}
+
+// HandleDeleteSkill deletes a skill domain by ID (admin only).
+func (h *APIHandler) HandleDeleteSkill(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	if err := h.svc.DeleteSkill(id); err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			writeError(w, http.StatusNotFound, err.Error())
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
+}
+
+// HandleCreateHackathon creates a new hackathon entry (admin only).
+func (h *APIHandler) HandleCreateHackathon(w http.ResponseWriter, r *http.Request) {
+	var req model.Hackathon
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if strings.TrimSpace(req.Name) == "" || strings.TrimSpace(req.Date) == "" || strings.TrimSpace(req.ProjectName) == "" {
+		writeError(w, http.StatusBadRequest, "name, date, and projectName are required")
+		return
+	}
+
+	hackathon, err := h.svc.CreateHackathon(req)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, hackathon)
+}
+
+// HandleUpdateHackathon updates an existing hackathon entry (admin only).
+func (h *APIHandler) HandleUpdateHackathon(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	var req model.Hackathon
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if strings.TrimSpace(req.Name) == "" || strings.TrimSpace(req.Date) == "" || strings.TrimSpace(req.ProjectName) == "" {
+		writeError(w, http.StatusBadRequest, "name, date, and projectName are required")
+		return
+	}
+
+	hackathon, err := h.svc.UpdateHackathon(id, req)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			writeError(w, http.StatusNotFound, err.Error())
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, hackathon)
+}
+
+// HandleDeleteHackathon deletes a hackathon entry by ID (admin only).
+func (h *APIHandler) HandleDeleteHackathon(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	if err := h.svc.DeleteHackathon(id); err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			writeError(w, http.StatusNotFound, err.Error())
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
+}
+
+// HandleCreateExperience creates a new experience entry (admin only).
+func (h *APIHandler) HandleCreateExperience(w http.ResponseWriter, r *http.Request) {
+	var req model.Experience
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if strings.TrimSpace(req.Role) == "" || strings.TrimSpace(req.Company) == "" || strings.TrimSpace(req.StartDate) == "" {
+		writeError(w, http.StatusBadRequest, "role, company, and startDate are required")
+		return
+	}
+
+	experience, err := h.svc.CreateExperience(req)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, experience)
+}
+
+// HandleUpdateExperience updates an existing experience entry (admin only).
+func (h *APIHandler) HandleUpdateExperience(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	var req model.Experience
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if strings.TrimSpace(req.Role) == "" || strings.TrimSpace(req.Company) == "" || strings.TrimSpace(req.StartDate) == "" {
+		writeError(w, http.StatusBadRequest, "role, company, and startDate are required")
+		return
+	}
+
+	experience, err := h.svc.UpdateExperience(id, req)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			writeError(w, http.StatusNotFound, err.Error())
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, experience)
+}
+
+// HandleDeleteExperience deletes an experience entry by ID (admin only).
+func (h *APIHandler) HandleDeleteExperience(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	if err := h.svc.DeleteExperience(id); err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			writeError(w, http.StatusNotFound, err.Error())
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
 }

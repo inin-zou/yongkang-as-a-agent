@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	backend "github.com/inin-zou/yongkang-as-a-agent/backend"
 	"github.com/inin-zou/yongkang-as-a-agent/backend/pkg/handler"
 	"github.com/inin-zou/yongkang-as-a-agent/backend/pkg/middleware"
 	"github.com/inin-zou/yongkang-as-a-agent/backend/pkg/repository"
@@ -19,10 +20,6 @@ var (
 )
 
 func initRouter() {
-	dataDir := os.Getenv("DATA_DIR")
-	if dataDir == "" {
-		dataDir = "./backend/data"
-	}
 
 	frontendURL := os.Getenv("FRONTEND_URL")
 	if frontendURL == "" {
@@ -37,18 +34,21 @@ func initRouter() {
 	supabaseURL := os.Getenv("SUPABASE_URL")
 	anonKey := os.Getenv("SUPABASE_ANON_KEY")
 
-	repo := repository.NewJSONRepository(dataDir)
+	embedded := repository.NewEmbeddedRepository(backend.DataFS)
 
+	var primary repository.DataRepository
 	var supabase *repository.SupabaseRepository
 	if dbURL := os.Getenv("DATABASE_URL"); dbURL != "" {
 		var err error
 		supabase, err = repository.NewSupabaseRepository(dbURL)
 		if err != nil {
 			supabase = nil
+		} else {
+			primary = supabase
 		}
 	}
 
-	svc := service.NewPortfolioService(repo, supabase)
+	svc := service.NewPortfolioService(primary, embedded, supabase)
 	h := handler.NewAPIHandler(svc)
 
 	r := chi.NewRouter()
@@ -74,6 +74,8 @@ func initRouter() {
 		r.Get("/views", h.HandleGetViews)
 		r.Get("/guestbook", h.HandleGetGuestbook)
 		r.With(middleware.RateLimit(10, time.Hour)).Post("/guestbook", h.HandleCreateGuestbookEntry)
+		r.Get("/pages/{id}", h.HandleGetPage)
+		r.Get("/music-tracks", h.HandleGetMusicTracks)
 
 		r.Route("/admin", func(r chi.Router) {
 			r.Use(middleware.AdminOnly(supabaseURL, anonKey, adminEmail))
@@ -87,6 +89,19 @@ func initRouter() {
 			r.Get("/notifications/unread", h.HandleGetUnreadCount)
 			r.Put("/notifications/{id}/read", h.HandleMarkNotificationRead)
 			r.Put("/notifications/read-all", h.HandleMarkAllNotificationsRead)
+			r.Put("/pages/{id}", h.HandleUpdatePage)
+			r.Post("/music-tracks", h.HandleCreateMusicTrack)
+			r.Put("/music-tracks/{id}", h.HandleUpdateMusicTrack)
+			r.Delete("/music-tracks/{id}", h.HandleDeleteMusicTrack)
+			r.Post("/skills", h.HandleCreateSkill)
+			r.Put("/skills/{id}", h.HandleUpdateSkill)
+			r.Delete("/skills/{id}", h.HandleDeleteSkill)
+			r.Post("/hackathons", h.HandleCreateHackathon)
+			r.Put("/hackathons/{id}", h.HandleUpdateHackathon)
+			r.Delete("/hackathons/{id}", h.HandleDeleteHackathon)
+			r.Post("/experience", h.HandleCreateExperience)
+			r.Put("/experience/{id}", h.HandleUpdateExperience)
+			r.Delete("/experience/{id}", h.HandleDeleteExperience)
 		})
 	})
 

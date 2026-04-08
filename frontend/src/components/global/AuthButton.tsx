@@ -58,7 +58,7 @@ export default function AuthButton() {
         <div className="auth-dropdown">
           {isAdmin && (
             <Link
-              to="/admin"
+              to="/files/admin"
               className="auth-dropdown-item"
               onClick={() => setOpen(false)}
             >

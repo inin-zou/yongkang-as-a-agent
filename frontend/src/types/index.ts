@@ -14,11 +14,14 @@ export interface Project {
 }
 
 export interface Hackathon {
+  id?: string;
   date: string;
   name: string;
   city?: string;
   country?: string;
   coordinates?: [number, number];
+  lat?: number;
+  lng?: number;
   isRemote?: boolean;
   projectName: string;
   projectSlug?: string;
@@ -29,6 +32,7 @@ export interface Hackathon {
 }
 
 export interface Experience {
+  id?: string;
   role: string;
   company: string;
   location: string;
@@ -37,6 +41,7 @@ export interface Experience {
   skillAssembled: string;
   highlights: string[];
   note?: string;
+  sortOrder?: number;
 }
 
 export interface SkillSubcategory {
@@ -45,12 +50,14 @@ export interface SkillSubcategory {
 }
 
 export interface SkillDomain {
+  id?: string;
   title: string;
   slug?: string;
   icon?: string;
   subcategories?: SkillSubcategory[];
   skills?: string[];
   battleTested: string[];
+  sortOrder?: number;
 }
 
 export interface Music {
@@ -117,4 +124,15 @@ export interface AdminNotification {
   postId: string | null;
   isRead: boolean;
   createdAt: string;
+}
+
+export interface MusicTrack {
+  id?: string;
+  slug: string;
+  name: string;
+  genre: string;
+  original: string;
+  notes: string;
+  fileUrl: string;
+  sortOrder?: number;
 }

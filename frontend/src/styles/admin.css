@@ -1,3 +1,219 @@
+/* ===== ADMIN TAB LINK (gear icon next to auth button) ===== */
+
+.admin-tab-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  color: var(--color-ink-faint);
+  transition: color 0.15s ease, background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.admin-tab-link:hover {
+  color: var(--color-ink-muted);
+  background: var(--glass-highlight);
+}
+
+.admin-tab-link-active {
+  color: var(--color-prism-pink);
+}
+
+.admin-tab-link-active:hover {
+  color: var(--color-prism-pink);
+  background: rgba(255, 107, 157, 0.08);
+}
+
+/* ===== INLINE ADMIN EDITING ===== */
+
+/* Admin bar — floats at top of editable section */
+.admin-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  margin-bottom: var(--space-md);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+.admin-bar-active {
+  border-color: var(--color-prism-pink);
+  border-style: solid;
+  background: rgba(255, 107, 157, 0.04);
+  box-shadow: 0 0 12px rgba(255, 107, 157, 0.06);
+}
+
+.admin-bar-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink-faint);
+}
+
+.admin-bar-active .admin-bar-label {
+  color: var(--color-prism-pink);
+}
+
+.admin-bar-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-ink-faint);
+  transition: background 0.2s ease;
+}
+
+.admin-bar-active .admin-bar-indicator {
+  background: var(--color-prism-pink);
+  box-shadow: 0 0 6px var(--color-prism-pink);
+  animation: admin-pulse 2s ease-in-out infinite;
+}
+
+@keyframes admin-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.admin-bar-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.admin-bar-btn {
+  padding: 4px 12px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: transparent;
+  color: var(--color-ink-muted);
+}
+
+.admin-bar-btn:hover {
+  background: var(--glass-highlight);
+  color: var(--color-ink);
+}
+
+.admin-bar-btn-edit {
+  border-color: rgba(255, 107, 157, 0.3);
+  color: var(--color-prism-pink);
+}
+
+.admin-bar-btn-edit:hover {
+  background: rgba(255, 107, 157, 0.1);
+}
+
+.admin-bar-btn-done {
+  background: rgba(255, 107, 157, 0.12);
+  border-color: rgba(255, 107, 157, 0.3);
+  color: var(--color-prism-pink);
+}
+
+.admin-bar-btn-done:hover {
+  background: rgba(255, 107, 157, 0.2);
+}
+
+.admin-bar-btn-save {
+  background: rgba(105, 240, 174, 0.15);
+  border-color: rgba(105, 240, 174, 0.4);
+  color: var(--color-prism-mint);
+}
+
+.admin-bar-btn-save:hover {
+  background: rgba(105, 240, 174, 0.25);
+}
+
+.admin-bar-btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-bar-btn-add {
+  border-color: rgba(105, 240, 174, 0.3);
+  color: var(--color-prism-mint);
+}
+
+.admin-bar-btn-add:hover {
+  background: rgba(105, 240, 174, 0.1);
+}
+
+/* Editable item — wrapper with hover actions */
+.editable-item {
+  position: relative;
+  border: 1px dashed transparent;
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  margin: -2px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.editable-item:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.editable-item-actions {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 10;
+}
+
+.editable-item:hover .editable-item-actions {
+  opacity: 1;
+}
+
+.editable-item-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--glass-border);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  backdrop-filter: blur(8px);
+}
+
+.editable-item-btn-edit {
+  background: rgba(50, 50, 52, 0.8);
+  color: var(--color-ink-muted);
+}
+
+.editable-item-btn-edit:hover {
+  background: rgba(255, 107, 157, 0.15);
+  border-color: rgba(255, 107, 157, 0.3);
+  color: var(--color-prism-pink);
+}
+
+.editable-item-btn-delete {
+  background: rgba(50, 50, 52, 0.8);
+  color: var(--color-ink-faint);
+}
+
+.editable-item-btn-delete:hover {
+  background: rgba(255, 107, 107, 0.15);
+  border-color: rgba(255, 107, 107, 0.3);
+  color: #ff6b6b;
+}
+
 /* ===== ADMIN PANEL ===== */
 
 /* Tab navigation */
@@ -117,14 +333,31 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
-  max-width: 640px;
+  width: 100%;
+}
+
+.admin-editor > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.admin-editor input.memory-feedback-input,
+.admin-editor textarea.memory-feedback-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .admin-editor textarea.memory-feedback-input {
-  min-height: 240px;
+  min-height: 80px;
   font-family: var(--font-mono);
   font-size: 0.85rem;
   line-height: 1.6;
+}
+
+.admin-editor textarea.memory-feedback-input.admin-textarea-lg {
+  min-height: 240px;
 }
 
 /* Feedback list item */

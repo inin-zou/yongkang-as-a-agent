@@ -5,8 +5,14 @@ import {
   fetchBlogPost,
   fetchGuestbook,
   createGuestbookEntry,
+  createBlogPost,
+  updateBlogPost,
+  deleteBlogPost,
 } from '../lib/api'
 import { useAuth } from '../lib/AuthContext'
+import { useAdminEdit } from '../hooks/useAdminEdit'
+import AdminBar from '../components/admin/AdminBar'
+import PostEditor from '../components/admin/PostEditor'
 import AsciiTitle from '../components/global/AsciiTitle'
 import PostInteractions from '../components/global/PostInteractions'
 import type { GuestbookEntry } from '../types/index'
@@ -15,6 +21,12 @@ import '../styles/memory.css'
 /* ─── Blog post view ─── */
 
 function BlogPostView({ slug }: { slug: string }) {
+  const { isAdmin, token } = useAdminEdit()
+  const queryClient = useQueryClient()
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [creating, setCreating] = useState(false)
+
   const { data: post, isLoading, error } = useQuery({
     queryKey: ['post', slug],
     queryFn: () => fetchBlogPost(slug),
@@ -33,6 +45,25 @@ function BlogPostView({ slug }: { slug: string }) {
   if (error || !post) {
     return (
       <div className="editor-page">
+        {isAdmin && (
+          <>
+            <AdminBar
+              isEditing={isEditMode}
+              onToggleEdit={() => { setIsEditMode(!isEditMode); setCreating(false) }}
+              onAdd={isEditMode ? () => { setCreating(true) } : undefined}
+            />
+            {creating && (
+              <PostEditor
+                onSave={async (data) => {
+                  await createBlogPost(token, data)
+                  queryClient.invalidateQueries({ queryKey: ['posts'] })
+                  setCreating(false)
+                }}
+                onCancel={() => setCreating(false)}
+              />
+            )}
+          </>
+        )}
         <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--color-ink-faint)' }}>
           Post not found.
         </p>
@@ -42,14 +73,64 @@ function BlogPostView({ slug }: { slug: string }) {
 
   return (
     <div className="editor-page">
-      <div className="editor-meta">{post.publishedAt?.split('T')[0]}</div>
-      <h1 className="editor-title">{post.title}</h1>
-      <div className="editor-content">
-        {post.content.split('\n').map((paragraph, i) =>
-          paragraph.trim() ? <p key={i}>{paragraph}</p> : null
-        )}
-      </div>
-      <PostInteractions slug={slug} />
+      {isAdmin && (
+        <AdminBar
+          isEditing={isEditMode}
+          onToggleEdit={() => { setIsEditMode(!isEditMode); setEditing(false); setCreating(false) }}
+          onAdd={isEditMode ? () => { setCreating(true); setEditing(false) } : undefined}
+        />
+      )}
+
+      {creating && (
+        <PostEditor
+          onSave={async (data) => {
+            await createBlogPost(token, data)
+            queryClient.invalidateQueries({ queryKey: ['posts'] })
+            queryClient.invalidateQueries({ queryKey: ['post', slug] })
+            setCreating(false)
+          }}
+          onCancel={() => setCreating(false)}
+        />
+      )}
+
+      {isEditMode && editing ? (
+        <PostEditor
+          initial={post}
+          onSave={async (data) => {
+            await updateBlogPost(token, post.id, data)
+            queryClient.invalidateQueries({ queryKey: ['posts'] })
+            queryClient.invalidateQueries({ queryKey: ['post', slug] })
+            setEditing(false)
+          }}
+          onCancel={() => setEditing(false)}
+        />
+      ) : (
+        <>
+          <div className="editor-meta">{post.publishedAt?.split('T')[0]}</div>
+          <h1 className="editor-title">{post.title}</h1>
+          {isEditMode && (
+            <div style={{ display: 'flex', gap: 'var(--space-xs)', marginBottom: 'var(--space-sm)' }}>
+              <button className="admin-btn" onClick={() => setEditing(true)}>EDIT</button>
+              <button
+                className="admin-btn admin-btn-danger"
+                onClick={async () => {
+                  if (!confirm(`Delete "${post.title}"?`)) return
+                  await deleteBlogPost(token, post.id)
+                  queryClient.invalidateQueries({ queryKey: ['posts'] })
+                }}
+              >
+                DELETE
+              </button>
+            </div>
+          )}
+          <div className="editor-content">
+            {post.content.split('\n').map((paragraph, i) =>
+              paragraph.trim() ? <p key={i}>{paragraph}</p> : null
+            )}
+          </div>
+          <PostInteractions slug={slug} />
+        </>
+      )}
     </div>
   )
 }

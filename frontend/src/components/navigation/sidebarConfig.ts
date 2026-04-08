@@ -66,13 +66,21 @@ export const FILE_TABS: TabConfig[] = [
     id: 'music',
     label: 'MUSIC.md',
     basePath: '/files/music',
-    sidebarItems: [
-      { id: 'pimmies-dilemma', label: "PIMMIE'S DILEMMA", preview: 'Cover · Pimmie, PND & Drake', routeSegment: 'pimmies-dilemma' },
-      { id: 'soft-spot', label: 'Soft Spot', preview: 'Cover · keshi', routeSegment: 'soft-spot' },
-      { id: 'dream', label: 'Dream', preview: 'Cover · keshi', routeSegment: 'dream' },
-    ],
+    // Items populated dynamically from music tracks in FileSystemLayout
+    sidebarItems: [],
     // defaultItem: null is intentional — tab-level view shows "select a post/track" prompt
     // rather than auto-selecting the first entry (unlike SKILL.md which defaults to 'skills')
     defaultItem: null,
   },
 ]
+
+export const ADMIN_TAB: TabConfig = {
+  id: 'admin',
+  label: 'ADMIN.md',
+  basePath: '/files/admin',
+  sidebarItems: [
+    { id: 'feedback', label: 'FEEDBACK', preview: 'View visitor feedback', routeSegment: '' },
+    { id: 'notifications', label: 'NOTIFICATIONS', preview: 'Activity feed', routeSegment: 'notifications' },
+  ],
+  defaultItem: 'feedback',
+}

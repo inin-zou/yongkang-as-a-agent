@@ -1,12 +1,23 @@
-import { useEffect, useRef } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useState, useEffect, useRef } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import gsap from 'gsap'
-import { fetchExperience } from '../../lib/api'
+import { fetchExperience, createExperience, updateExperience, deleteExperience } from '../../lib/api'
+import { useAdminEdit } from '../../hooks/useAdminEdit'
+import AdminBar from '../admin/AdminBar'
+import EditableItem from '../admin/EditableItem'
+import ExperienceEditor from '../admin/ExperienceEditor'
 import AsciiTitle from '../global/AsciiTitle'
 import ExperienceBlock from './ExperienceBlock'
+import type { Experience } from '../../types'
 import '../../styles/skill.css'
 
 export default function ResumeView() {
+  const { isAdmin, token } = useAdminEdit()
+  const queryClient = useQueryClient()
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [editingExp, setEditingExp] = useState<Experience | null>(null)
+  const [creating, setCreating] = useState(false)
+
   const listRef = useRef<HTMLDivElement>(null)
   const { data: experience, isLoading } = useQuery({
     queryKey: ['experience'],
@@ -40,9 +51,53 @@ export default function ResumeView() {
     <div className="editor-page">
       <div className="editor-meta">Every role assembled a new skill</div>
       <AsciiTitle name="resume" />
+
+      {isAdmin && (
+        <AdminBar
+          isEditing={isEditMode}
+          onToggleEdit={() => { setIsEditMode(!isEditMode); setEditingExp(null); setCreating(false) }}
+          onAdd={isEditMode ? () => { setCreating(true); setEditingExp(null) } : undefined}
+        />
+      )}
+
+      {creating && (
+        <ExperienceEditor
+          onSave={async (data) => {
+            await createExperience(token, data)
+            queryClient.invalidateQueries({ queryKey: ['experience'] })
+            setCreating(false)
+          }}
+          onCancel={() => setCreating(false)}
+        />
+      )}
+
       <div className="editor-content" ref={listRef}>
         {sorted.map((exp) => (
-          <ExperienceBlock key={`${exp.company}-${exp.startDate}`} experience={exp} />
+          isEditMode && editingExp?.id === exp.id && exp.id ? (
+            <ExperienceEditor
+              key={`${exp.company}-${exp.startDate}`}
+              initial={exp}
+              onSave={async (data) => {
+                await updateExperience(token, exp.id!, data)
+                queryClient.invalidateQueries({ queryKey: ['experience'] })
+                setEditingExp(null)
+              }}
+              onCancel={() => setEditingExp(null)}
+            />
+          ) : (
+            <EditableItem
+              key={`${exp.company}-${exp.startDate}`}
+              isEditMode={isEditMode}
+              onEdit={() => setEditingExp(exp)}
+              onDelete={async () => {
+                if (!confirm(`Delete "${exp.role} at ${exp.company}"?`)) return
+                await deleteExperience(token, exp.id!)
+                queryClient.invalidateQueries({ queryKey: ['experience'] })
+              }}
+            >
+              <ExperienceBlock experience={exp} />
+            </EditableItem>
+          )
         ))}
 
         <div className="editor-divider" />

@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react'
-// @ts-expect-error — raw text import
 import pixelData from './pixel-data.ts?raw'
 
 /**

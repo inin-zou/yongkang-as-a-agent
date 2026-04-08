@@ -37,9 +37,10 @@ func main() {
 	supabaseURL := os.Getenv("SUPABASE_URL")
 	anonKey := os.Getenv("SUPABASE_ANON_KEY")
 
-	repo := repository.NewJSONRepository(dataDir)
+	jsonRepo := repository.NewJSONRepository(dataDir)
 
 	// Connect to Supabase if DATABASE_URL is set
+	var primary repository.DataRepository
 	var supabase *repository.SupabaseRepository
 	if dbURL := os.Getenv("DATABASE_URL"); dbURL != "" {
 		var err error
@@ -49,12 +50,13 @@ func main() {
 		} else {
 			log.Println("Connected to Supabase")
 			defer supabase.Close()
+			primary = supabase
 		}
 	} else {
 		log.Println("DATABASE_URL not set — running without Supabase")
 	}
 
-	svc := service.NewPortfolioService(repo, supabase)
+	svc := service.NewPortfolioService(primary, jsonRepo, supabase)
 	h := handler.NewAPIHandler(svc)
 
 	r := chi.NewRouter()
@@ -81,6 +83,8 @@ func main() {
 		r.Get("/views", h.HandleGetViews)
 		r.Get("/guestbook", h.HandleGetGuestbook)
 		r.With(middleware.RateLimit(10, time.Hour)).Post("/guestbook", h.HandleCreateGuestbookEntry)
+		r.Get("/pages/{id}", h.HandleGetPage)
+		r.Get("/music-tracks", h.HandleGetMusicTracks)
 
 		r.Route("/admin", func(r chi.Router) {
 			r.Use(middleware.AdminOnly(supabaseURL, anonKey, adminEmail))
@@ -94,6 +98,19 @@ func main() {
 			r.Get("/notifications/unread", h.HandleGetUnreadCount)
 			r.Put("/notifications/{id}/read", h.HandleMarkNotificationRead)
 			r.Put("/notifications/read-all", h.HandleMarkAllNotificationsRead)
+			r.Put("/pages/{id}", h.HandleUpdatePage)
+			r.Post("/music-tracks", h.HandleCreateMusicTrack)
+			r.Put("/music-tracks/{id}", h.HandleUpdateMusicTrack)
+			r.Delete("/music-tracks/{id}", h.HandleDeleteMusicTrack)
+			r.Post("/skills", h.HandleCreateSkill)
+			r.Put("/skills/{id}", h.HandleUpdateSkill)
+			r.Delete("/skills/{id}", h.HandleDeleteSkill)
+			r.Post("/hackathons", h.HandleCreateHackathon)
+			r.Put("/hackathons/{id}", h.HandleUpdateHackathon)
+			r.Delete("/hackathons/{id}", h.HandleDeleteHackathon)
+			r.Post("/experience", h.HandleCreateExperience)
+			r.Put("/experience/{id}", h.HandleUpdateExperience)
+			r.Delete("/experience/{id}", h.HandleDeleteExperience)
 		})
 	})
 

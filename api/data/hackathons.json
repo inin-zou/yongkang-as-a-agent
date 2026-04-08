@@ -1,0 +1,244 @@
+[
+  {
+    "date": "2026.03",
+    "name": "TechEurope Stockholm",
+    "city": "Stockholm",
+    "country": "Sweden",
+    "coordinates": [59.33, 18.07],
+    "projectName": "Dianoia",
+    "projectSlug": "dianoia",
+    "projectUrl": "https://github.com/inin-zou/Dianoia",
+    "result": "3rd place (solo)",
+    "solo": true,
+    "domain": "Spatial Intelligence"
+  },
+  {
+    "date": "2026.03",
+    "name": "Mistral Online",
+    "isRemote": true,
+    "projectName": "Ethos Studio",
+    "projectUrl": "https://github.com/aytoast/ser",
+    "domain": "Emotion & Vision AI"
+  },
+  {
+    "date": "2026.02",
+    "name": "HackEurope",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "YourPath",
+    "projectUrl": "https://github.com/CodyAdam/your-path",
+    "domain": "Creative AI"
+  },
+  {
+    "date": "2026.02",
+    "name": "Gemini Hackathon",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "SherlockOS",
+    "projectUrl": "https://github.com/inin-zou/SherlockOS",
+    "domain": "Spatial Intelligence"
+  },
+  {
+    "date": "2026.02",
+    "name": "TechEurope Paris",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "Rewind",
+    "projectUrl": "https://github.com/inin-zou/Rewind",
+    "domain": "Spatial Intelligence"
+  },
+  {
+    "date": "2025.12",
+    "name": "Project ElevenLabs",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "VideoStack",
+    "projectUrl": "https://github.com/VideoStack-PE/videostack-elevenlabs",
+    "result": "87K EUR early interest funding",
+    "domain": "Creative AI"
+  },
+  {
+    "date": "2025.11",
+    "name": "Junction",
+    "city": "Helsinki",
+    "country": "Finland",
+    "coordinates": [60.17, 24.94],
+    "projectName": "Lumina",
+    "projectUrl": "https://github.com/cesp99/lumina-frontend",
+    "domain": "Healthcare & Biotech"
+  },
+  {
+    "date": "2025.10",
+    "name": "Entrepreneurs First",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "Deep Search API",
+    "projectUrl": "https://github.com/Rodrigotari1/deep_research_ef",
+    "result": "1st place",
+    "domain": "LLM Infrastructure"
+  },
+  {
+    "date": "2025.10",
+    "name": "Big Berlin",
+    "city": "Berlin",
+    "country": "Germany",
+    "coordinates": [52.52, 13.41],
+    "projectName": "Wiggly",
+    "projectUrl": "https://github.com/Konsequanzheng/wiggle",
+    "domain": "Creative AI"
+  },
+  {
+    "date": "2025.09",
+    "name": "Datacraft",
+    "city": "Versailles",
+    "country": "France",
+    "coordinates": [48.80, 2.12],
+    "projectName": "Le Scribe Royal",
+    "projectUrl": "https://github.com/dorianlagadec/hackathoh-versailles",
+    "result": "3rd place",
+    "domain": "LLM Infrastructure"
+  },
+  {
+    "date": "2025.09",
+    "name": "Tech Europe Paris",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "GitBeat",
+    "projectUrl": "https://github.com/imbjdd/gitbeat",
+    "result": "Community Win",
+    "domain": "Music & Audio AI"
+  },
+  {
+    "date": "2025.09",
+    "name": "Mistral AI MCP",
+    "isRemote": true,
+    "projectName": "Musixtral",
+    "projectUrl": "https://github.com/inin-zou/Musixtral",
+    "domain": "Music & Audio AI"
+  },
+  {
+    "date": "2025.09",
+    "name": "ShipItSunday",
+    "city": "Shanghai",
+    "country": "China",
+    "coordinates": [31.23, 121.47],
+    "projectName": "I Swear",
+    "projectUrl": "https://github.com/inin-zou/damn-it",
+    "domain": "Creative AI"
+  },
+  {
+    "date": "2025.08",
+    "name": "Hack Nation MIT",
+    "isRemote": true,
+    "projectName": "BuzzLab",
+    "projectUrl": "https://github.com/inin-zou/BuzzLab",
+    "result": "Finalist (VC phase)",
+    "domain": "Creative AI"
+  },
+  {
+    "date": "2025.08",
+    "name": "Pond Speedrun",
+    "isRemote": true,
+    "projectName": "EmoHunter",
+    "projectUrl": "https://github.com/inin-zou/EmoHunter-Pond_Hackathon",
+    "result": "1st place ($50K funding)",
+    "domain": "Emotion & Vision AI"
+  },
+  {
+    "date": "2025.07",
+    "name": "AMD Hackathon",
+    "isRemote": true,
+    "projectName": "vLLM speculative prefill",
+    "result": "Finalist",
+    "domain": "LLM Infrastructure"
+  },
+  {
+    "date": "2025.06",
+    "name": "RAISE Summit",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "ServeTheVibe",
+    "projectUrl": "https://github.com/inin-zou/ServeTheVibe",
+    "result": "3rd place (solo)",
+    "solo": true,
+    "domain": "Music & Audio AI"
+  },
+  {
+    "date": "2025.06",
+    "name": "Dify Paris",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "Dify AI Agent",
+    "result": "1st place (solo)",
+    "solo": true,
+    "domain": "LLM Infrastructure"
+  },
+  {
+    "date": "2025.05",
+    "name": "Phagos",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "Genome Classification",
+    "projectUrl": "https://github.com/inin-zou/Genome-Embedding-Classification",
+    "domain": "Healthcare & Biotech"
+  },
+  {
+    "date": "2025.04",
+    "name": "From RAG to Agentic AI",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "OnTrack",
+    "projectUrl": "https://github.com/briacSck/ON-TRACKS-AI-Agents-Hackathon-",
+    "result": "2nd place",
+    "domain": "LLM Infrastructure"
+  },
+  {
+    "date": "2025.02",
+    "name": "GeoAI Hack",
+    "isRemote": true,
+    "projectName": "InstaGeo",
+    "projectUrl": "https://github.com/inin-zou/InstaGeo-E2E-Geospatial-ML",
+    "domain": "Geospatial ML"
+  },
+  {
+    "date": "2025.02",
+    "name": "Doctolib",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "HealthOdyssey",
+    "projectUrl": "https://github.com/inin-zou/HealthOdyssey",
+    "domain": "Healthcare & Biotech"
+  },
+  {
+    "date": "2024.11",
+    "name": "Quantum Challenge",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "ZenQ",
+    "projectUrl": "https://github.com/inin-zou/ZenQuantum",
+    "result": "Finalist (2nd phase)",
+    "domain": "Quantum Computing"
+  },
+  {
+    "date": "2024.11",
+    "name": "SpotOn Edge Device",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "Recipe Recommendation",
+    "projectUrl": "https://github.com/Lucine1998/Recipe-Recommandation",
+    "domain": "Creative AI"
+  }
+]
