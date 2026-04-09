@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -60,6 +62,87 @@ Respond in this exact JSON format:
   "slug": "suggested-url-slug"
 }`
 
+// geminiUploadedFile holds the result of uploading a file to the Gemini File API.
+type geminiUploadedFile struct {
+	URI      string
+	MIMEType string
+}
+
+// uploadToGeminiFileAPI uploads media bytes to the Gemini File API using the resumable upload protocol.
+// Returns the file URI that can be used in fileData parts.
+func uploadToGeminiFileAPI(apiKey string, mediaBytes []byte, mimeType string, displayName string) (*geminiUploadedFile, error) {
+	client := &http.Client{Timeout: 60 * time.Second}
+
+	// Step 1: Start resumable upload — get the upload URL
+	startURL := "https://generativelanguage.googleapis.com/upload/v1beta/files"
+	metaBody, _ := json.Marshal(map[string]interface{}{
+		"file": map[string]string{"display_name": displayName},
+	})
+	startReq, err := http.NewRequest(http.MethodPost, startURL, bytes.NewReader(metaBody))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create start request: %w", err)
+	}
+	startReq.Header.Set("x-goog-api-key", apiKey)
+	startReq.Header.Set("Content-Type", "application/json")
+	startReq.Header.Set("X-Goog-Upload-Protocol", "resumable")
+	startReq.Header.Set("X-Goog-Upload-Command", "start")
+	startReq.Header.Set("X-Goog-Upload-Header-Content-Length", strconv.Itoa(len(mediaBytes)))
+	startReq.Header.Set("X-Goog-Upload-Header-Content-Type", mimeType)
+
+	startResp, err := client.Do(startReq)
+	if err != nil {
+		return nil, fmt.Errorf("start upload failed: %w", err)
+	}
+	defer startResp.Body.Close()
+
+	uploadURL := startResp.Header.Get("X-Goog-Upload-Url")
+	if uploadURL == "" {
+		body, _ := io.ReadAll(startResp.Body)
+		return nil, fmt.Errorf("no upload URL in response (status %d): %s", startResp.StatusCode, string(body))
+	}
+
+	// Step 2: Upload the actual bytes
+	uploadReq, err := http.NewRequest(http.MethodPost, uploadURL, bytes.NewReader(mediaBytes))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create upload request: %w", err)
+	}
+	uploadReq.Header.Set("x-goog-api-key", apiKey)
+	uploadReq.Header.Set("Content-Length", strconv.Itoa(len(mediaBytes)))
+	uploadReq.Header.Set("X-Goog-Upload-Offset", "0")
+	uploadReq.Header.Set("X-Goog-Upload-Command", "upload, finalize")
+
+	uploadResp, err := client.Do(uploadReq)
+	if err != nil {
+		return nil, fmt.Errorf("upload failed: %w", err)
+	}
+	defer uploadResp.Body.Close()
+
+	uploadBody, err := io.ReadAll(uploadResp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read upload response: %w", err)
+	}
+
+	if uploadResp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("upload returned %d: %s", uploadResp.StatusCode, string(uploadBody))
+	}
+
+	// Parse the file info to get the URI
+	var fileInfo struct {
+		File struct {
+			URI      string `json:"uri"`
+			MIMEType string `json:"mimeType"`
+		} `json:"file"`
+	}
+	if err := json.Unmarshal(uploadBody, &fileInfo); err != nil {
+		return nil, fmt.Errorf("failed to parse file info: %w", err)
+	}
+
+	return &geminiUploadedFile{
+		URI:      fileInfo.File.URI,
+		MIMEType: fileInfo.File.MIMEType,
+	}, nil
+}
+
 // HandleGenerateDraft calls the Gemini API to generate a blog draft from a rough idea.
 func (h *APIHandler) HandleGenerateDraft(geminiKey string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -79,41 +162,85 @@ func (h *APIHandler) HandleGenerateDraft(geminiKey string) http.HandlerFunc {
 			return
 		}
 
-		// Build the user prompt
+		// Build the user prompt (text-only context)
 		userPrompt := fmt.Sprintf("Category: %s\nTitle: %s\n\nRough idea:\n%s", req.Category, req.Title, req.RoughIdea)
 		if len(req.MediaURLs) > 0 {
-			userPrompt += "\n\nMedia files attached (use these exact URLs in <img>/<video> tags, placed where they best fit the content):"
-			for i, url := range req.MediaURLs {
-				label := "image"
-				if strings.Contains(url, ".mp4") || strings.Contains(url, ".webm") || strings.Contains(url, ".mov") || strings.Contains(url, "video") {
-					label = "video"
-				}
-				userPrompt += fmt.Sprintf("\n%d. [%s] %s", i+1, label, url)
-			}
+			userPrompt += fmt.Sprintf("\n\n%d media file(s) are attached below. Each has a label with its URL — use that exact URL in the <img>/<video> tag. Look at each image/video to understand what it shows, then place it where it best illustrates the surrounding text.", len(req.MediaURLs))
 		}
 
-		// Build Gemini API request
+		// Build Gemini API request parts.
+		// For each media: fetch from Supabase → upload to Gemini File API → get fileUri.
+		// Interleave [text label with Supabase URL] [fileData with Gemini URI] so Gemini
+		// can see the content AND knows which Supabase URL to use in the output HTML.
 		parts := []map[string]interface{}{
 			{"text": userPrompt},
 		}
 
-		// Add image/video parts if URLs provided
-		for _, url := range req.MediaURLs {
-			if strings.Contains(url, ".mp4") || strings.Contains(url, "video") {
-				parts = append(parts, map[string]interface{}{
-					"fileData": map[string]string{
-						"mimeType": "video/mp4",
-						"fileUri":  url,
-					},
-				})
-			} else {
-				parts = append(parts, map[string]interface{}{
-					"fileData": map[string]string{
-						"mimeType": "image/jpeg",
-						"fileUri":  url,
-					},
-				})
+		fetchClient := &http.Client{Timeout: 30 * time.Second}
+		for i, mediaURL := range req.MediaURLs {
+			isVideo := strings.Contains(mediaURL, ".mp4") || strings.Contains(mediaURL, ".webm") || strings.Contains(mediaURL, ".mov") || strings.Contains(mediaURL, "video")
+			mediaType := "image"
+			if isVideo {
+				mediaType = "video"
 			}
+
+			// Text label so Gemini knows which Supabase URL corresponds to the next file
+			parts = append(parts, map[string]interface{}{
+				"text": fmt.Sprintf("\n[Media %d - %s] Supabase URL to use in HTML: %s\nThe following is the actual %s content — look at it to understand what it shows:", i+1, mediaType, mediaURL, mediaType),
+			})
+
+			// Fetch the media from Supabase Storage
+			mediaResp, err := fetchClient.Get(mediaURL)
+			if err != nil {
+				log.Printf("failed to fetch media %s: %v", mediaURL, err)
+				parts = append(parts, map[string]interface{}{
+					"text": fmt.Sprintf("(Could not load %s — still use the Supabase URL above in an <%s> tag)", mediaType, mediaType),
+				})
+				continue
+			}
+			mediaBytes, err := io.ReadAll(io.LimitReader(mediaResp.Body, 50<<20)) // 50MB max
+			mediaResp.Body.Close()
+			if err != nil {
+				log.Printf("failed to read media %s: %v", mediaURL, err)
+				continue
+			}
+
+			// Detect MIME type from Content-Type header, fall back to extension
+			mimeType := mediaResp.Header.Get("Content-Type")
+			if mimeType == "" || mimeType == "application/octet-stream" {
+				switch {
+				case strings.HasSuffix(mediaURL, ".png"):
+					mimeType = "image/png"
+				case strings.HasSuffix(mediaURL, ".gif"):
+					mimeType = "image/gif"
+				case strings.HasSuffix(mediaURL, ".webp"):
+					mimeType = "image/webp"
+				case strings.HasSuffix(mediaURL, ".mp4"):
+					mimeType = "video/mp4"
+				case strings.HasSuffix(mediaURL, ".webm"):
+					mimeType = "video/webm"
+				default:
+					mimeType = "image/jpeg"
+				}
+			}
+
+			// Upload to Gemini File API to get a fileUri
+			displayName := fmt.Sprintf("blog-media-%d", i+1)
+			uploaded, err := uploadToGeminiFileAPI(geminiKey, mediaBytes, mimeType, displayName)
+			if err != nil {
+				log.Printf("failed to upload to Gemini File API %s: %v", mediaURL, err)
+				parts = append(parts, map[string]interface{}{
+					"text": fmt.Sprintf("(Upload failed — still use the Supabase URL above in an <%s> tag)", mediaType),
+				})
+				continue
+			}
+
+			parts = append(parts, map[string]interface{}{
+				"fileData": map[string]string{
+					"mimeType": uploaded.MIMEType,
+					"fileUri":  uploaded.URI,
+				},
+			})
 		}
 
 		geminiBody := map[string]interface{}{
