@@ -417,11 +417,13 @@ func (h *APIHandler) HandleDeleteMusicTrack(w http.ResponseWriter, r *http.Reque
 
 // blogPostRequest is the JSON body for create/update blog post requests.
 type blogPostRequest struct {
-	Slug     string `json:"slug"`
-	Title    string `json:"title"`
-	Content  string `json:"content"`
-	Preview  string `json:"preview"`
-	Category string `json:"category"`
+	Slug        string `json:"slug"`
+	Title       string `json:"title"`
+	Content     string `json:"content"`
+	Preview     string `json:"preview"`
+	Category    string `json:"category"`
+	PublishedAt string `json:"publishedAt,omitempty"`
+	UpdatedAt   string `json:"updatedAt,omitempty"`
 }
 
 // HandleCreateBlogPost creates a new blog post (admin only).
@@ -469,7 +471,7 @@ func (h *APIHandler) HandleUpdateBlogPost(w http.ResponseWriter, r *http.Request
 	if updateCategory == "" {
 		updateCategory = "technical"
 	}
-	post, err := h.svc.UpdateBlogPost(id, req.Slug, req.Title, req.Content, req.Preview, updateCategory)
+	post, err := h.svc.UpdateBlogPost(id, req.Slug, req.Title, req.Content, req.Preview, updateCategory, req.PublishedAt, req.UpdatedAt)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			writeError(w, http.StatusNotFound, err.Error())

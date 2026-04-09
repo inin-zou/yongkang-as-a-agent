@@ -111,7 +111,7 @@ export async function createBlogPost(
 export async function updateBlogPost(
   token: string,
   id: string,
-  data: { slug: string; title: string; content: string; preview: string; category: string },
+  data: { slug: string; title: string; content: string; preview: string; category: string; publishedAt?: string; updatedAt?: string },
 ): Promise<BlogPost> {
   const res = await fetch(`${BASE_URL}/admin/posts/${id}`, {
     method: 'PUT',

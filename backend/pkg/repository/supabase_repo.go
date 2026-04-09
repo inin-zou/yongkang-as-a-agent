@@ -118,14 +118,35 @@ func (r *SupabaseRepository) CreateBlogPost(slug, title, content, preview, categ
 }
 
 // UpdateBlogPost updates an existing blog post and returns it.
-func (r *SupabaseRepository) UpdateBlogPost(id, slug, title, content, preview, category string) (*model.BlogPost, error) {
+func (r *SupabaseRepository) UpdateBlogPost(id, slug, title, content, preview, category, publishedAt, updatedAt string) (*model.BlogPost, error) {
 	var p model.BlogPost
-	err := r.db.QueryRow(`
+
+	// Use provided dates or default to now() for updated_at
+	pubExpr := "published_at"
+	updExpr := "now()"
+	args := []interface{}{id, slug, title, content, preview, category}
+	argIdx := 7
+
+	if publishedAt != "" {
+		pubExpr = fmt.Sprintf("$%d::timestamptz", argIdx)
+		args = append(args, publishedAt+"T00:00:00Z")
+		argIdx++
+	}
+	if updatedAt != "" {
+		updExpr = fmt.Sprintf("$%d::timestamptz", argIdx)
+		args = append(args, updatedAt+"T00:00:00Z")
+		argIdx++
+	}
+
+	query := fmt.Sprintf(`
 		UPDATE blog_posts
-		SET slug = $2, title = $3, content = $4, preview = $5, category = $6, updated_at = now()
+		SET slug = $2, title = $3, content = $4, preview = $5, category = $6,
+		    published_at = %s, updated_at = %s
 		WHERE id = $1
 		RETURNING id, slug, title, content, preview, category, published_at, updated_at
-	`, id, slug, title, content, preview, category).Scan(&p.ID, &p.Slug, &p.Title, &p.Content, &p.Preview, &p.Category, &p.PublishedAt, &p.UpdatedAt)
+	`, pubExpr, updExpr)
+
+	err := r.db.QueryRow(query, args...).Scan(&p.ID, &p.Slug, &p.Title, &p.Content, &p.Preview, &p.Category, &p.PublishedAt, &p.UpdatedAt)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("blog post with id %q not found", id)
 	}
