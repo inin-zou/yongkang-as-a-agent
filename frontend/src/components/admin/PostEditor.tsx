@@ -50,7 +50,7 @@ export default function PostEditor({ initial, token, onSave, onCancel }: PostEdi
         existingContent: content,
         mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
       })
-      setContent(htmlToMarkdown(result.content))
+      setContent(result.content)
       if (result.preview) setPreview(result.preview)
       if (result.slug) setSlug(result.slug)
     } catch (err: unknown) {

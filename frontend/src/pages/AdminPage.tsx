@@ -117,7 +117,7 @@ function DraftCreator({ onDone, initial }: { onDone: () => void; initial?: BlogP
         existingContent: editContent,
         mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
       })
-      setEditContent(htmlToMarkdown(result.content))
+      setEditContent(result.content)
       if (result.preview) setEditPreview(result.preview)
       if (result.slug) setEditSlug(result.slug)
     } catch (err: unknown) {

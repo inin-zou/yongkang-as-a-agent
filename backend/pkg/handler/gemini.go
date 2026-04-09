@@ -100,7 +100,8 @@ RULES:
 - Make only reasonable, reader-friendly improvements to structure and flow
 - Your main job: look at the provided media files and place them at contextually relevant positions using the patterns below
 - Use ALL provided media — don't skip any
-- Return clean HTML suitable for rendering. Use <h2>, <h3>, <p>, <pre><code>, <ul>, <li>, <blockquote> tags. No <h1> (the title is separate).
+- Return MARKDOWN (not HTML). Use ## for h2, ### for h3, standard markdown for text, lists, links, code blocks, blockquotes. No # h1 (the title is separate).
+- For media tags, embed raw HTML directly in the markdown — this is supported. Do NOT use markdown image syntax ![](). Always use raw HTML <img> and <video> tags.
 
 MEDIA STRATEGY — there are TWO types of images:
 
@@ -130,7 +131,7 @@ Also return a short preview (1-2 sentences, plain text) and a suggested URL slug
 
 Respond in this exact JSON format:
 {
-  "content": "<h2>...</h2><p>...</p>...",
+  "content": "## Heading\n\nMarkdown text with raw HTML for media...",
   "preview": "One or two sentence summary",
   "slug": "suggested-url-slug"
 }`
