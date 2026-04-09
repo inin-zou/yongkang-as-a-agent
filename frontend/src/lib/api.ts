@@ -208,6 +208,60 @@ export async function createPostComment(
   return res.json();
 }
 
+/* ─── AI Draft Generation ─── */
+
+export interface DraftRequest {
+  title: string
+  category: string
+  roughIdea: string
+  mediaUrls?: string[]
+}
+
+export interface DraftResponse {
+  content: string
+  preview: string
+  slug: string
+}
+
+export async function generateDraft(token: string, data: DraftRequest): Promise<DraftResponse> {
+  const res = await fetch(`${BASE_URL}/admin/generate-draft`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: `API error: ${res.status}` }))
+    throw new Error(err.error || `API error: ${res.status}`)
+  }
+  return res.json()
+}
+
+export interface RefineRequest {
+  title: string
+  category: string
+  existingContent: string
+  mediaUrls?: string[]
+}
+
+export async function refineDraft(token: string, data: RefineRequest): Promise<DraftResponse> {
+  const res = await fetch(`${BASE_URL}/admin/refine-draft`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: `API error: ${res.status}` }))
+    throw new Error(err.error || `API error: ${res.status}`)
+  }
+  return res.json()
+}
+
 /* ─── Admin Skills CRUD ─── */
 
 export async function createSkill(

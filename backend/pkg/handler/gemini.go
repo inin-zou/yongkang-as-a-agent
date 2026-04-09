@@ -62,6 +62,40 @@ Respond in this exact JSON format:
   "slug": "suggested-url-slug"
 }`
 
+// RefineRequest represents the input for AI blog draft refinement.
+type RefineRequest struct {
+	Title           string   `json:"title"`
+	Category        string   `json:"category"`
+	ExistingContent string   `json:"existingContent"` // HTML content from Supabase
+	MediaURLs       []string `json:"mediaUrls,omitempty"`
+}
+
+const refineSystemPrompt = `You are a writing assistant for Yongkang ZOU's technical blog on his portfolio site.
+Your job is to refine an existing blog post, NOT write from scratch.
+
+RULES:
+- Keep the author's content mostly intact — don't rewrite their voice
+- Make only reasonable, reader-friendly improvements to structure and flow
+- Your main job: look at the provided media files and place <img> / <video> tags with the Supabase URLs at contextually relevant positions in the post
+- Use: <img src="URL" alt="brief description" style="max-width:100%;border-radius:6px;margin:1rem 0" /> for images
+- Use: <video src="URL" controls style="max-width:100%;border-radius:6px;margin:1rem 0"></video> for videos
+- Use ALL provided media — don't skip any
+- Return clean HTML suitable for rendering. Use <h2>, <h3>, <p>, <pre><code>, <ul>, <li>, <blockquote> tags. No <h1> (the title is separate).
+- NEVER use em dashes (—). Use commas, periods, or restructure the sentence.
+- NEVER use these words/phrases: "delve", "landscape", "tapestry", "paradigm", "synergy", "seamless", "robust", "innovative", "leverage", "game-changer", "deep dive", "it's worth noting", "at the end of the day", "in today's world", "without further ado"
+- NEVER use: "What surprised me most", "Here's the thing", "Let's break this down", "In this article we'll explore", "buckle up", "let's dive in"
+- NO bold abuse. ONE bold phrase per section maximum.
+- NO formulaic headers like "Overview", "Key Points", "Summary", "Conclusion"
+
+Also return a short preview (1-2 sentences, plain text) and a suggested URL slug. Keep the preview and slug from the original unless they clearly need improvement.
+
+Respond in this exact JSON format:
+{
+  "content": "<h2>...</h2><p>...</p>...",
+  "preview": "One or two sentence summary",
+  "slug": "suggested-url-slug"
+}`
+
 // geminiUploadedFile holds the result of uploading a file to the Gemini File API.
 type geminiUploadedFile struct {
 	URI      string
@@ -337,6 +371,229 @@ func (h *APIHandler) HandleGenerateDraft(geminiKey string) http.HandlerFunc {
 		var draft DraftResponse
 		if err := json.Unmarshal([]byte(text), &draft); err != nil {
 			// If not valid JSON, use the raw text as content
+			previewEnd := len(text)
+			if previewEnd > 150 {
+				previewEnd = 150
+			}
+			draft = DraftResponse{
+				Content: text,
+				Preview: text[:previewEnd],
+				Slug:    strings.ToLower(strings.ReplaceAll(req.Title, " ", "-")),
+			}
+		}
+
+		writeJSON(w, http.StatusOK, draft)
+	}
+}
+
+// HandleRefineDraft calls the Gemini API to refine an existing blog post, optionally placing media.
+func (h *APIHandler) HandleRefineDraft(geminiKey string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if geminiKey == "" {
+			writeError(w, http.StatusServiceUnavailable, "AI drafting not configured")
+			return
+		}
+
+		var req RefineRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			writeError(w, http.StatusBadRequest, "invalid request body")
+			return
+		}
+
+		if strings.TrimSpace(req.ExistingContent) == "" {
+			writeError(w, http.StatusBadRequest, "existingContent is required")
+			return
+		}
+
+		// Build the user prompt
+		userPrompt := fmt.Sprintf("Category: %s\nTitle: %s\n\nExisting post content to refine:\n%s", req.Category, req.Title, req.ExistingContent)
+
+		// Deduplicate media URLs
+		var dedupedURLs []string
+		if len(req.MediaURLs) > 0 {
+			seen := make(map[string]bool, len(req.MediaURLs))
+			for _, u := range req.MediaURLs {
+				if !seen[u] {
+					seen[u] = true
+					dedupedURLs = append(dedupedURLs, u)
+				}
+			}
+			userPrompt += fmt.Sprintf("\n\n%d media file(s) are attached below. Each has a label with its URL — use that exact URL in the <img>/<video> tag. Look at each image/video to understand what it shows, then place it where it best illustrates the surrounding text.", len(dedupedURLs))
+		}
+
+		// Build Gemini API request parts
+		parts := []map[string]interface{}{
+			{"text": userPrompt},
+		}
+
+		fetchClient := &http.Client{Timeout: 30 * time.Second}
+		for i, mediaURL := range dedupedURLs {
+			isVideo := strings.Contains(mediaURL, ".mp4") || strings.Contains(mediaURL, ".webm") || strings.Contains(mediaURL, ".mov") || strings.Contains(mediaURL, "video")
+			mediaType := "image"
+			if isVideo {
+				mediaType = "video"
+			}
+
+			// Text label so Gemini knows which Supabase URL corresponds to the next file
+			parts = append(parts, map[string]interface{}{
+				"text": fmt.Sprintf("\n[Media %d - %s] Supabase URL to use in HTML: %s\nThe following is the actual %s content — look at it to understand what it shows:", i+1, mediaType, mediaURL, mediaType),
+			})
+
+			// Fetch the media from Supabase Storage
+			mediaResp, err := fetchClient.Get(mediaURL)
+			if err != nil {
+				log.Printf("failed to fetch media %s: %v", mediaURL, err)
+				parts = append(parts, map[string]interface{}{
+					"text": fmt.Sprintf("(Could not load %s — still use the Supabase URL above in an <%s> tag)", mediaType, mediaType),
+				})
+				continue
+			}
+			if mediaResp.StatusCode != http.StatusOK {
+				mediaResp.Body.Close()
+				log.Printf("media fetch returned HTTP %d for %s", mediaResp.StatusCode, mediaURL)
+				parts = append(parts, map[string]interface{}{
+					"text": fmt.Sprintf("(Could not load %s (HTTP %d) — still use the Supabase URL above in an <%s> tag)", mediaType, mediaResp.StatusCode, mediaType),
+				})
+				continue
+			}
+			mediaBytes, err := io.ReadAll(io.LimitReader(mediaResp.Body, 50<<20)) // 50MB max
+			mediaResp.Body.Close()
+			if err != nil {
+				log.Printf("failed to read media %s: %v", mediaURL, err)
+				continue
+			}
+
+			// Detect MIME type from Content-Type header, fall back to extension
+			mimeType := mediaResp.Header.Get("Content-Type")
+			if mimeType == "" || mimeType == "application/octet-stream" {
+				switch {
+				case strings.HasSuffix(mediaURL, ".png"):
+					mimeType = "image/png"
+				case strings.HasSuffix(mediaURL, ".gif"):
+					mimeType = "image/gif"
+				case strings.HasSuffix(mediaURL, ".webp"):
+					mimeType = "image/webp"
+				case strings.HasSuffix(mediaURL, ".mp4"):
+					mimeType = "video/mp4"
+				case strings.HasSuffix(mediaURL, ".webm"):
+					mimeType = "video/webm"
+				default:
+					mimeType = "image/jpeg"
+				}
+			}
+
+			// Upload to Gemini File API to get a fileUri
+			displayName := fmt.Sprintf("blog-media-%d", i+1)
+			uploaded, err := uploadToGeminiFileAPI(geminiKey, mediaBytes, mimeType, displayName)
+			if err != nil {
+				log.Printf("failed to upload to Gemini File API %s: %v", mediaURL, err)
+				parts = append(parts, map[string]interface{}{
+					"text": fmt.Sprintf("(Upload failed — still use the Supabase URL above in an <%s> tag)", mediaType),
+				})
+				continue
+			}
+
+			parts = append(parts, map[string]interface{}{
+				"fileData": map[string]string{
+					"mimeType": uploaded.MIMEType,
+					"fileUri":  uploaded.URI,
+				},
+			})
+		}
+
+		geminiBody := map[string]interface{}{
+			"system_instruction": map[string]interface{}{
+				"parts": []map[string]string{
+					{"text": refineSystemPrompt},
+				},
+			},
+			"contents": []map[string]interface{}{
+				{
+					"parts": parts,
+				},
+			},
+			"generationConfig": map[string]interface{}{
+				"temperature":      0.7,
+				"topP":             0.9,
+				"maxOutputTokens":  4096,
+				"responseMimeType": "application/json",
+				"responseJsonSchema": map[string]interface{}{
+					"type": "object",
+					"properties": map[string]interface{}{
+						"content": map[string]interface{}{"type": "string", "description": "Refined blog post HTML content"},
+						"preview": map[string]interface{}{"type": "string", "description": "Short 1-2 sentence summary"},
+						"slug":    map[string]interface{}{"type": "string", "description": "URL-friendly slug"},
+					},
+					"required": []string{"content", "preview", "slug"},
+				},
+			},
+		}
+
+		bodyBytes, err := json.Marshal(geminiBody)
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, "failed to build AI request")
+			return
+		}
+
+		// Call Gemini API
+		apiURL := "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-pro-preview:generateContent"
+
+		client := &http.Client{Timeout: 120 * time.Second}
+		req2, err := http.NewRequest(http.MethodPost, apiURL, bytes.NewReader(bodyBytes))
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, "failed to build AI request")
+			return
+		}
+		req2.Header.Set("Content-Type", "application/json")
+		req2.Header.Set("x-goog-api-key", geminiKey)
+
+		resp, err := client.Do(req2)
+		if err != nil {
+			writeError(w, http.StatusBadGateway, fmt.Sprintf("AI service error: %v", err))
+			return
+		}
+		defer resp.Body.Close()
+
+		respBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			writeError(w, http.StatusBadGateway, "failed to read AI response")
+			return
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			truncated := string(respBody)
+			if len(truncated) > 200 {
+				truncated = truncated[:200]
+			}
+			writeError(w, http.StatusBadGateway, fmt.Sprintf("AI service returned %d: %s", resp.StatusCode, truncated))
+			return
+		}
+
+		// Parse Gemini response
+		var geminiResp struct {
+			Candidates []struct {
+				Content struct {
+					Parts []struct {
+						Text string `json:"text"`
+					} `json:"parts"`
+				} `json:"content"`
+			} `json:"candidates"`
+		}
+		if err := json.Unmarshal(respBody, &geminiResp); err != nil {
+			writeError(w, http.StatusBadGateway, "failed to parse AI response")
+			return
+		}
+
+		if len(geminiResp.Candidates) == 0 || len(geminiResp.Candidates[0].Content.Parts) == 0 {
+			writeError(w, http.StatusBadGateway, "AI returned empty response")
+			return
+		}
+
+		// Extract the text and parse as DraftResponse JSON
+		text := geminiResp.Candidates[0].Content.Parts[0].Text
+
+		var draft DraftResponse
+		if err := json.Unmarshal([]byte(text), &draft); err != nil {
 			previewEnd := len(text)
 			if previewEnd > 150 {
 				previewEnd = 150
