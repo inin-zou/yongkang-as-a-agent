@@ -47,7 +47,7 @@ export default function PostEditor({ initial, token, onSave, onCancel }: PostEdi
       const result = await refineDraft(token, {
         title,
         category,
-        existingContent: markdownToHtml(content),
+        existingContent: content,
         mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
       })
       setContent(htmlToMarkdown(result.content))

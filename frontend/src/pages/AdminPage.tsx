@@ -114,7 +114,7 @@ function DraftCreator({ onDone, initial }: { onDone: () => void; initial?: BlogP
       const result = await refineDraft(token, {
         title,
         category,
-        existingContent: markdownToHtml(editContent),
+        existingContent: editContent,
         mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
       })
       setEditContent(htmlToMarkdown(result.content))
