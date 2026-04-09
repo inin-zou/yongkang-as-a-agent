@@ -10,7 +10,7 @@ import '../../styles/memory.css'
 interface PostEditorProps {
   initial?: BlogPost
   token: string
-  onSave: (data: { slug: string; title: string; content: string; preview: string; category: string }) => Promise<void>
+  onSave: (data: { slug: string; title: string; content: string; preview: string; category: string; publishedAt?: string; updatedAt?: string }) => Promise<void>
   onCancel: () => void
 }
 
@@ -22,6 +22,8 @@ export default function PostEditor({ initial, token, onSave, onCancel }: PostEdi
     initial?.content ? htmlToMarkdown(initial.content) : ''
   )
   const [category, setCategory] = useState(initial?.category ?? 'technical')
+  const [publishedAt, setPublishedAt] = useState(initial?.publishedAt?.split('T')[0] ?? '')
+  const [updatedAt, setUpdatedAt] = useState(initial?.updatedAt?.split('T')[0] ?? '')
   const [saving, setSaving] = useState(false)
   const [refining, setRefining] = useState(false)
   const [error, setError] = useState('')
@@ -33,7 +35,11 @@ export default function PostEditor({ initial, token, onSave, onCancel }: PostEdi
     setSaving(true)
     setError('')
     try {
-      await onSave({ slug, title, content: markdownToHtml(content), preview, category })
+      await onSave({
+        slug, title, content: markdownToHtml(content), preview, category,
+        publishedAt: publishedAt || undefined,
+        updatedAt: updatedAt || undefined,
+      })
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Save failed')
       setSaving(false)
@@ -116,6 +122,31 @@ export default function PostEditor({ initial, token, onSave, onCancel }: PostEdi
           <option value="research">Research Reading</option>
         </select>
       </div>
+
+      {initial && (
+        <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
+          <div style={{ flex: 1 }}>
+            <label htmlFor="post-published" className="memory-feedback-label">Published</label>
+            <input
+              id="post-published"
+              type="date"
+              className="memory-feedback-input"
+              value={publishedAt}
+              onChange={(e) => setPublishedAt(e.target.value)}
+            />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label htmlFor="post-updated" className="memory-feedback-label">Edited</label>
+            <input
+              id="post-updated"
+              type="date"
+              className="memory-feedback-input"
+              value={updatedAt}
+              onChange={(e) => setUpdatedAt(e.target.value)}
+            />
+          </div>
+        </div>
+      )}
 
       <div>
         <label htmlFor="post-content" className="memory-feedback-label">Content (Markdown)</label>
