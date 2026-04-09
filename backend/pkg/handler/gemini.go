@@ -177,6 +177,20 @@ func uploadToGeminiFileAPI(apiKey string, mediaBytes []byte, mimeType string, di
 	}, nil
 }
 
+// geminiSupportedMIME returns true if Gemini can analyze this media type.
+// Images: PNG, JPEG, WEBP, HEIC, HEIF. Videos: MP4, MPEG, MOV, AVI, FLV, MPG, WebM, WMV, 3GPP.
+// Unsupported (e.g. GIF, SVG, BMP): upload to Supabase only, user places manually.
+func geminiSupportedMIME(mimeType string) bool {
+	supported := map[string]bool{
+		"image/png": true, "image/jpeg": true, "image/webp": true,
+		"image/heic": true, "image/heif": true,
+		"video/mp4": true, "video/mpeg": true, "video/quicktime": true,
+		"video/x-msvideo": true, "video/x-flv": true, "video/mpg": true,
+		"video/webm": true, "video/x-ms-wmv": true, "video/3gpp": true,
+	}
+	return supported[mimeType]
+}
+
 // HandleGenerateDraft calls the Gemini API to generate a blog draft from a rough idea.
 func (h *APIHandler) HandleGenerateDraft(geminiKey string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -256,6 +270,15 @@ func (h *APIHandler) HandleGenerateDraft(geminiKey string) http.HandlerFunc {
 				default:
 					mimeType = "image/jpeg"
 				}
+			}
+
+			// Skip Gemini upload for unsupported types (e.g. GIF) — user places manually
+			if !geminiSupportedMIME(mimeType) {
+				log.Printf("skipping Gemini upload for unsupported type %s (%s)", mimeType, mediaURL)
+				parts = append(parts, map[string]interface{}{
+					"text": fmt.Sprintf("(This %s file cannot be analyzed — still use the Supabase URL above in an <%s> tag, placed where it seems relevant based on context)", mimeType, mediaType),
+				})
+				continue
 			}
 
 			// Upload to Gemini File API to get a fileUri
@@ -480,6 +503,15 @@ func (h *APIHandler) HandleRefineDraft(geminiKey string) http.HandlerFunc {
 				default:
 					mimeType = "image/jpeg"
 				}
+			}
+
+			// Skip Gemini upload for unsupported types (e.g. GIF) — user places manually
+			if !geminiSupportedMIME(mimeType) {
+				log.Printf("skipping Gemini upload for unsupported type %s (%s)", mimeType, mediaURL)
+				parts = append(parts, map[string]interface{}{
+					"text": fmt.Sprintf("(This %s file cannot be analyzed — still use the Supabase URL above in an <%s> tag, placed where it seems relevant based on context)", mimeType, mediaType),
+				})
+				continue
 			}
 
 			// Upload to Gemini File API to get a fileUri
