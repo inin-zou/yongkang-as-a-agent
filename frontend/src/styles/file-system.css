@@ -61,10 +61,12 @@
   min-width: 280px;
   border-right: 1px solid var(--glass-border);
   background: transparent;
-  overflow-y: auto;
+  overflow: hidden;
   height: 100%;
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 2;
 }
 
 .sidebar-header {
@@ -130,17 +132,18 @@
 .sidebar-slider-container {
   overflow: hidden;
   flex: 1;
+  min-height: 0;
   position: relative;
+  isolation: isolate;
+  contain: paint;
 }
 
 .sidebar-slider {
   display: flex;
-  position: absolute;
-  top: 0;
-  left: 0;
   width: 200%;
   height: 100%;
   transition: transform 0.3s ease;
+  will-change: transform;
 }
 
 .sidebar-panel {
@@ -149,6 +152,7 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  pointer-events: auto;
 }
 
 .sidebar-category-btn {
@@ -244,6 +248,7 @@
   display: flex;
   flex-direction: column;
   position: relative;
+  z-index: 1;
 }
 
 /* ===== APP BODY — Frosted Glass Container ===== */
@@ -337,6 +342,35 @@
 .editor-content a:hover {
   border-color: var(--color-prism-teal);
   color: var(--color-prism-teal);
+}
+
+.blog-post-content img,
+.blog-post-content video {
+  max-width: 100%;
+  border-radius: 6px;
+  margin: var(--space-md) 0;
+}
+
+.blog-post-content h2,
+.blog-post-content h3 {
+  margin-top: var(--space-lg);
+  margin-bottom: var(--space-sm);
+}
+
+.blog-post-content pre {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  padding: var(--space-sm) var(--space-md);
+  overflow-x: auto;
+  margin: var(--space-md) 0;
+}
+
+.blog-post-content blockquote {
+  border-left: 3px solid var(--color-prism-teal);
+  padding-left: var(--space-md);
+  margin: var(--space-md) 0;
+  color: var(--color-ink-faint);
 }
 
 /* Prismatic divider instead of plain grey */
