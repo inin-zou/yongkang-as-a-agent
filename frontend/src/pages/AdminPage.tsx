@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useParams } from 'react-router-dom'
 import '../styles/memory.css'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../lib/AuthContext'
+import { supabase } from '../lib/supabase'
 import AsciiTitle from '../components/global/AsciiTitle'
 import {
   fetchFeedback,
@@ -10,8 +11,15 @@ import {
   fetchNotifications,
   markNotificationRead,
   markAllNotificationsRead,
+  fetchBlogPosts,
+  createBlogPost,
+  updateBlogPost,
+  deleteBlogPost,
+  generateDraft,
 } from '../lib/api'
-import type { Feedback, AdminNotification } from '../types/index'
+import type { Feedback, AdminNotification, BlogPost } from '../types/index'
+import type { DraftResponse } from '../lib/api'
+import { htmlToMarkdown, markdownToHtml } from '../lib/markdown'
 import '../styles/admin.css'
 
 /* ─── Login form (GitHub OAuth) ─── */
@@ -43,6 +51,457 @@ function LoginForm() {
         </button>
       </div>
     </div>
+  )
+}
+
+/* ─── Draft Creator (AI-assisted blog draft) ─── */
+
+function DraftCreator({ onDone, initial }: { onDone: () => void; initial?: BlogPost }) {
+  const { session } = useAuth()
+  const queryClient = useQueryClient()
+  const token = session?.access_token ?? ''
+
+  // Step 1: Input rough idea
+  const [title, setTitle] = useState(initial?.title ?? '')
+  const [category, setCategory] = useState(initial?.category ?? 'technical')
+  const [roughIdea, setRoughIdea] = useState(initial ? '' : '')
+  const [generating, setGenerating] = useState(false)
+  const [genError, setGenError] = useState('')
+
+  // Media uploads
+  const [mediaUrls, setMediaUrls] = useState<string[]>([])
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const editorTextareaRef = useRef<HTMLTextAreaElement>(null)
+
+  async function handleMediaUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    setUploading(true)
+    try {
+      for (const file of Array.from(files)) {
+        const ext = file.name.split('.').pop() ?? 'bin'
+        const path = `blog/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+        const { error } = await supabase.storage.from('blog-media').upload(path, file, { upsert: true })
+        if (error) throw error
+        const { data: urlData } = supabase.storage.from('blog-media').getPublicUrl(path)
+        const url = urlData.publicUrl
+        setMediaUrls(prev => [...prev, url])
+
+        // If in editor mode, insert at cursor
+        if (draft && editorTextareaRef.current) {
+          const ta = editorTextareaRef.current
+          const pos = ta.selectionStart ?? editContent.length
+          const isVideo = file.type.startsWith('video/')
+          const tag = isVideo
+            ? `\n<video src="${url}" controls style="max-width:100%;border-radius:6px;margin:8px 0"></video>\n`
+            : `\n<img src="${url}" alt="${file.name}" style="max-width:100%;border-radius:6px;margin:8px 0" />\n`
+          const newContent = editContent.slice(0, pos) + tag + editContent.slice(pos)
+          setEditContent(newContent)
+        }
+      }
+    } catch (err) {
+      setGenError(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  // Step 2: Review/edit generated draft
+  const [draft, setDraft] = useState<DraftResponse | null>(
+    initial ? { content: initial.content, preview: initial.preview, slug: initial.slug } : null
+  )
+  const [editContent, setEditContent] = useState(() =>
+    initial?.content ? htmlToMarkdown(initial.content) : ''
+  )
+  const [editPreview, setEditPreview] = useState(initial?.preview ?? '')
+  const [editSlug, setEditSlug] = useState(initial?.slug ?? '')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
+
+  async function handleGenerate() {
+    if (!title.trim() && !roughIdea.trim()) return
+    setGenerating(true)
+    setGenError('')
+    try {
+      const result = await generateDraft(token, { title, category, roughIdea, mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined })
+      const cleanSlug = (result.slug || title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+      setDraft(result)
+      setEditContent(htmlToMarkdown(result.content))
+      setEditPreview(result.preview)
+      setEditSlug(cleanSlug)
+    } catch (err: unknown) {
+      setGenError(err instanceof Error ? err.message : 'Generation failed')
+    }
+    setGenerating(false)
+  }
+
+  function handleSkipAI() {
+    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    setDraft({ content: roughIdea, preview: '', slug })
+    setEditContent(roughIdea)
+    setEditPreview('')
+    setEditSlug(slug)
+  }
+
+  async function handlePublish() {
+    setSaving(true)
+    setSaveError('')
+    const safeSlug = editSlug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    try {
+      const htmlContent = markdownToHtml(editContent)
+      if (initial?.id) {
+        await updateBlogPost(token, initial.id, {
+          slug: safeSlug,
+          title,
+          content: htmlContent,
+          preview: editPreview,
+          category,
+        })
+      } else {
+        await createBlogPost(token, {
+          slug: safeSlug,
+          title,
+          content: htmlContent,
+          preview: editPreview,
+          category,
+        })
+      }
+      queryClient.invalidateQueries({ queryKey: ['admin-posts'] })
+      queryClient.invalidateQueries({ queryKey: ['posts'] })
+      onDone()
+    } catch (err: unknown) {
+      setSaveError(err instanceof Error ? err.message : 'Save failed')
+      setSaving(false)
+    }
+  }
+
+  // Draft editing mode (step 2)
+  if (draft) {
+    return (
+      <div className="admin-editor">
+        {saveError && <div className="admin-error">{saveError}</div>}
+
+        <div>
+          <label htmlFor="draft-slug" className="memory-feedback-label">Slug</label>
+          <input
+            id="draft-slug"
+            type="text"
+            className="memory-feedback-input"
+            placeholder="my-post-slug"
+            value={editSlug}
+            onChange={(e) => setEditSlug(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="draft-title" className="memory-feedback-label">Title</label>
+          <input
+            id="draft-title"
+            type="text"
+            className="memory-feedback-input"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="draft-preview" className="memory-feedback-label">Preview</label>
+          <input
+            id="draft-preview"
+            type="text"
+            className="memory-feedback-input"
+            placeholder="Short preview text..."
+            value={editPreview}
+            onChange={(e) => setEditPreview(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="draft-category" className="memory-feedback-label">Category</label>
+          <select
+            id="draft-category"
+            className="memory-feedback-input"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
+            <option value="technical">Technical Blog</option>
+            <option value="hackathon">Hackathon Journey</option>
+            <option value="research">Research Reading</option>
+          </select>
+        </div>
+
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+            <label className="memory-feedback-label" style={{ margin: 0 }}>Content (Markdown) + Preview</label>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,video/*"
+                multiple
+                onChange={handleMediaUpload}
+                style={{ display: 'none' }}
+              />
+              <button
+                type="button"
+                className="admin-bar-btn"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+              >
+                {uploading ? 'UPLOADING...' : '📷 ADD MEDIA'}
+              </button>
+            </div>
+          </div>
+          <div className="admin-draft-split">
+            <textarea
+              ref={editorTextareaRef}
+              className="memory-feedback-input admin-textarea-lg"
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              rows={20}
+              placeholder={"## Section title\n\nWrite in markdown... **bold**, [links](url)\n\nUse 📷 ADD MEDIA to insert images/videos."}
+            />
+            <div
+              className="admin-draft-preview blog-post-content"
+              dangerouslySetInnerHTML={{ __html: markdownToHtml(editContent) }}
+            />
+          </div>
+        </div>
+
+        <div className="admin-actions">
+          <button
+            type="button"
+            className="admin-btn admin-bar-btn-save"
+            disabled={saving || !editSlug.trim() || !title.trim()}
+            onClick={handlePublish}
+          >
+            {saving ? 'SAVING...' : initial ? 'UPDATE' : 'PUBLISH'}
+          </button>
+          <button
+            type="button"
+            className="admin-btn"
+            onClick={() => {
+              setDraft(null)
+              setEditContent('')
+              setEditPreview('')
+              setEditSlug('')
+            }}
+            disabled={saving}
+          >
+            BACK
+          </button>
+          <button type="button" className="admin-btn" onClick={onDone} disabled={saving}>
+            CANCEL
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Rough idea input mode (step 1)
+  return (
+    <div className="admin-editor">
+      {genError && <div className="admin-error">{genError}</div>}
+
+      <div>
+        <label htmlFor="idea-title" className="memory-feedback-label">Title</label>
+        <input
+          id="idea-title"
+          type="text"
+          className="memory-feedback-input"
+          placeholder="Post title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+      </div>
+
+      <div>
+        <label htmlFor="idea-category" className="memory-feedback-label">Category</label>
+        <select
+          id="idea-category"
+          className="memory-feedback-input"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        >
+          <option value="technical">Technical Blog</option>
+          <option value="hackathon">Hackathon Journey</option>
+          <option value="research">Research Reading</option>
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor="idea-rough" className="memory-feedback-label">Rough Idea</label>
+        <textarea
+          id="idea-rough"
+          className="memory-feedback-input admin-textarea-lg"
+          placeholder="Write your rough draft, bullet points, or stream of consciousness here..."
+          value={roughIdea}
+          onChange={(e) => setRoughIdea(e.target.value)}
+          rows={12}
+        />
+      </div>
+
+      <div>
+        <label className="memory-feedback-label">Attach Media (optional)</label>
+        {mediaUrls.length > 0 && (
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
+            {mediaUrls.map((url, i) => (
+              <div key={i} style={{ position: 'relative', display: 'inline-block' }}>
+                {url.match(/\.(mp4|webm|mov)/i) ? (
+                  <video src={url} style={{ height: 80, borderRadius: 6, border: '1px solid var(--glass-border)' }} />
+                ) : (
+                  <img src={url} alt="" style={{ height: 80, borderRadius: 6, border: '1px solid var(--glass-border)' }} />
+                )}
+                <button
+                  type="button"
+                  onClick={() => setMediaUrls(prev => prev.filter((_, j) => j !== i))}
+                  style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', border: 'none', background: '#ff6b6b', color: '#fff', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*,video/*"
+          multiple
+          onChange={handleMediaUpload}
+          style={{ display: 'none' }}
+        />
+        <button
+          type="button"
+          className="admin-bar-btn"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          style={{ fontSize: '0.65rem' }}
+        >
+          {uploading ? 'UPLOADING...' : '📷 UPLOAD'}
+        </button>
+        {mediaUrls.length > 0 && (
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: 'var(--color-ink-faint)', marginLeft: '8px' }}>
+            {mediaUrls.length} file{mediaUrls.length > 1 ? 's' : ''} — AI will analyze and place them
+          </span>
+        )}
+      </div>
+
+      {generating ? (
+        <div className="admin-generating">
+          <span className="admin-generating-dot" />
+          <span className="admin-generating-dot" />
+          <span className="admin-generating-dot" />
+          <span>Generating draft with Gemini...</span>
+        </div>
+      ) : (
+        <div className="admin-btn-row">
+          <button
+            type="button"
+            className="admin-bar-btn admin-bar-btn-save"
+            disabled={!title.trim() && !roughIdea.trim()}
+            onClick={handleGenerate}
+          >
+            GENERATE WITH AI
+          </button>
+          <button
+            type="button"
+            className="admin-bar-btn admin-bar-btn-add"
+            onClick={handleSkipAI}
+          >
+            SKIP AI
+          </button>
+          <button type="button" className="admin-bar-btn" onClick={onDone}>
+            CANCEL
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ─── Posts manager tab ─── */
+
+function PostsManager() {
+  const { session } = useAuth()
+  const queryClient = useQueryClient()
+  const token = session?.access_token ?? ''
+
+  const [mode, setMode] = useState<'list' | 'create' | 'edit'>('list')
+  const [editingPost, setEditingPost] = useState<BlogPost | null>(null)
+
+  const { data: posts, isLoading } = useQuery({
+    queryKey: ['admin-posts'],
+    queryFn: fetchBlogPosts,
+    enabled: !!token,
+  })
+
+  async function handleDelete(post: BlogPost) {
+    if (!confirm(`Delete "${post.title}"?`)) return
+    await deleteBlogPost(token, post.id)
+    queryClient.invalidateQueries({ queryKey: ['admin-posts'] })
+    queryClient.invalidateQueries({ queryKey: ['posts'] })
+  }
+
+  function handleEdit(post: BlogPost) {
+    setEditingPost(post)
+    setMode('edit')
+  }
+
+  function handleDone() {
+    setMode('list')
+    setEditingPost(null)
+  }
+
+  if (mode === 'create') {
+    return <DraftCreator onDone={handleDone} />
+  }
+
+  if (mode === 'edit' && editingPost) {
+    return <DraftCreator onDone={handleDone} initial={editingPost} />
+  }
+
+  if (isLoading) return <p className="admin-empty">Loading posts...</p>
+
+  return (
+    <>
+      <button
+        className="admin-btn admin-bar-btn-add"
+        onClick={() => setMode('create')}
+        style={{ marginBottom: 'var(--space-md)' }}
+      >
+        + NEW POST
+      </button>
+
+      {!posts || posts.length === 0 ? (
+        <p className="admin-empty">No posts yet. Create your first one.</p>
+      ) : (
+        posts.map((post) => (
+          <div key={post.id} className="admin-post-item">
+            <div className="admin-post-info">
+              <div className="admin-post-title">
+                {post.title}
+                {' '}
+                <span className={`admin-category-badge admin-category-${post.category}`}>
+                  {post.category}
+                </span>
+              </div>
+              <div className="admin-post-slug">/{post.slug}</div>
+            </div>
+            <div className="admin-actions">
+              <button className="admin-btn" onClick={() => handleEdit(post)}>
+                EDIT
+              </button>
+              <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(post)}>
+                DELETE
+              </button>
+            </div>
+          </div>
+        ))
+      )}
+    </>
   )
 }
 
@@ -212,7 +671,8 @@ export default function AdminPage() {
   }
 
   const sectionMap: Record<string, { label: string; ascii: string }> = {
-    '': { label: 'Feedback', ascii: 'feedback' },
+    '': { label: 'Posts', ascii: 'posts' },
+    posts: { label: 'Posts', ascii: 'posts' },
     feedback: { label: 'Feedback', ascii: 'feedback' },
     notifications: { label: 'Notifications', ascii: 'notifications' },
   }
@@ -223,10 +683,11 @@ export default function AdminPage() {
   const content = (() => {
     switch (section) {
       case 'notifications': return <NotificationsTab />
+      case 'feedback': return <FeedbackTab />
       case '':
-      case 'feedback':
+      case 'posts':
       default:
-        return <FeedbackTab />
+        return <PostsManager />
     }
   })()
 

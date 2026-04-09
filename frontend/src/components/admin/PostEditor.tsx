@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import type { BlogPost } from '../../types/index'
+import { htmlToMarkdown, markdownToHtml } from '../../lib/markdown'
 import '../../styles/admin.css'
 import '../../styles/memory.css'
 
@@ -13,7 +14,9 @@ export default function PostEditor({ initial, onSave, onCancel }: PostEditorProp
   const [slug, setSlug] = useState(initial?.slug ?? '')
   const [title, setTitle] = useState(initial?.title ?? '')
   const [preview, setPreview] = useState(initial?.preview ?? '')
-  const [content, setContent] = useState(initial?.content ?? '')
+  const [content, setContent] = useState(() =>
+    initial?.content ? htmlToMarkdown(initial.content) : ''
+  )
   const [category, setCategory] = useState(initial?.category ?? 'technical')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -23,7 +26,7 @@ export default function PostEditor({ initial, onSave, onCancel }: PostEditorProp
     setSaving(true)
     setError('')
     try {
-      await onSave({ slug, title, content, preview, category })
+      await onSave({ slug, title, content: markdownToHtml(content), preview, category })
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Save failed')
       setSaving(false)
@@ -88,14 +91,14 @@ export default function PostEditor({ initial, onSave, onCancel }: PostEditorProp
       </div>
 
       <div>
-        <label htmlFor="post-content" className="memory-feedback-label">Content</label>
+        <label htmlFor="post-content" className="memory-feedback-label">Content (Markdown)</label>
         <textarea
           id="post-content"
-          className="memory-feedback-input"
-          placeholder="Write your post content..."
+          className="memory-feedback-input admin-textarea-lg"
+          placeholder={"## Section title\n\nWrite your post in markdown...\n\n- bullet points\n- **bold text**\n- [links](url)"}
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          rows={12}
+          rows={16}
           required
         />
       </div>
