@@ -1,98 +1,75 @@
-# Yongkang-as-a-Agent Portfolio
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
-Personal portfolio website for Yongkang ZOU — an AI Engineer in Paris. The concept is "super agent with many skills" — a file-system-based portfolio where visitors browse `.md` files in a Note App-style interface. Live at **https://yongkang.dev**.
+Personal portfolio website for Yongkang ZOU — an AI Engineer in Paris. Concept: "super agent with many skills" — a file-system-based portfolio where visitors browse `.md` files in a Note App-style interface. Live at **https://yongkang.dev**.
 
-## Current State
-
-All phases complete. Site is live with full Supabase CMS and inline admin editing.
-
-- **Landing:** Temporal Anomaly prismatic ribbons + Symmetry Breaking ticket
-- **SOUL.md:** README (editable bio/stats) + PROJECTS status board (ACTIVE/PLANNING/ON HOLD/SHIPPED)
-- **SKILL.md:** Skills list, Resume (experience), Hackathons (map + timeline) — all inline editable
-- **MEMORY.md:** Three-category blog (Hackathon Journey / Technical Blog / Research Reading) with two-level sidebar drill-down animation
-- **CONTACT.md:** Direct channels (editable links) + contact form
-- **MUSIC.md:** Artist profile + dynamic track list from Supabase with audio player
-- **ADMIN.md:** Feedback viewer + notifications (admin-only tab, right side of tab bar)
-
-## How to Run
+## Commands
 
 ```bash
-# Backend (Go API on :8080)
-cd backend && go run cmd/server/main.go
+# Development
+make dev                              # Backend (:8080) + Frontend (:5173) concurrently
+cd backend && go run cmd/server/main.go  # Backend only
+cd frontend && npm run dev               # Frontend only (proxies /api to :8080)
 
-# Frontend (React on :5173, proxies /api to :8080)
-cd frontend && npm run dev
+# Build
+make build                            # Both
+cd frontend && npm run build          # Frontend only (tsc + vite)
+cd backend && go build -o bin/server cmd/server/main.go
 
-# Or both:
-make dev
+# Test
+cd frontend && npm test               # All unit tests (vitest)
+cd frontend && npx vitest run src/components/admin/__tests__/AdminBar.test.tsx  # Single test file
+cd frontend && npm run test:e2e       # Playwright e2e (10 smoke tests)
 
-# Tests
-cd frontend && npm test          # 53 unit tests (vitest)
-cd frontend && npm run test:e2e  # 10 e2e smoke tests (playwright)
+# Lint
+cd frontend && npm run lint           # ESLint
 ```
 
 ## Architecture
 
-- **Backend:** Go (chi router), serverless on Vercel (`api/index.go`)
-- **Frontend:** React 19 + Vite + TanStack Query + Three.js + GSAP
-- **Database:** Supabase (PostgreSQL) — all content admin-editable
-- **Data pattern:** `DataRepository` interface with primary (Supabase) / fallback (embedded JSON)
-- **Caching:** Vercel CDN edge caching (`Vercel-CDN-Cache-Control: s-maxage=86400`) + `?_t=timestamp` cache busting on all fetches
-- **Auth:** GitHub OAuth via Supabase, admin gated by email match
-- **Deploy:** Vercel (full-stack) + Cloudflare DNS → `yongkang.dev`
+**Go backend** (`backend/`) serves a REST API via chi router. The Vercel serverless entrypoint is `api/index.go` — a thin wrapper that initializes the same chi router with `sync.Once`. Go module: `github.com/inin-zou/yongkang-as-a-agent`.
+
+**React frontend** (`frontend/`) uses React 19 + Vite + TanStack Query + Three.js + GSAP. Tailwind CSS v4. Vite proxies `/api` to the Go backend in dev.
+
+**Data flow:** `api/index.go` → `handler.APIHandler` → `service.PortfolioService` → `repository.DataRepository` (interface). Two implementations: `SupabaseRepository` (primary, PostgreSQL via `lib/pq`) and `EmbeddedRepository` (fallback, `embed.FS` from `backend/data/*.json`). The service tries primary first, falls back to embedded if primary is nil or returns empty results.
+
+**Frontend data:** All API calls go through `frontend/src/lib/api.ts` which exports `fetchJSON` (public) and `fetchAuthJSON` (admin). Both append `?_t=timestamp` for CDN cache busting — this is required on all fetches.
+
+**Auth:** GitHub OAuth via Supabase. Admin routes (`/api/admin/*`) gated by `middleware.AdminOnly` which validates the Supabase JWT and checks email against `ADMIN_EMAIL` env var.
+
+**Caching:** GET handlers use `writeCachedJSON` which sets `Vercel-CDN-Cache-Control: s-maxage=86400` for edge caching. Browser sees `max-age=10`. Client-side `?_t=timestamp` busts CDN cache after mutations.
+
+## Key Patterns
+
+- **Pages:** `{Name}Page.tsx` in `pages/`, content components in `components/{section}/`
+- **Admin editing:** `useAdminEdit()` hook returns `{ isAdmin, token }`. Admin UI components in `components/admin/` — `AdminBar` (EDIT/SAVE/CANCEL bar), `EditableItem` (reorder/edit/delete wrapper), `*Editor` forms
+- **Sidebar:** Static tab config in `sidebarConfig.ts`, dynamic sidebar (e.g. MEMORY.md drill-down) built in `FileSystemLayout.tsx`
+- **Go handlers:** Use `writeCachedJSON` for GET endpoints, `writeJSON` for mutations, `writeError` for errors
+- **Go admin CRUD:** Full CRUD on `SupabaseRepository` for all Supabase tables; admin routes use the JWT-validated supabase connection
+- **CSS:** Custom properties in `theme.css`. Class prefixes: `.editor-*` (pages), `.cli-*` (terminal blocks), `.admin-*` / `.editable-item-*` (admin UI)
 
 ## Supabase Tables
 
 ```
-pages               — SOUL, SKILL, CONTACT, MUSIC page content (JSONB)
-projects_status     — active projects status board
-skills              — skill domains (structured rows, reorderable)
-hackathons          — hackathon entries
-experience          — work experience (structured rows, reorderable)
-blog_posts          — memory/blog posts with category (hackathon/technical/research)
-music_tracks        — individual music tracks
-post_likes          — post likes
-post_comments       — post comments
-feedback            — visitor feedback
-contact_submissions — contact form entries
-guestbook           — guestbook entries
-page_views          — view counter
-admin_notifications — admin activity feed
+pages, projects_status, skills, hackathons, experience, blog_posts,
+music_tracks, post_likes, post_comments, feedback, contact_submissions,
+guestbook, page_views, admin_notifications
 ```
-
-## Key Design Decisions
-
-- **Theme:** Dark palette with prismatic iridescent accents (holographic minimalism)
-- **Layout:** Note App floating window pattern with `.md` tabs
-- **Inline editing:** Admin sees EDIT button on every page, edits content in place (no separate CMS)
-- **AdminBar:** EDIT/SAVE/CANCEL + optional "+ NEW" at top of editable sections
-- **EditableItem:** Wraps each item with ↑↓ reorder arrows + ✏️ edit + 🗑️ delete buttons
-- **CDN strategy:** 24h edge cache for static data, cache-busted on all client fetches
-- **CLI aesthetic:** `$ agent --command` terminal blocks throughout (skills, stats, projects, memory)
-- **MEMORY.md sidebar:** Two-level drill-down with CSS slide animation (categories → posts)
 
 ## Env Vars (Vercel)
 
 - `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `DATABASE_URL` — Supabase connection
 - `ADMIN_EMAIL` — admin gate (must match exactly, no trailing whitespace)
 - `FRONTEND_URL` — CORS origin
+- `GEMINI_API_KEY` — AI draft generation endpoint
 
-## Code Conventions
+## Design Decisions
 
-- **Go:** DataRepository interface, chi router, primary/fallback pattern, `writeCachedJSON` for GET handlers
-- **React:** functional components, TanStack Query, `useAdminEdit` hook for admin state
-- **Admin components:** `components/admin/` — AdminBar, EditableItem, *Editor forms
-- **CSS:** custom properties in `theme.css`, `.editor-*` for pages, `.cli-*` for terminal blocks, `.admin-*` / `.editable-item-*` for admin UI
-- **API fetches:** Always use `fetchJSON` (public) or `fetchAuthJSON` (admin) — both add `?_t=timestamp` for CDN cache busting
-- **Pages:** `{Name}Page.tsx`, content components in `components/{section}/`
-- **Sidebar:** `sidebarConfig.ts` for static tabs, dynamic sidebar built in `FileSystemLayout.tsx`
-- **Tests:** vitest + @testing-library/react for unit tests, Playwright for e2e
-
-## Specs
-
-Design specs in `docs/superpowers/specs/`:
-- `2026-04-04-supabase-cdn-caching-design.md`
-- `2026-04-06-admin-crud-design.md`
-- `2026-04-07-inline-admin-editing-design.md`
+- **Theme:** Dark palette with prismatic iridescent accents (holographic minimalism)
+- **Layout:** Note App floating window with `.md` tabs
+- **Inline editing:** Admin edits content in place — no separate CMS UI
+- **CLI aesthetic:** `$ agent --command` terminal blocks throughout
+- **MEMORY.md sidebar:** Two-level drill-down with CSS slide animation (categories → posts)
