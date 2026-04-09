@@ -8,14 +8,27 @@ import NoiseOverlay from './components/global/NoiseOverlay'
 
 const queryClient = new QueryClient()
 
-// Lazy-loaded pages
-const Landing = lazy(() => import('./pages/Landing'))
-const SoulPage = lazy(() => import('./pages/SoulPage'))
-const SkillPage = lazy(() => import('./pages/SkillPage'))
-const MemoryPage = lazy(() => import('./pages/MemoryPage'))
-const ContactPage = lazy(() => import('./pages/ContactPage'))
-const MusicPage = lazy(() => import('./pages/MusicPage'))
-const AdminPage = lazy(() => import('./pages/AdminPage'))
+// Lazy-loaded pages — retryImport reloads on stale chunk errors after deploys
+function retryImport<T>(fn: () => Promise<T>): Promise<T> {
+  return fn().catch((err) => {
+    // After a new deploy, old chunk hashes no longer exist on the CDN.
+    // The SPA rewrite serves index.html instead, causing a MIME type error.
+    // Reload once so the browser fetches the new index.html with correct chunks.
+    if (!sessionStorage.getItem('chunk_reload')) {
+      sessionStorage.setItem('chunk_reload', '1')
+      window.location.reload()
+    }
+    throw err
+  })
+}
+
+const Landing = lazy(() => retryImport(() => import('./pages/Landing')))
+const SoulPage = lazy(() => retryImport(() => import('./pages/SoulPage')))
+const SkillPage = lazy(() => retryImport(() => import('./pages/SkillPage')))
+const MemoryPage = lazy(() => retryImport(() => import('./pages/MemoryPage')))
+const ContactPage = lazy(() => retryImport(() => import('./pages/ContactPage')))
+const MusicPage = lazy(() => retryImport(() => import('./pages/MusicPage')))
+const AdminPage = lazy(() => retryImport(() => import('./pages/AdminPage')))
 
 function PageLoader() {
   return (
