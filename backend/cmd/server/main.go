@@ -85,6 +85,7 @@ func main() {
 		r.With(middleware.RateLimit(10, time.Hour)).Post("/guestbook", h.HandleCreateGuestbookEntry)
 		r.Get("/pages/{id}", h.HandleGetPage)
 		r.Get("/music-tracks", h.HandleGetMusicTracks)
+		r.Get("/project-statuses", h.HandleGetProjectStatuses)
 
 		r.Route("/admin", func(r chi.Router) {
 			r.Use(middleware.AdminOnly(supabaseURL, anonKey, adminEmail))
@@ -105,6 +106,9 @@ func main() {
 			r.Post("/skills", h.HandleCreateSkill)
 			r.Put("/skills/{id}", h.HandleUpdateSkill)
 			r.Delete("/skills/{id}", h.HandleDeleteSkill)
+			r.Post("/project-statuses", h.HandleCreateProjectStatus)
+			r.Put("/project-statuses/{id}", h.HandleUpdateProjectStatus)
+			r.Delete("/project-statuses/{id}", h.HandleDeleteProjectStatus)
 			r.Post("/hackathons", h.HandleCreateHackathon)
 			r.Put("/hackathons/{id}", h.HandleUpdateHackathon)
 			r.Delete("/hackathons/{id}", h.HandleDeleteHackathon)

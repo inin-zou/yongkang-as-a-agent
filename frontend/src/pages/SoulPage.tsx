@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchPage, updatePage } from '../lib/api'
 import { useAdminEdit } from '../hooks/useAdminEdit'
 import AdminBar from '../components/admin/AdminBar'
+import ProjectsView from '../components/soul/ProjectsView'
 import '../styles/skill.css'
 
 const ASCII_NAME = `███████╗ ██████╗ ██╗   ██╗
@@ -38,6 +39,16 @@ const DEFAULT_BIO = [
 const DEFAULT_STATS = { hackathons: 24, wins: 9, domains: '8+', languages: 3 }
 
 export default function SoulPage() {
+  const { item } = useParams<{ item?: string }>()
+
+  if (item === 'projects') {
+    return <ProjectsView />
+  }
+
+  return <SoulReadme />
+}
+
+function SoulReadme() {
   const { isAdmin, token } = useAdminEdit()
   const [isEditing, setIsEditing] = useState(false)
   const queryClient = useQueryClient()
@@ -259,8 +270,8 @@ export default function SoulPage() {
           <>
             <p className="editor-subtitle">{subtitle}</p>
 
-            <p>{bio[0]}</p>
-            <p>{bio[1]}</p>
+            <p style={{ whiteSpace: 'pre-line' }}>{bio[0]}</p>
+            <p style={{ whiteSpace: 'pre-line' }}>{bio[1]}</p>
 
             <div className="editor-divider" />
 

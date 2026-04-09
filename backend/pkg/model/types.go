@@ -46,7 +46,7 @@ type Experience struct {
 	SkillAssembled string   `json:"skillAssembled"`
 	Highlights     []string `json:"highlights"`
 	Note           string   `json:"note,omitempty"`
-	SortOrder      int      `json:"sortOrder,omitempty"`
+	SortOrder      int      `json:"sortOrder"`
 }
 
 // SkillSubcategory represents a named group of skills within a domain.
@@ -64,7 +64,7 @@ type SkillDomain struct {
 	Subcategories []SkillSubcategory `json:"subcategories,omitempty"`
 	Skills        []string           `json:"skills,omitempty"`
 	BattleTested  []string           `json:"battleTested"`
-	SortOrder     int                `json:"sortOrder,omitempty"`
+	SortOrder     int                `json:"sortOrder"`
 }
 
 // Music represents the music artist profile.
@@ -86,7 +86,7 @@ type MusicTrack struct {
 	Original  string `json:"original"`
 	Notes     string `json:"notes"`
 	FileURL   string `json:"fileUrl"`
-	SortOrder int    `json:"sortOrder,omitempty"`
+	SortOrder int    `json:"sortOrder"`
 }
 
 // ContactRequest represents an incoming contact form submission.
@@ -104,6 +104,7 @@ type BlogPost struct {
 	Title       string `json:"title"`
 	Content     string `json:"content"`
 	Preview     string `json:"preview"`
+	Category    string `json:"category"`
 	PublishedAt string `json:"publishedAt"`
 }
 
@@ -168,6 +169,17 @@ type PostStats struct {
 	LikeCount    int  `json:"likeCount"`
 	CommentCount int  `json:"commentCount"`
 	UserLiked    bool `json:"userLiked"`
+}
+
+// ProjectStatus represents an active project entry in the agent's status board.
+type ProjectStatus struct {
+	ID          string `json:"id,omitempty"`
+	Name        string `json:"name"`
+	Status      string `json:"status"`      // "ACTIVE", "PLANNING", "ON HOLD", "SHIPPED"
+	Description string `json:"description"`
+	NextStep    string `json:"nextStep,omitempty"`
+	Links       string `json:"links,omitempty"` // comma-separated URLs
+	SortOrder   int    `json:"sortOrder"`
 }
 
 // AdminNotification represents a notification for the admin dashboard.

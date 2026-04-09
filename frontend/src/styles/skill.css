@@ -532,3 +532,61 @@ a.cli-log-project:hover {
   font-size: 0.65rem;
   opacity: 0.7;
 }
+
+/* ===== Project status table ===== */
+.cli-status-header {
+  display: flex;
+  gap: 16px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--glass-border);
+  margin-bottom: 8px;
+  font-size: 0.7rem;
+  color: var(--color-ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.cli-status-row {
+  display: flex;
+  gap: 16px;
+  padding: 8px 0;
+  align-items: flex-start;
+}
+
+.cli-status-pid {
+  width: 36px;
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  color: var(--color-ink-faint);
+}
+
+.cli-status-state {
+  width: 80px;
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cli-status-active { color: var(--color-prism-mint); }
+.cli-status-planning { color: var(--color-prism-lavender); }
+.cli-status-on-hold { color: var(--color-ink-faint); }
+.cli-status-shipped { color: var(--color-prism-pink); }
+
+.cli-status-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cli-status-name {
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
+.cli-status-desc,
+.cli-status-next {
+  color: var(--color-ink-muted);
+  font-size: 0.85rem;
+  margin-top: 2px;
+}

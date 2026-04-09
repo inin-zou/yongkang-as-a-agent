@@ -145,19 +145,19 @@ func (s *PortfolioService) CreateContactSubmission(name, email, message string) 
 }
 
 // CreateBlogPost creates a new blog post.
-func (s *PortfolioService) CreateBlogPost(slug, title, content, preview string) (*model.BlogPost, error) {
+func (s *PortfolioService) CreateBlogPost(slug, title, content, preview, category string) (*model.BlogPost, error) {
 	if s.supabase == nil {
 		return nil, fmt.Errorf("database not configured")
 	}
-	return s.supabase.CreateBlogPost(slug, title, content, preview)
+	return s.supabase.CreateBlogPost(slug, title, content, preview, category)
 }
 
 // UpdateBlogPost updates an existing blog post.
-func (s *PortfolioService) UpdateBlogPost(id, slug, title, content, preview string) (*model.BlogPost, error) {
+func (s *PortfolioService) UpdateBlogPost(id, slug, title, content, preview, category string) (*model.BlogPost, error) {
 	if s.supabase == nil {
 		return nil, fmt.Errorf("database not configured")
 	}
-	return s.supabase.UpdateBlogPost(id, slug, title, content, preview)
+	return s.supabase.UpdateBlogPost(id, slug, title, content, preview, category)
 }
 
 // DeleteBlogPost deletes a blog post by ID.
@@ -343,6 +343,38 @@ func (s *PortfolioService) DeleteMusicTrack(id string) error {
 		return fmt.Errorf("database not configured")
 	}
 	return s.supabase.DeleteMusicTrack(id)
+}
+
+// GetProjectStatuses returns all project statuses.
+func (s *PortfolioService) GetProjectStatuses() ([]model.ProjectStatus, error) {
+	if s.supabase == nil {
+		return nil, nil
+	}
+	return s.supabase.GetProjectStatuses()
+}
+
+// CreateProjectStatus creates a new project status.
+func (s *PortfolioService) CreateProjectStatus(name, status, description, nextStep, links string, sortOrder int) (*model.ProjectStatus, error) {
+	if s.supabase == nil {
+		return nil, fmt.Errorf("database not configured")
+	}
+	return s.supabase.CreateProjectStatus(name, status, description, nextStep, links, sortOrder)
+}
+
+// UpdateProjectStatus updates an existing project status.
+func (s *PortfolioService) UpdateProjectStatus(id, name, status, description, nextStep, links string, sortOrder int) (*model.ProjectStatus, error) {
+	if s.supabase == nil {
+		return nil, fmt.Errorf("database not configured")
+	}
+	return s.supabase.UpdateProjectStatus(id, name, status, description, nextStep, links, sortOrder)
+}
+
+// DeleteProjectStatus deletes a project status by ID.
+func (s *PortfolioService) DeleteProjectStatus(id string) error {
+	if s.supabase == nil {
+		return fmt.Errorf("database not configured")
+	}
+	return s.supabase.DeleteProjectStatus(id)
 }
 
 // CreateSkill creates a new skill domain.

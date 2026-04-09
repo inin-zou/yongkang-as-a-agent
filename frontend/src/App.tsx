@@ -80,6 +80,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <TabRouter /> },
       { path: ':item', element: <TabRouter /> },
+      { path: ':item/:sub', element: <TabRouter /> },
     ],
   },
   {
