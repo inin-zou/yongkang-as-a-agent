@@ -114,7 +114,14 @@ function BlogPostView({ slug }: { slug: string }) {
         />
       ) : (
         <>
-          <div className="editor-meta">{post.publishedAt?.split('T')[0]}</div>
+          <div className="editor-meta">
+            {post.publishedAt?.split('T')[0]}
+            {post.updatedAt && post.updatedAt.split('T')[0] !== post.publishedAt?.split('T')[0] && (
+              <span style={{ marginLeft: '8px', color: 'var(--color-ink-faint)' }}>
+                (edited {post.updatedAt.split('T')[0]})
+              </span>
+            )}
+          </div>
           <h1 className="editor-title">{post.title}</h1>
           {isEditMode && (
             <div style={{ display: 'flex', gap: 'var(--space-xs)', marginBottom: 'var(--space-sm)' }}>

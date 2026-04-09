@@ -106,6 +106,7 @@ type BlogPost struct {
 	Preview     string `json:"preview"`
 	Category    string `json:"category"`
 	PublishedAt string `json:"publishedAt"`
+	UpdatedAt  string `json:"updatedAt,omitempty"`
 }
 
 // Feedback represents a visitor note/feedback entry.

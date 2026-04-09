@@ -84,6 +84,7 @@ export interface BlogPost {
   preview: string;
   category: string;
   publishedAt: string;
+  updatedAt?: string;
 }
 
 export interface Feedback {
