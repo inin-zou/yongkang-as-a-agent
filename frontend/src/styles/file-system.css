@@ -351,10 +351,20 @@
   margin: var(--space-md) 0;
 }
 
-.blog-post-content h2,
-.blog-post-content h3 {
+.blog-post-content h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
   margin-top: var(--space-lg);
   margin-bottom: var(--space-sm);
+  color: var(--color-ink);
+}
+
+.blog-post-content h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-top: var(--space-lg);
+  margin-bottom: var(--space-sm);
+  color: var(--color-ink);
 }
 
 .blog-post-content pre {
