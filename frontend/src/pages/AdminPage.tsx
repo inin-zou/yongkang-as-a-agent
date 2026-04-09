@@ -1,10 +1,11 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import '../styles/memory.css'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../lib/AuthContext'
-import { supabase } from '../lib/supabase'
 import AsciiTitle from '../components/global/AsciiTitle'
+import { useBlogMediaUpload } from '../hooks/useBlogMediaUpload'
+import MediaUploadBar from '../components/admin/MediaUploadBar'
 import {
   fetchFeedback,
   deleteFeedback,
@@ -16,6 +17,7 @@ import {
   updateBlogPost,
   deleteBlogPost,
   generateDraft,
+  refineDraft,
 } from '../lib/api'
 import type { Feedback, AdminNotification, BlogPost } from '../types/index'
 import type { DraftResponse } from '../lib/api'
@@ -68,45 +70,28 @@ function DraftCreator({ onDone, initial }: { onDone: () => void; initial?: BlogP
   const [generating, setGenerating] = useState(false)
   const [genError, setGenError] = useState('')
 
-  // Media uploads
-  const [mediaUrls, setMediaUrls] = useState<string[]>([])
-  const [uploading, setUploading] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  // Media uploads (shared hook)
+  const { mediaUrls, uploading, error: uploadError, handleUpload, removeUrl } = useBlogMediaUpload()
   const editorTextareaRef = useRef<HTMLTextAreaElement>(null)
+  const prevUrlCountRef = useRef(mediaUrls.length)
 
-  async function handleMediaUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = e.target.files
-    if (!files || files.length === 0) return
-    setUploading(true)
-    try {
-      for (const file of Array.from(files)) {
-        const ext = file.name.split('.').pop() ?? 'bin'
-        const path = `blog/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-        const { error } = await supabase.storage.from('blog-media').upload(path, file, { upsert: true })
-        if (error) throw error
-        const { data: urlData } = supabase.storage.from('blog-media').getPublicUrl(path)
-        const url = urlData.publicUrl
-        setMediaUrls(prev => [...prev, url])
-
-        // If in editor mode, insert at cursor
-        if (draft && editorTextareaRef.current) {
-          const ta = editorTextareaRef.current
-          const pos = ta.selectionStart ?? editContent.length
-          const isVideo = file.type.startsWith('video/')
-          const tag = isVideo
-            ? `\n<video src="${url}" controls style="max-width:100%;border-radius:6px;margin:8px 0"></video>\n`
-            : `\n<img src="${url}" alt="${file.name}" style="max-width:100%;border-radius:6px;margin:8px 0" />\n`
-          const newContent = editContent.slice(0, pos) + tag + editContent.slice(pos)
-          setEditContent(newContent)
-        }
-      }
-    } catch (err) {
-      setGenError(err instanceof Error ? err.message : 'Upload failed')
-    } finally {
-      setUploading(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
+  // When a new URL is added in editor mode, insert media tag at cursor
+  useEffect(() => {
+    const prevCount = prevUrlCountRef.current
+    prevUrlCountRef.current = mediaUrls.length
+    if (mediaUrls.length > prevCount && draft && editorTextareaRef.current) {
+      const newUrl = mediaUrls[mediaUrls.length - 1]
+      const ta = editorTextareaRef.current
+      const pos = ta.selectionStart ?? editContent.length
+      const isVideo = newUrl.match(/\.(mp4|webm|mov)/i)
+      const tag = isVideo
+        ? `\n<video src="${newUrl}" controls style="max-width:100%;border-radius:6px;margin:8px 0"></video>\n`
+        : `\n<img src="${newUrl}" alt="media" style="max-width:100%;border-radius:6px;margin:8px 0" />\n`
+      const newContent = editContent.slice(0, pos) + tag + editContent.slice(pos)
+      setEditContent(newContent)
     }
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mediaUrls.length])
 
   // Step 2: Review/edit generated draft
   const [draft, setDraft] = useState<DraftResponse | null>(
@@ -119,6 +104,27 @@ function DraftCreator({ onDone, initial }: { onDone: () => void; initial?: BlogP
   const [editSlug, setEditSlug] = useState(initial?.slug ?? '')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const [refining, setRefining] = useState(false)
+
+  async function handleRefine() {
+    if (!editContent.trim() && mediaUrls.length === 0) return
+    setRefining(true)
+    setSaveError('')
+    try {
+      const result = await refineDraft(token, {
+        title,
+        category,
+        existingContent: markdownToHtml(editContent),
+        mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
+      })
+      setEditContent(htmlToMarkdown(result.content))
+      if (result.preview) setEditPreview(result.preview)
+      if (result.slug) setEditSlug(result.slug)
+    } catch (err: unknown) {
+      setSaveError(err instanceof Error ? err.message : 'Refine failed')
+    }
+    setRefining(false)
+  }
 
   async function handleGenerate() {
     if (!title.trim() && !roughIdea.trim()) return
@@ -182,6 +188,7 @@ function DraftCreator({ onDone, initial }: { onDone: () => void; initial?: BlogP
     return (
       <div className="admin-editor">
         {saveError && <div className="admin-error">{saveError}</div>}
+        {uploadError && <div className="admin-error">{uploadError}</div>}
 
         <div>
           <label htmlFor="draft-slug" className="memory-feedback-label">Slug</label>
@@ -235,22 +242,21 @@ function DraftCreator({ onDone, initial }: { onDone: () => void; initial?: BlogP
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
             <label className="memory-feedback-label" style={{ margin: 0 }}>Content (Markdown) + Preview</label>
-            <div style={{ display: 'flex', gap: '6px' }}>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*,video/*"
-                multiple
-                onChange={handleMediaUpload}
-                style={{ display: 'none' }}
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <MediaUploadBar
+                mediaUrls={mediaUrls}
+                uploading={uploading}
+                onUpload={handleUpload}
+                onRemove={removeUrl}
+                compact
               />
               <button
                 type="button"
-                className="admin-bar-btn"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
+                className="admin-bar-btn admin-bar-btn-save"
+                disabled={refining || (!editContent.trim() && mediaUrls.length === 0)}
+                onClick={handleRefine}
               >
-                {uploading ? 'UPLOADING...' : '📷 ADD MEDIA'}
+                {refining ? 'REFINING...' : 'REFINE WITH AI'}
               </button>
             </div>
           </div>
@@ -304,6 +310,7 @@ function DraftCreator({ onDone, initial }: { onDone: () => void; initial?: BlogP
   return (
     <div className="admin-editor">
       {genError && <div className="admin-error">{genError}</div>}
+      {uploadError && <div className="admin-error">{uploadError}</div>}
 
       <div>
         <label htmlFor="idea-title" className="memory-feedback-label">Title</label>
@@ -345,46 +352,15 @@ function DraftCreator({ onDone, initial }: { onDone: () => void; initial?: BlogP
 
       <div>
         <label className="memory-feedback-label">Attach Media (optional)</label>
-        {mediaUrls.length > 0 && (
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
-            {mediaUrls.map((url, i) => (
-              <div key={i} style={{ position: 'relative', display: 'inline-block' }}>
-                {url.match(/\.(mp4|webm|mov)/i) ? (
-                  <video src={url} style={{ height: 80, borderRadius: 6, border: '1px solid var(--glass-border)' }} />
-                ) : (
-                  <img src={url} alt="" style={{ height: 80, borderRadius: 6, border: '1px solid var(--glass-border)' }} />
-                )}
-                <button
-                  type="button"
-                  onClick={() => setMediaUrls(prev => prev.filter((_, j) => j !== i))}
-                  style={{ position: 'absolute', top: -6, right: -6, width: 20, height: 20, borderRadius: '50%', border: 'none', background: '#ff6b6b', color: '#fff', fontSize: '11px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*,video/*"
-          multiple
-          onChange={handleMediaUpload}
-          style={{ display: 'none' }}
+        <MediaUploadBar
+          mediaUrls={mediaUrls}
+          uploading={uploading}
+          onUpload={handleUpload}
+          onRemove={removeUrl}
         />
-        <button
-          type="button"
-          className="admin-bar-btn"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
-          style={{ fontSize: '0.65rem' }}
-        >
-          {uploading ? 'UPLOADING...' : '📷 UPLOAD'}
-        </button>
         {mediaUrls.length > 0 && (
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: 'var(--color-ink-faint)', marginLeft: '8px' }}>
-            {mediaUrls.length} file{mediaUrls.length > 1 ? 's' : ''} — AI will analyze and place them
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: 'var(--color-ink-faint)', marginTop: '4px' }}>
+            AI will analyze and place them
           </span>
         )}
       </div>

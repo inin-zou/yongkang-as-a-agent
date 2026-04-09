@@ -1,16 +1,20 @@
 import { useState, type FormEvent } from 'react'
 import type { BlogPost } from '../../types/index'
 import { htmlToMarkdown, markdownToHtml } from '../../lib/markdown'
+import { refineDraft } from '../../lib/api'
+import { useBlogMediaUpload } from '../../hooks/useBlogMediaUpload'
+import MediaUploadBar from './MediaUploadBar'
 import '../../styles/admin.css'
 import '../../styles/memory.css'
 
 interface PostEditorProps {
   initial?: BlogPost
+  token: string
   onSave: (data: { slug: string; title: string; content: string; preview: string; category: string }) => Promise<void>
   onCancel: () => void
 }
 
-export default function PostEditor({ initial, onSave, onCancel }: PostEditorProps) {
+export default function PostEditor({ initial, token, onSave, onCancel }: PostEditorProps) {
   const [slug, setSlug] = useState(initial?.slug ?? '')
   const [title, setTitle] = useState(initial?.title ?? '')
   const [preview, setPreview] = useState(initial?.preview ?? '')
@@ -19,7 +23,10 @@ export default function PostEditor({ initial, onSave, onCancel }: PostEditorProp
   )
   const [category, setCategory] = useState(initial?.category ?? 'technical')
   const [saving, setSaving] = useState(false)
+  const [refining, setRefining] = useState(false)
   const [error, setError] = useState('')
+
+  const { mediaUrls, uploading, error: uploadError, handleUpload, removeUrl } = useBlogMediaUpload()
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -33,9 +40,29 @@ export default function PostEditor({ initial, onSave, onCancel }: PostEditorProp
     }
   }
 
+  async function handleRefine() {
+    setRefining(true)
+    setError('')
+    try {
+      const result = await refineDraft(token, {
+        title,
+        category,
+        existingContent: markdownToHtml(content),
+        mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
+      })
+      setContent(htmlToMarkdown(result.content))
+      if (result.preview) setPreview(result.preview)
+      if (result.slug) setSlug(result.slug)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Refine failed')
+    }
+    setRefining(false)
+  }
+
   return (
     <form className="admin-editor" onSubmit={handleSubmit}>
       {error && <div className="admin-error">{error}</div>}
+      {uploadError && <div className="admin-error">{uploadError}</div>}
 
       <div>
         <label htmlFor="post-slug" className="memory-feedback-label">Slug</label>
@@ -103,11 +130,36 @@ export default function PostEditor({ initial, onSave, onCancel }: PostEditorProp
         />
       </div>
 
+      <div>
+        <label className="memory-feedback-label">Attach Media + AI Refine</label>
+        <MediaUploadBar
+          mediaUrls={mediaUrls}
+          uploading={uploading}
+          onUpload={handleUpload}
+          onRemove={removeUrl}
+          compact
+        />
+        <button
+          type="button"
+          className="admin-bar-btn admin-bar-btn-save"
+          disabled={refining || (!content.trim() && mediaUrls.length === 0)}
+          onClick={handleRefine}
+          style={{ marginTop: '6px' }}
+        >
+          {refining ? 'REFINING...' : 'REFINE WITH AI'}
+        </button>
+        {mediaUrls.length > 0 && (
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: 'var(--color-ink-faint)', marginLeft: '8px' }}>
+            AI will analyze and place {mediaUrls.length} file{mediaUrls.length > 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
+
       <div className="admin-actions">
-        <button type="submit" className="admin-btn admin-btn-primary" disabled={saving}>
+        <button type="submit" className="admin-btn admin-btn-primary" disabled={saving || refining}>
           {saving ? 'SAVING...' : initial ? 'UPDATE' : 'CREATE'}
         </button>
-        <button type="button" className="admin-btn" onClick={onCancel}>
+        <button type="button" className="admin-btn" onClick={onCancel} disabled={saving || refining}>
           CANCEL
         </button>
       </div>

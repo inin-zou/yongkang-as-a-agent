@@ -33,6 +33,7 @@ func initRouter() {
 
 	supabaseURL := os.Getenv("SUPABASE_URL")
 	anonKey := os.Getenv("SUPABASE_ANON_KEY")
+	geminiKey := os.Getenv("GEMINI_API_KEY")
 
 	embedded := repository.NewEmbeddedRepository(backend.DataFS)
 
@@ -106,6 +107,8 @@ func initRouter() {
 			r.Post("/experience", h.HandleCreateExperience)
 			r.Put("/experience/{id}", h.HandleUpdateExperience)
 			r.Delete("/experience/{id}", h.HandleDeleteExperience)
+			r.Post("/generate-draft", h.HandleGenerateDraft(geminiKey))
+			r.Post("/refine-draft", h.HandleRefineDraft(geminiKey))
 		})
 	})
 

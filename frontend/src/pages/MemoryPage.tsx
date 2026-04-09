@@ -58,6 +58,7 @@ function BlogPostView({ slug }: { slug: string }) {
             />
             {creating && (
               <PostEditor
+                token={token}
                 onSave={async (data) => {
                   await createBlogPost(token, data)
                   queryClient.invalidateQueries({ queryKey: ['posts'] })
@@ -87,6 +88,7 @@ function BlogPostView({ slug }: { slug: string }) {
 
       {creating && (
         <PostEditor
+          token={token}
           onSave={async (data) => {
             await createBlogPost(token, data)
             queryClient.invalidateQueries({ queryKey: ['posts'] })
@@ -99,6 +101,7 @@ function BlogPostView({ slug }: { slug: string }) {
 
       {isEditMode && editing ? (
         <PostEditor
+          token={token}
           initial={post}
           onSave={async (data) => {
             await updateBlogPost(token, post.id, data)
