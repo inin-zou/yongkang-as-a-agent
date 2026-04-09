@@ -376,6 +376,24 @@
   margin: var(--space-md) 0;
 }
 
+.blog-post-content ul,
+.blog-post-content ol {
+  padding-left: 1.5rem;
+  margin: var(--space-md) 0;
+}
+
+.blog-post-content ul {
+  list-style: disc;
+}
+
+.blog-post-content ol {
+  list-style: decimal;
+}
+
+.blog-post-content li {
+  margin-bottom: 0.35rem;
+}
+
 .blog-post-content blockquote {
   border-left: 3px solid var(--color-prism-teal);
   padding-left: var(--space-md);
