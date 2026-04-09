@@ -456,39 +456,8 @@
   gap: 8px;
 }
 
-.media-upload-thumbs {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.media-upload-thumb {
-  position: relative;
-  display: inline-block;
-}
-
-.media-upload-remove {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: none;
-  background: #ff6b6b;
-  color: #fff;
-  font-size: 11px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  padding: 0;
-  transition: background 0.15s ease;
-}
-
-.media-upload-remove:hover {
-  background: #ff4c4c;
+.media-upload-bar--compact .media-upload-actions {
+  gap: 6px;
 }
 
 .media-upload-actions {
@@ -499,8 +468,73 @@
 
 .media-upload-count {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   color: var(--color-ink-faint);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Chip-style grid for attached media */
+.media-upload-grid {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.media-upload-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  padding: 4px 6px 4px 4px;
+  transition: border-color 0.15s ease;
+}
+
+.media-upload-chip:hover {
+  border-color: var(--color-ink-faint);
+}
+
+.media-upload-chip-preview {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.media-upload-chip-preview img,
+.media-upload-chip-preview video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.media-upload-chip-name {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  color: var(--color-ink-faint);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.media-upload-chip-remove {
+  background: none;
+  border: none;
+  color: var(--color-ink-faint);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+
+.media-upload-chip-remove:hover {
+  color: #ff6b6b;
 }
 
 /* ===== CATEGORY BADGES ===== */
