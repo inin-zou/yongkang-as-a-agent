@@ -348,7 +348,13 @@
 .blog-post-content video {
   max-width: 100%;
   border-radius: 6px;
-  margin: var(--space-md) 0;
+  margin: var(--space-sm) 0;
+}
+
+/* No extra margin when inside a figure */
+.blog-post-content figure img,
+.blog-post-content figure video {
+  margin: 0;
 }
 
 .blog-post-content h2 {
@@ -417,14 +423,8 @@
 
 /* Figure + caption */
 .blog-post-content figure {
-  margin: var(--space-md) 0;
+  margin: var(--space-sm) 0;
   padding: 0;
-}
-
-.blog-post-content figure img,
-.blog-post-content figure video {
-  max-width: 100%;
-  border-radius: 6px;
 }
 
 .blog-post-content figcaption {
