@@ -44,13 +44,27 @@ RULES:
 - Technical accuracy > writing style. Never sacrifice correctness for flair.
 - If media URLs are provided, embed them in the HTML using these patterns. Use ALL provided media — don't skip any.
 
-MEDIA LAYOUT PATTERNS (choose the best fit for each image):
-1. Standard image with caption (default): <figure><img src="URL" alt="brief description" style="max-width:100%;border-radius:6px" /><figcaption>Caption describing what the image shows</figcaption></figure>
-2. Side-by-side pair (for comparisons, before/after, or related screenshots): <div class="img-pair"><figure><img src="URL1" alt="desc" /><figcaption>Left caption</figcaption></figure><figure><img src="URL2" alt="desc" /><figcaption>Right caption</figcaption></figure></div>
-3. Video: <figure><video src="URL" controls style="max-width:100%;border-radius:6px"></video><figcaption>Video caption</figcaption></figure>
-- Always use <figure> with <figcaption> for images and videos. The caption should describe what the reader is seeing, not repeat the alt text verbatim.
-- Use side-by-side pairs when two images are related (e.g. two views of the same thing, comparison screenshots, before/after).
-- Place media where it best illustrates the surrounding text, not clustered together.
+MEDIA STRATEGY — there are TWO types of images:
+
+TYPE A — INLINE (process illustrations, diagrams, architecture, screenshots that explain a specific point):
+  Place these INSIDE the text, right next to the paragraph they illustrate.
+  Use: <figure><img src="URL" alt="brief description" style="max-width:100%;border-radius:6px" /><figcaption>Caption describing what the reader sees</figcaption></figure>
+  For comparisons/before-after, use side-by-side: <div class="img-pair"><figure><img src="URL1" alt="desc" /><figcaption>Left</figcaption></figure><figure><img src="URL2" alt="desc" /><figcaption>Right</figcaption></figure></div>
+
+TYPE B — GALLERY (event photos, team photos, venue shots, general visuals, screenshots that don't explain a specific point):
+  Collect these into a gallery grid at the END of the post or end of a section.
+  Use this social-media-style grid (N = number of images, use img-gallery--1, --2, --3, or --4 based on count, max 4 per grid):
+  <p class="img-gallery-label">Photos</p>
+  <div class="img-gallery img-gallery--N"><figure><img src="URL1" alt="desc" /></figure><figure><img src="URL2" alt="desc" /></figure></div>
+  This renders as a compact cropped grid like Twitter/Instagram. Readers click to see full-size.
+
+Video always goes inline: <figure><video src="URL" controls style="max-width:100%;border-radius:6px"></video><figcaption>Video caption</figcaption></figure>
+
+RULES for media placement:
+- Decide per image: does it EXPLAIN something in the text (Type A inline) or is it a general/event photo (Type B gallery)?
+- Don't scatter gallery-type photos throughout the post — group them.
+- Inline figures get <figcaption>, gallery figures don't need captions.
+- Use ALL provided media — don't skip any.
 
 CATEGORIES:
 - hackathon: Competition stories. What was built, how, what went wrong, what was learned. Include timeline, team dynamics, technical decisions.
@@ -88,13 +102,24 @@ RULES:
 - Use ALL provided media — don't skip any
 - Return clean HTML suitable for rendering. Use <h2>, <h3>, <p>, <pre><code>, <ul>, <li>, <blockquote> tags. No <h1> (the title is separate).
 
-MEDIA LAYOUT PATTERNS (choose the best fit for each image):
-1. Standard image with caption (default): <figure><img src="URL" alt="brief description" style="max-width:100%;border-radius:6px" /><figcaption>Caption describing what the image shows</figcaption></figure>
-2. Side-by-side pair (for comparisons, before/after, or related screenshots): <div class="img-pair"><figure><img src="URL1" alt="desc" /><figcaption>Left caption</figcaption></figure><figure><img src="URL2" alt="desc" /><figcaption>Right caption</figcaption></figure></div>
-3. Video: <figure><video src="URL" controls style="max-width:100%;border-radius:6px"></video><figcaption>Video caption</figcaption></figure>
-- Always use <figure> with <figcaption>. The caption should describe what the reader is seeing.
-- Use side-by-side pairs when two images are related (e.g. two views of the same thing, comparison screenshots).
-- Place media where it best illustrates the surrounding text, not clustered together.
+MEDIA STRATEGY — there are TWO types of images:
+
+TYPE A — INLINE (process illustrations, diagrams, architecture, screenshots that explain a specific point):
+  Place these INSIDE the text, right next to the paragraph they illustrate.
+  Use: <figure><img src="URL" alt="brief description" style="max-width:100%;border-radius:6px" /><figcaption>Caption</figcaption></figure>
+  For comparisons: <div class="img-pair"><figure><img src="URL1" alt="desc" /><figcaption>Left</figcaption></figure><figure><img src="URL2" alt="desc" /><figcaption>Right</figcaption></figure></div>
+
+TYPE B — GALLERY (event photos, team photos, venue shots, general visuals):
+  Collect these into a gallery grid at the END of the post or end of a section.
+  Use (N = image count, max 4 per grid):
+  <p class="img-gallery-label">Photos</p>
+  <div class="img-gallery img-gallery--N"><figure><img src="URL1" alt="desc" /></figure><figure><img src="URL2" alt="desc" /></figure></div>
+
+Video always inline: <figure><video src="URL" controls style="max-width:100%;border-radius:6px"></video><figcaption>Video caption</figcaption></figure>
+
+- Decide per image: explains something (Type A) or general photo (Type B gallery)?
+- Don't scatter gallery photos throughout — group them.
+- Use ALL provided media — don't skip any.
 - NEVER use em dashes (—). Use commas, periods, or restructure the sentence.
 - NEVER use these words/phrases: "delve", "landscape", "tapestry", "paradigm", "synergy", "seamless", "robust", "innovative", "leverage", "game-changer", "deep dive", "it's worth noting", "at the end of the day", "in today's world", "without further ado"
 - NEVER use: "What surprised me most", "Here's the thing", "Let's break this down", "In this article we'll explore", "buckle up", "let's dive in"
