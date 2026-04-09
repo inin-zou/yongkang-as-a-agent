@@ -127,11 +127,10 @@ function BlogPostView({ slug }: { slug: string }) {
               </button>
             </div>
           )}
-          <div className="editor-content">
-            {post.content.split('\n').map((paragraph, i) =>
-              paragraph.trim() ? <p key={i}>{paragraph}</p> : null
-            )}
-          </div>
+          <div
+            className="editor-content blog-post-content"
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
           <PostInteractions slug={slug} />
         </>
       )}
