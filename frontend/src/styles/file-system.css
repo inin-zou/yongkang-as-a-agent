@@ -429,9 +429,9 @@
 
 .blog-post-content figcaption {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: var(--color-ink-faint);
-  margin-top: 4px;
+  margin-top: 2px;
   text-align: center;
   line-height: 1.3;
 }
