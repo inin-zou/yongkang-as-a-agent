@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 interface BlogPostContentProps {
   html: string
@@ -15,6 +16,16 @@ export default function BlogPostContent({ html }: BlogPostContentProps) {
     }
   }, [])
 
+  // Close on Escape key
+  useEffect(() => {
+    if (!lightboxSrc) return
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightboxSrc(null)
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [lightboxSrc])
+
   return (
     <>
       <div
@@ -23,11 +34,12 @@ export default function BlogPostContent({ html }: BlogPostContentProps) {
         onClick={handleClick}
       />
 
-      {lightboxSrc && (
+      {lightboxSrc && createPortal(
         <div className="blog-lightbox" onClick={() => setLightboxSrc(null)}>
           <img src={lightboxSrc} alt="" className="blog-lightbox-img" />
           <button className="blog-lightbox-close" aria-label="Close">×</button>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   )
