@@ -363,7 +363,7 @@ func (h *APIHandler) HandleGenerateDraft(geminiKey string) http.HandlerFunc {
 			"generationConfig": map[string]interface{}{
 				"temperature":      0.7,
 				"topP":             0.9,
-				"maxOutputTokens":  4096,
+				"maxOutputTokens":  16384,
 				"responseMimeType": "application/json",
 				"responseJsonSchema": map[string]interface{}{
 					"type": "object",
@@ -596,7 +596,7 @@ func (h *APIHandler) HandleRefineDraft(geminiKey string) http.HandlerFunc {
 			"generationConfig": map[string]interface{}{
 				"temperature":      0.7,
 				"topP":             0.9,
-				"maxOutputTokens":  4096,
+				"maxOutputTokens":  16384,
 				"responseMimeType": "application/json",
 				"responseJsonSchema": map[string]interface{}{
 					"type": "object",
