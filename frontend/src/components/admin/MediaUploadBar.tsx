@@ -12,32 +12,8 @@ interface MediaUploadBarProps {
 export default function MediaUploadBar({ mediaUrls, uploading, onUpload, onRemove, compact }: MediaUploadBarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const thumbHeight = compact ? 60 : 80
-
   return (
-    <div className="media-upload-bar">
-      {mediaUrls.length > 0 && (
-        <div className="media-upload-thumbs">
-          {mediaUrls.map((url, i) => (
-            <div key={i} className="media-upload-thumb">
-              {url.match(/\.(mp4|webm|mov)/i) ? (
-                <video src={url} style={{ height: thumbHeight, borderRadius: 6, border: '1px solid var(--glass-border)' }} />
-              ) : (
-                <img src={url} alt="" style={{ height: thumbHeight, borderRadius: 6, border: '1px solid var(--glass-border)' }} />
-              )}
-              <button
-                type="button"
-                className="media-upload-remove"
-                onClick={() => onRemove(i)}
-                aria-label="Remove media"
-              >
-                &times;
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
+    <div className={`media-upload-bar ${compact ? 'media-upload-bar--compact' : ''}`}>
       <div className="media-upload-actions">
         <input
           ref={fileInputRef}
@@ -52,16 +28,42 @@ export default function MediaUploadBar({ mediaUrls, uploading, onUpload, onRemov
           className="admin-bar-btn"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          style={compact ? { fontSize: '0.65rem' } : undefined}
         >
-          {uploading ? 'UPLOADING...' : compact ? '\ud83d\udcf7 ADD MEDIA' : '\ud83d\udcf7 UPLOAD'}
+          {uploading ? 'UPLOADING...' : '📷 UPLOAD'}
         </button>
         {mediaUrls.length > 0 && (
           <span className="media-upload-count">
-            {mediaUrls.length} file{mediaUrls.length > 1 ? 's' : ''} attached
+            {mediaUrls.length} file{mediaUrls.length > 1 ? 's' : ''}
           </span>
         )}
       </div>
+
+      {mediaUrls.length > 0 && (
+        <div className="media-upload-grid">
+          {mediaUrls.map((url, i) => (
+            <div key={i} className="media-upload-chip">
+              <div className="media-upload-chip-preview">
+                {url.match(/\.(mp4|webm|mov)/i) ? (
+                  <video src={url} />
+                ) : (
+                  <img src={url} alt="" />
+                )}
+              </div>
+              <span className="media-upload-chip-name">
+                {url.match(/\.(gif|png|jpg|jpeg|webp|mp4|webm|mov)/i)?.[0]?.toUpperCase() || 'FILE'}
+              </span>
+              <button
+                type="button"
+                className="media-upload-chip-remove"
+                onClick={() => onRemove(i)}
+                aria-label="Remove"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
