@@ -41,7 +41,7 @@ func (r *SupabaseRepository) Close() error {
 // GetBlogPosts returns all published blog posts, newest first.
 func (r *SupabaseRepository) GetBlogPosts() ([]model.BlogPost, error) {
 	rows, err := r.db.Query(`
-		SELECT id, slug, title, content, preview, category, published_at
+		SELECT id, slug, title, content, preview, category, published_at, updated_at
 		FROM blog_posts
 		ORDER BY published_at DESC
 	`)
@@ -53,7 +53,7 @@ func (r *SupabaseRepository) GetBlogPosts() ([]model.BlogPost, error) {
 	var posts []model.BlogPost
 	for rows.Next() {
 		var p model.BlogPost
-		if err := rows.Scan(&p.ID, &p.Slug, &p.Title, &p.Content, &p.Preview, &p.Category, &p.PublishedAt); err != nil {
+		if err := rows.Scan(&p.ID, &p.Slug, &p.Title, &p.Content, &p.Preview, &p.Category, &p.PublishedAt, &p.UpdatedAt); err != nil {
 			return nil, fmt.Errorf("failed to scan blog post: %w", err)
 		}
 		posts = append(posts, p)
@@ -66,10 +66,10 @@ func (r *SupabaseRepository) GetBlogPosts() ([]model.BlogPost, error) {
 func (r *SupabaseRepository) GetBlogPostBySlug(slug string) (*model.BlogPost, error) {
 	var p model.BlogPost
 	err := r.db.QueryRow(`
-		SELECT id, slug, title, content, preview, category, published_at
+		SELECT id, slug, title, content, preview, category, published_at, updated_at
 		FROM blog_posts
 		WHERE slug = $1
-	`, slug).Scan(&p.ID, &p.Slug, &p.Title, &p.Content, &p.Preview, &p.Category, &p.PublishedAt)
+	`, slug).Scan(&p.ID, &p.Slug, &p.Title, &p.Content, &p.Preview, &p.Category, &p.PublishedAt, &p.UpdatedAt)
 
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("blog post with slug %q not found", slug)
@@ -109,8 +109,8 @@ func (r *SupabaseRepository) CreateBlogPost(slug, title, content, preview, categ
 	err := r.db.QueryRow(`
 		INSERT INTO blog_posts (slug, title, content, preview, category)
 		VALUES ($1, $2, $3, $4, $5)
-		RETURNING id, slug, title, content, preview, category, published_at
-	`, slug, title, content, preview, category).Scan(&p.ID, &p.Slug, &p.Title, &p.Content, &p.Preview, &p.Category, &p.PublishedAt)
+		RETURNING id, slug, title, content, preview, category, published_at, updated_at
+	`, slug, title, content, preview, category).Scan(&p.ID, &p.Slug, &p.Title, &p.Content, &p.Preview, &p.Category, &p.PublishedAt, &p.UpdatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create blog post: %w", err)
 	}
@@ -122,10 +122,10 @@ func (r *SupabaseRepository) UpdateBlogPost(id, slug, title, content, preview, c
 	var p model.BlogPost
 	err := r.db.QueryRow(`
 		UPDATE blog_posts
-		SET slug = $2, title = $3, content = $4, preview = $5, category = $6
+		SET slug = $2, title = $3, content = $4, preview = $5, category = $6, updated_at = now()
 		WHERE id = $1
-		RETURNING id, slug, title, content, preview, category, published_at
-	`, id, slug, title, content, preview, category).Scan(&p.ID, &p.Slug, &p.Title, &p.Content, &p.Preview, &p.Category, &p.PublishedAt)
+		RETURNING id, slug, title, content, preview, category, published_at, updated_at
+	`, id, slug, title, content, preview, category).Scan(&p.ID, &p.Slug, &p.Title, &p.Content, &p.Preview, &p.Category, &p.PublishedAt, &p.UpdatedAt)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("blog post with id %q not found", id)
 	}
