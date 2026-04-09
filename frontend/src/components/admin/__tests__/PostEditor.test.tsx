@@ -59,7 +59,7 @@ describe('PostEditor', () => {
 
   it('calls onCancel when cancel clicked', () => {
     const onCancel = vi.fn()
-    render(<PostEditor onSave={vi.fn()} onCancel={onCancel} />)
+    render(<PostEditor token="test-token" onSave={vi.fn()} onCancel={onCancel} />)
     fireEvent.click(screen.getByText('CANCEL'))
     expect(onCancel).toHaveBeenCalledTimes(1)
   })
