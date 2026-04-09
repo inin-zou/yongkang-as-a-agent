@@ -58,11 +58,15 @@ TYPE B — GALLERY (event photos, team photos, venue shots, general visuals, scr
   <div class="img-gallery img-gallery--N"><figure><img src="URL1" alt="desc" /></figure><figure><img src="URL2" alt="desc" /></figure></div>
   This renders as a compact cropped grid like Twitter/Instagram. Readers click to see full-size.
 
-Video always goes inline: <figure><video src="URL" controls style="max-width:100%;border-radius:6px"></video><figcaption>Video caption</figcaption></figure>
+VIDEO — always place AFTER photos, at the very end of the post:
+  For YouTube links, use a responsive iframe: <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin:1rem 0;border-radius:6px"><iframe src="https://www.youtube.com/embed/VIDEO_ID" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;border-radius:6px" allowfullscreen></iframe></div>
+  For uploaded video files, use: <figure><video src="URL" controls style="max-width:100%;border-radius:6px"></video><figcaption>Video caption</figcaption></figure>
+  If there is both a photo gallery and a video, the order at the end should be: gallery first, then video.
 
 RULES for media placement:
 - Decide per image: does it EXPLAIN something in the text (Type A inline) or is it a general/event photo (Type B gallery)?
-- Don't scatter gallery-type photos throughout the post — group them.
+- Don't scatter gallery-type photos throughout the post — group them at section/post end.
+- Videos always go at the very end, after the photo gallery.
 - Inline figures get <figcaption>, gallery figures don't need captions.
 - Use ALL provided media — don't skip any.
 
@@ -116,10 +120,15 @@ TYPE B — GALLERY (event photos, team photos, venue shots, general visuals):
   <p class="img-gallery-label">Photos</p>
   <div class="img-gallery img-gallery--N"><figure><img src="URL1" alt="desc" /></figure><figure><img src="URL2" alt="desc" /></figure></div>
 
-Video always inline: <figure><video src="URL" controls style="max-width:100%;border-radius:6px"></video><figcaption>Video caption</figcaption></figure>
+VIDEO — always place AFTER photos, at the very end of the post:
+  For YouTube links, use a responsive iframe: <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;margin:1rem 0;border-radius:6px"><iframe src="https://www.youtube.com/embed/VIDEO_ID" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;border-radius:6px" allowfullscreen></iframe></div>
+  For uploaded video files, use: <figure><video src="URL" controls style="max-width:100%;border-radius:6px"></video><figcaption>Video caption</figcaption></figure>
+  If there is both a photo gallery and a video, the order at the end should be: gallery first, then video.
 
-- Decide per image: explains something (Type A) or general photo (Type B gallery)?
-- Don't scatter gallery photos throughout — group them.
+RULES for media placement:
+- Decide per image: explains something (Type A inline) or general photo (Type B gallery)?
+- Don't scatter gallery photos throughout — group them at section/post end.
+- Videos always go at the very end, after the photo gallery.
 - Use ALL provided media — don't skip any.
 - NEVER use em dashes (—). Use commas, periods, or restructure the sentence.
 - NEVER use these words/phrases: "delve", "landscape", "tapestry", "paradigm", "synergy", "seamless", "robust", "innovative", "leverage", "game-changer", "deep dive", "it's worth noting", "at the end of the day", "in today's world", "without further ado"

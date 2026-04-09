@@ -394,6 +394,10 @@
   margin-bottom: 0.35rem;
 }
 
+.blog-post-content iframe {
+  border-radius: 6px;
+}
+
 .blog-post-content blockquote {
   border-left: 3px solid var(--color-prism-teal);
   padding-left: var(--space-md);
