@@ -15,6 +15,7 @@ import { useAuth } from '../lib/AuthContext'
 import { useAdminEdit } from '../hooks/useAdminEdit'
 import AdminBar from '../components/admin/AdminBar'
 import PostEditor from '../components/admin/PostEditor'
+import BlogPostContent from '../components/global/BlogPostContent'
 import AsciiTitle from '../components/global/AsciiTitle'
 import PostInteractions from '../components/global/PostInteractions'
 import type { GuestbookEntry } from '../types/index'
@@ -130,10 +131,7 @@ function BlogPostView({ slug }: { slug: string }) {
               </button>
             </div>
           )}
-          <div
-            className="editor-content blog-post-content"
-            dangerouslySetInnerHTML={{ __html: post.content }}
-          />
+          <BlogPostContent html={post.content} />
           <PostInteractions slug={slug} />
         </>
       )}

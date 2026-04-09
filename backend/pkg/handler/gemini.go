@@ -42,7 +42,15 @@ RULES:
 - NO emotional claims without evidence ("I was fascinated to discover")
 - Code blocks should be real, runnable examples when relevant
 - Technical accuracy > writing style. Never sacrifice correctness for flair.
-- If media URLs are provided, embed them directly in the HTML output as <img> or <video> tags at the most relevant positions in the post. Use: <img src="URL" alt="brief description" style="max-width:100%;border-radius:6px;margin:1rem 0" /> for images and <video src="URL" controls style="max-width:100%;border-radius:6px;margin:1rem 0"></video> for videos. Place them where they best illustrate the surrounding text. Use ALL provided media — don't skip any.
+- If media URLs are provided, embed them in the HTML using these patterns. Use ALL provided media — don't skip any.
+
+MEDIA LAYOUT PATTERNS (choose the best fit for each image):
+1. Standard image with caption (default): <figure><img src="URL" alt="brief description" style="max-width:100%;border-radius:6px" /><figcaption>Caption describing what the image shows</figcaption></figure>
+2. Side-by-side pair (for comparisons, before/after, or related screenshots): <div class="img-pair"><figure><img src="URL1" alt="desc" /><figcaption>Left caption</figcaption></figure><figure><img src="URL2" alt="desc" /><figcaption>Right caption</figcaption></figure></div>
+3. Video: <figure><video src="URL" controls style="max-width:100%;border-radius:6px"></video><figcaption>Video caption</figcaption></figure>
+- Always use <figure> with <figcaption> for images and videos. The caption should describe what the reader is seeing, not repeat the alt text verbatim.
+- Use side-by-side pairs when two images are related (e.g. two views of the same thing, comparison screenshots, before/after).
+- Place media where it best illustrates the surrounding text, not clustered together.
 
 CATEGORIES:
 - hackathon: Competition stories. What was built, how, what went wrong, what was learned. Include timeline, team dynamics, technical decisions.
@@ -76,11 +84,17 @@ Your job is to refine an existing blog post, NOT write from scratch.
 RULES:
 - Keep the author's content mostly intact — don't rewrite their voice
 - Make only reasonable, reader-friendly improvements to structure and flow
-- Your main job: look at the provided media files and place <img> / <video> tags with the Supabase URLs at contextually relevant positions in the post
-- Use: <img src="URL" alt="brief description" style="max-width:100%;border-radius:6px;margin:1rem 0" /> for images
-- Use: <video src="URL" controls style="max-width:100%;border-radius:6px;margin:1rem 0"></video> for videos
+- Your main job: look at the provided media files and place them at contextually relevant positions using the patterns below
 - Use ALL provided media — don't skip any
 - Return clean HTML suitable for rendering. Use <h2>, <h3>, <p>, <pre><code>, <ul>, <li>, <blockquote> tags. No <h1> (the title is separate).
+
+MEDIA LAYOUT PATTERNS (choose the best fit for each image):
+1. Standard image with caption (default): <figure><img src="URL" alt="brief description" style="max-width:100%;border-radius:6px" /><figcaption>Caption describing what the image shows</figcaption></figure>
+2. Side-by-side pair (for comparisons, before/after, or related screenshots): <div class="img-pair"><figure><img src="URL1" alt="desc" /><figcaption>Left caption</figcaption></figure><figure><img src="URL2" alt="desc" /><figcaption>Right caption</figcaption></figure></div>
+3. Video: <figure><video src="URL" controls style="max-width:100%;border-radius:6px"></video><figcaption>Video caption</figcaption></figure>
+- Always use <figure> with <figcaption>. The caption should describe what the reader is seeing.
+- Use side-by-side pairs when two images are related (e.g. two views of the same thing, comparison screenshots).
+- Place media where it best illustrates the surrounding text, not clustered together.
 - NEVER use em dashes (—). Use commas, periods, or restructure the sentence.
 - NEVER use these words/phrases: "delve", "landscape", "tapestry", "paradigm", "synergy", "seamless", "robust", "innovative", "leverage", "game-changer", "deep dive", "it's worth noting", "at the end of the day", "in today's world", "without further ado"
 - NEVER use: "What surprised me most", "Here's the thing", "Let's break this down", "In this article we'll explore", "buckle up", "let's dive in"
