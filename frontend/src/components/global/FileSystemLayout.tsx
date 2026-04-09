@@ -47,7 +47,8 @@ export default function FileSystemLayout() {
     enabled: isMusic,
   })
 
-  // Build the effective tab config — for memory/music, override sidebar items with live data
+  // Build the effective tab config — for music, override sidebar items with live data
+  // For memory, we pass raw posts to Sidebar for two-level drill-down
   const effectiveTab: TabConfig | undefined = useMemo(() => {
     if (!activeTab) return undefined
 
@@ -61,26 +62,14 @@ export default function FileSystemLayout() {
       return { ...activeTab, sidebarItems: dynamicItems }
     }
 
-    if (!isMemory) return activeTab
+    if (isMemory) {
+      // Memory sidebar uses two-level drill-down, so we just need to ensure
+      // it renders (sidebarItems won't be used, but we need hasSidebar = true)
+      return { ...activeTab, sidebarItems: [{ id: '_memory_placeholder', label: '', routeSegment: '' }] }
+    }
 
-    const dynamicItems: SidebarItem[] = (posts ?? []).map((post) => ({
-      id: post.slug,
-      label: post.title,
-      date: post.publishedAt?.split('T')[0],
-      preview: post.preview,
-      routeSegment: post.slug,
-    }))
-
-    // Always append guestbook at the end
-    dynamicItems.push({
-      id: 'guestbook',
-      label: 'GUESTBOOK',
-      preview: 'Sign in with GitHub to leave a note',
-      routeSegment: 'feedback',
-    })
-
-    return { ...activeTab, sidebarItems: dynamicItems }
-  }, [activeTab, isMemory, isMusic, posts, musicTracks])
+    return activeTab
+  }, [activeTab, isMemory, isMusic, musicTracks])
 
   if (!effectiveTab) {
     return <Navigate to="/files/soul" replace />
@@ -102,7 +91,7 @@ export default function FileSystemLayout() {
 
         {/* Window body: sidebar + editor */}
         <div className={`app-body ${hasSidebar ? '' : 'no-sidebar'}`}>
-          {hasSidebar && <Sidebar tab={effectiveTab} />}
+          {hasSidebar && <Sidebar tab={effectiveTab} memoryPosts={isMemory ? (posts ?? []) : undefined} />}
           <div className="app-editor">
             <Breadcrumb />
             <div className="app-editor-content">

@@ -149,37 +149,36 @@
   background: rgba(105, 240, 174, 0.1);
 }
 
-/* Editable item — wrapper with hover actions */
+/* Editable item — wrapper with inline action buttons */
 .editable-item {
   position: relative;
-  border: 1px dashed transparent;
+  z-index: 0;
+  isolation: isolate;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
   border-radius: var(--radius-sm);
-  padding: 2px;
-  margin: -2px;
+  padding: 4px 6px;
+  margin: 2px 0;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .editable-item:hover {
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
   background: rgba(255, 255, 255, 0.02);
 }
 
 .editable-item-actions {
-  position: absolute;
-  top: 6px;
-  right: 6px;
+  position: relative;
+  z-index: 2;
   display: flex;
   gap: 4px;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-  z-index: 10;
-}
-
-.editable-item:hover .editable-item-actions {
-  opacity: 1;
+  padding-top: 4px;
+  justify-content: flex-end;
+  pointer-events: auto;
 }
 
 .editable-item-btn {
+  position: relative;
+  z-index: 2;
   width: 28px;
   height: 28px;
   display: flex;
@@ -187,9 +186,11 @@
   justify-content: center;
   border-radius: var(--radius-sm);
   border: 1px solid var(--glass-border);
+  appearance: none;
+  -webkit-appearance: none;
+  pointer-events: auto;
   cursor: pointer;
   transition: all 0.15s ease;
-  backdrop-filter: blur(8px);
 }
 
 .editable-item-btn-edit {
@@ -201,6 +202,22 @@
   background: rgba(255, 107, 157, 0.15);
   border-color: rgba(255, 107, 157, 0.3);
   color: var(--color-prism-pink);
+}
+
+.editable-item-btn-move {
+  background: rgba(50, 50, 52, 0.8);
+  color: var(--color-ink-faint);
+}
+
+.editable-item-btn-move:hover:not(:disabled) {
+  background: rgba(179, 136, 255, 0.15);
+  border-color: rgba(179, 136, 255, 0.3);
+  color: var(--color-prism-lavender);
+}
+
+.editable-item-btn-move:disabled {
+  opacity: 0.25;
+  cursor: default;
 }
 
 .editable-item-btn-delete {

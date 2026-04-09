@@ -1,8 +1,10 @@
 import { useState, type FormEvent } from 'react'
 import { useParams } from 'react-router-dom'
+import '../styles/skill.css'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   fetchBlogPost,
+  fetchBlogPosts,
   fetchGuestbook,
   createGuestbookEntry,
   createBlogPost,
@@ -17,6 +19,8 @@ import AsciiTitle from '../components/global/AsciiTitle'
 import PostInteractions from '../components/global/PostInteractions'
 import type { GuestbookEntry } from '../types/index'
 import '../styles/memory.css'
+
+const CATEGORIES = ['hackathon', 'technical', 'research'] as const
 
 /* ─── Blog post view ─── */
 
@@ -272,16 +276,64 @@ function GuestbookView() {
   )
 }
 
-/* ─── Default prompt ─── */
+/* ─── CLI-style Memory Landing ─── */
 
-function MemoryPrompt() {
+function MemoryLanding() {
+  const { data: posts } = useQuery({ queryKey: ['posts'], queryFn: fetchBlogPosts })
+
+  const hackathonCount = posts?.filter(p => p.category === 'hackathon').length ?? 0
+  const technicalCount = posts?.filter(p => p.category === 'technical').length ?? 0
+  const researchCount = posts?.filter(p => p.category === 'research').length ?? 0
+  const totalCount = posts?.length ?? 0
+
   return (
-    <div className="memory-prompt">
-      <div className="memory-prompt-icon">&gt;_</div>
-      <p className="memory-prompt-text">
-        Select a memory entry from the sidebar to read, or leave a note.
-      </p>
-      <p className="memory-prompt-hint">MEMORY.md</p>
+    <div className="editor-page">
+      <div className="editor-meta">Agent memory bank — {totalCount} entries</div>
+      <AsciiTitle name="memory" />
+      <div className="editor-content">
+        <p>Three types of memory stored in this agent's knowledge base.</p>
+
+        <div className="editor-divider" />
+
+        <div className="cli-block">
+          <div className="cli-prompt">$ agent --memory-stats</div>
+          <div className="cli-output">
+            <div>HACKATHON JOURNEY {'  '} — {hackathonCount} entries</div>
+            <div style={{ color: 'var(--color-ink-faint)', marginLeft: '28px', fontSize: '0.85em' }}>
+              Competition stories, lessons learned, what went wrong and right
+            </div>
+            <div style={{ marginTop: '8px' }}>TECHNICAL BLOG {'     '} — {technicalCount} entries</div>
+            <div style={{ color: 'var(--color-ink-faint)', marginLeft: '28px', fontSize: '0.85em' }}>
+              Engineering deep-dives, LeetCode notes, book insights
+            </div>
+            <div style={{ marginTop: '8px' }}>RESEARCH READING {'   '} — {researchCount} entries</div>
+            <div style={{ color: 'var(--color-ink-faint)', marginLeft: '28px', fontSize: '0.85em' }}>
+              Paper summaries, tech trends, SOTA analysis
+            </div>
+          </div>
+        </div>
+
+        <div className="cli-block" style={{ marginTop: 'var(--space-sm)' }}>
+          <div className="cli-prompt">$ agent --memory-recent</div>
+          <div className="cli-output">
+            {posts && posts.length > 0 ? (
+              posts.slice(0, 5).map(post => (
+                <div key={post.slug} style={{ marginBottom: '4px' }}>
+                  <span style={{ color: 'var(--color-ink-faint)', marginRight: '8px' }}>
+                    {post.publishedAt?.split('T')[0]}
+                  </span>
+                  <span>{post.title}</span>
+                  <span style={{ color: 'var(--color-ink-faint)', marginLeft: '8px' }}>
+                    [{post.category}]
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div>No entries yet.</div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -289,11 +341,25 @@ function MemoryPrompt() {
 /* ─── Main page ─── */
 
 export default function MemoryPage() {
-  const { item } = useParams<{ item?: string }>()
+  const { item, sub } = useParams<{ item?: string; sub?: string }>()
 
-  if (!item) return <MemoryPrompt />
+  // /files/memory → landing page (CLI overview)
+  if (!item) return <MemoryLanding />
 
+  // /files/memory/feedback → guestbook
   if (item === 'feedback') return <GuestbookView />
 
+  // /files/memory/hackathon|technical|research → landing page (sidebar handles drill-down)
+  // /files/memory/hackathon/post-slug → show the post
+  const categoryIds: string[] = CATEGORIES.map(c => c)
+  if (item && categoryIds.includes(item)) {
+    if (sub) {
+      return <BlogPostView slug={sub} />
+    }
+    // Just a category selected, show landing
+    return <MemoryLanding />
+  }
+
+  // Fallback: treat item as a slug (backwards compatibility)
   return <BlogPostView slug={item} />
 }

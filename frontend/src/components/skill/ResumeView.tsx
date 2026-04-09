@@ -72,7 +72,7 @@ export default function ResumeView() {
       )}
 
       <div className="editor-content" ref={listRef}>
-        {sorted.map((exp) => (
+        {sorted.map((exp, i) => (
           isEditMode && editingExp?.id === exp.id && exp.id ? (
             <ExperienceEditor
               key={`${exp.company}-${exp.startDate}`}
@@ -92,6 +92,26 @@ export default function ResumeView() {
               onDelete={async () => {
                 if (!confirm(`Delete "${exp.role} at ${exp.company}"?`)) return
                 await deleteExperience(token, exp.id!)
+                queryClient.invalidateQueries({ queryKey: ['experience'] })
+              }}
+              isFirst={i === 0}
+              isLast={i === sorted.length - 1}
+              onMoveUp={async () => {
+                if (i === 0) return
+                const prev = sorted[i - 1]
+                await Promise.all([
+                  updateExperience(token, exp.id!, { ...exp, sortOrder: prev.sortOrder ?? i - 1 }),
+                  updateExperience(token, prev.id!, { ...prev, sortOrder: exp.sortOrder ?? i }),
+                ])
+                queryClient.invalidateQueries({ queryKey: ['experience'] })
+              }}
+              onMoveDown={async () => {
+                if (i >= sorted.length - 1) return
+                const next = sorted[i + 1]
+                await Promise.all([
+                  updateExperience(token, exp.id!, { ...exp, sortOrder: next.sortOrder ?? i + 1 }),
+                  updateExperience(token, next.id!, { ...next, sortOrder: exp.sortOrder ?? i }),
+                ])
                 queryClient.invalidateQueries({ queryKey: ['experience'] })
               }}
             >

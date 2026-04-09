@@ -5,6 +5,7 @@ import type {
   SkillDomain,
   Music,
   MusicTrack,
+  ProjectStatus,
   ContactRequest,
   BlogPost,
   Feedback,
@@ -17,7 +18,17 @@ import type {
 const BASE_URL = '/api';
 
 async function fetchJSON<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, { cache: 'no-store' });
+  const separator = path.includes('?') ? '&' : '?';
+  const url = `${BASE_URL}${path}${separator}_t=${Date.now()}`;
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`API error: ${res.status} ${res.statusText}`);
+  return res.json();
+}
+
+async function fetchAuthJSON<T>(path: string, token: string): Promise<T> {
+  const separator = path.includes('?') ? '&' : '?';
+  const url = `${BASE_URL}${path}${separator}_t=${Date.now()}`;
+  const res = await fetch(url, { cache: 'no-store', headers: { Authorization: `Bearer ${token}` } });
   if (!res.ok) throw new Error(`API error: ${res.status} ${res.statusText}`);
   return res.json();
 }
@@ -83,7 +94,7 @@ export async function submitFeedback(data: { name: string; message: string }): P
 
 export async function createBlogPost(
   token: string,
-  data: { slug: string; title: string; content: string; preview: string },
+  data: { slug: string; title: string; content: string; preview: string; category: string },
 ): Promise<BlogPost> {
   const res = await fetch(`${BASE_URL}/admin/posts`, {
     method: 'POST',
@@ -100,7 +111,7 @@ export async function createBlogPost(
 export async function updateBlogPost(
   token: string,
   id: string,
-  data: { slug: string; title: string; content: string; preview: string },
+  data: { slug: string; title: string; content: string; preview: string; category: string },
 ): Promise<BlogPost> {
   const res = await fetch(`${BASE_URL}/admin/posts/${id}`, {
     method: 'PUT',
@@ -122,12 +133,8 @@ export async function deleteBlogPost(token: string, id: string): Promise<void> {
   if (!res.ok) throw new Error(`API error: ${res.status}`);
 }
 
-export async function fetchFeedback(token: string): Promise<Feedback[]> {
-  const res = await fetch(`${BASE_URL}/admin/feedback`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
-  return res.json();
+export function fetchFeedback(token: string): Promise<Feedback[]> {
+  return fetchAuthJSON<Feedback[]>('/admin/feedback', token);
 }
 
 export async function deleteFeedback(token: string, id: string): Promise<void> {
@@ -332,20 +339,12 @@ export async function deleteExperience(token: string, id: string): Promise<void>
 
 /* ─── Admin notifications ─── */
 
-export async function fetchNotifications(token: string): Promise<AdminNotification[]> {
-  const res = await fetch(`${BASE_URL}/admin/notifications`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
-  return res.json();
+export function fetchNotifications(token: string): Promise<AdminNotification[]> {
+  return fetchAuthJSON<AdminNotification[]>('/admin/notifications', token);
 }
 
-export async function fetchUnreadCount(token: string): Promise<{ count: number }> {
-  const res = await fetch(`${BASE_URL}/admin/notifications/unread`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!res.ok) throw new Error(`API error: ${res.status}`);
-  return res.json();
+export function fetchUnreadCount(token: string): Promise<{ count: number }> {
+  return fetchAuthJSON<{ count: number }>('/admin/notifications/unread', token);
 }
 
 export async function markNotificationRead(token: string, id: string): Promise<void> {
@@ -385,6 +384,53 @@ export async function updatePage(
   });
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   return res.json();
+}
+
+/* ─── Project statuses CRUD ─── */
+
+export function fetchProjectStatuses(): Promise<ProjectStatus[]> {
+  return fetchJSON<ProjectStatus[]>('/project-statuses');
+}
+
+export async function createProjectStatus(
+  token: string,
+  data: { name: string; status: string; description: string; nextStep: string; links: string; sortOrder: number },
+): Promise<ProjectStatus> {
+  const res = await fetch(`${BASE_URL}/admin/project-statuses`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+export async function updateProjectStatus(
+  token: string,
+  id: string,
+  data: { name: string; status: string; description: string; nextStep: string; links: string; sortOrder: number },
+): Promise<ProjectStatus> {
+  const res = await fetch(`${BASE_URL}/admin/project-statuses/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+  return res.json();
+}
+
+export async function deleteProjectStatus(token: string, id: string): Promise<void> {
+  const res = await fetch(`${BASE_URL}/admin/project-statuses/${id}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
 }
 
 /* ─── Music tracks CRUD ─── */

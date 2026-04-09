@@ -5,7 +5,7 @@ import '../../styles/memory.css'
 
 interface PostEditorProps {
   initial?: BlogPost
-  onSave: (data: { slug: string; title: string; content: string; preview: string }) => Promise<void>
+  onSave: (data: { slug: string; title: string; content: string; preview: string; category: string }) => Promise<void>
   onCancel: () => void
 }
 
@@ -14,6 +14,7 @@ export default function PostEditor({ initial, onSave, onCancel }: PostEditorProp
   const [title, setTitle] = useState(initial?.title ?? '')
   const [preview, setPreview] = useState(initial?.preview ?? '')
   const [content, setContent] = useState(initial?.content ?? '')
+  const [category, setCategory] = useState(initial?.category ?? 'technical')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -22,7 +23,7 @@ export default function PostEditor({ initial, onSave, onCancel }: PostEditorProp
     setSaving(true)
     setError('')
     try {
-      await onSave({ slug, title, content, preview })
+      await onSave({ slug, title, content, preview, category })
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Save failed')
       setSaving(false)
@@ -70,6 +71,20 @@ export default function PostEditor({ initial, onSave, onCancel }: PostEditorProp
           onChange={(e) => setPreview(e.target.value)}
           required
         />
+      </div>
+
+      <div>
+        <label htmlFor="post-category" className="memory-feedback-label">Category</label>
+        <select
+          id="post-category"
+          className="memory-feedback-input"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+        >
+          <option value="technical">Technical Blog</option>
+          <option value="hackathon">Hackathon Journey</option>
+          <option value="research">Research Reading</option>
+        </select>
       </div>
 
       <div>

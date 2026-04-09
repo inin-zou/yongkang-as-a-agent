@@ -82,6 +82,7 @@ export interface BlogPost {
   title: string;
   content: string;
   preview: string;
+  category: string;
   publishedAt: string;
 }
 
@@ -124,6 +125,16 @@ export interface AdminNotification {
   postId: string | null;
   isRead: boolean;
   createdAt: string;
+}
+
+export interface ProjectStatus {
+  id?: string
+  name: string
+  status: string // 'ACTIVE' | 'PLANNING' | 'ON HOLD' | 'SHIPPED'
+  description: string
+  nextStep?: string
+  links?: string
+  sortOrder: number
 }
 
 export interface MusicTrack {

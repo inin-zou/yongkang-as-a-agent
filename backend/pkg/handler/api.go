@@ -257,6 +257,7 @@ func (h *APIHandler) HandleGetViews(w http.ResponseWriter, r *http.Request) {
 // validPageIDs defines the allowed page IDs for the pages endpoint.
 var validPageIDs = map[string]bool{
 	"soul":    true,
+	"skill":   true,
 	"contact": true,
 	"music":   true,
 }
@@ -416,10 +417,11 @@ func (h *APIHandler) HandleDeleteMusicTrack(w http.ResponseWriter, r *http.Reque
 
 // blogPostRequest is the JSON body for create/update blog post requests.
 type blogPostRequest struct {
-	Slug    string `json:"slug"`
-	Title   string `json:"title"`
-	Content string `json:"content"`
-	Preview string `json:"preview"`
+	Slug     string `json:"slug"`
+	Title    string `json:"title"`
+	Content  string `json:"content"`
+	Preview  string `json:"preview"`
+	Category string `json:"category"`
 }
 
 // HandleCreateBlogPost creates a new blog post (admin only).
@@ -435,7 +437,11 @@ func (h *APIHandler) HandleCreateBlogPost(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	post, err := h.svc.CreateBlogPost(req.Slug, req.Title, req.Content, req.Preview)
+	category := req.Category
+	if category == "" {
+		category = "technical"
+	}
+	post, err := h.svc.CreateBlogPost(req.Slug, req.Title, req.Content, req.Preview, category)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -459,7 +465,11 @@ func (h *APIHandler) HandleUpdateBlogPost(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	post, err := h.svc.UpdateBlogPost(id, req.Slug, req.Title, req.Content, req.Preview)
+	updateCategory := req.Category
+	if updateCategory == "" {
+		updateCategory = "technical"
+	}
+	post, err := h.svc.UpdateBlogPost(id, req.Slug, req.Title, req.Content, req.Preview, updateCategory)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			writeError(w, http.StatusNotFound, err.Error())
@@ -670,6 +680,99 @@ func (h *APIHandler) HandleMarkAllNotificationsRead(w http.ResponseWriter, r *ht
 	}
 
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+// --- Project status handlers ---
+
+// projectStatusRequest is the JSON body for create/update project status requests.
+type projectStatusRequest struct {
+	Name        string `json:"name"`
+	Status      string `json:"status"`
+	Description string `json:"description"`
+	NextStep    string `json:"nextStep"`
+	Links       string `json:"links"`
+	SortOrder   int    `json:"sortOrder"`
+}
+
+// HandleGetProjectStatuses returns all project statuses.
+func (h *APIHandler) HandleGetProjectStatuses(w http.ResponseWriter, r *http.Request) {
+	statuses, err := h.svc.GetProjectStatuses()
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	if statuses == nil {
+		statuses = []model.ProjectStatus{}
+	}
+
+	writeCachedJSON(w, http.StatusOK, statuses, 86400)
+}
+
+// HandleCreateProjectStatus creates a new project status (admin only).
+func (h *APIHandler) HandleCreateProjectStatus(w http.ResponseWriter, r *http.Request) {
+	var req projectStatusRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if strings.TrimSpace(req.Name) == "" || strings.TrimSpace(req.Status) == "" {
+		writeError(w, http.StatusBadRequest, "name and status are required")
+		return
+	}
+
+	ps, err := h.svc.CreateProjectStatus(req.Name, req.Status, req.Description, req.NextStep, req.Links, req.SortOrder)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, ps)
+}
+
+// HandleUpdateProjectStatus updates an existing project status (admin only).
+func (h *APIHandler) HandleUpdateProjectStatus(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	var req projectStatusRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	if strings.TrimSpace(req.Name) == "" || strings.TrimSpace(req.Status) == "" {
+		writeError(w, http.StatusBadRequest, "name and status are required")
+		return
+	}
+
+	ps, err := h.svc.UpdateProjectStatus(id, req.Name, req.Status, req.Description, req.NextStep, req.Links, req.SortOrder)
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			writeError(w, http.StatusNotFound, err.Error())
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, ps)
+}
+
+// HandleDeleteProjectStatus deletes a project status by ID (admin only).
+func (h *APIHandler) HandleDeleteProjectStatus(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	if err := h.svc.DeleteProjectStatus(id); err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			writeError(w, http.StatusNotFound, err.Error())
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
 }
 
 // --- Admin CRUD for skills, hackathons, experience ---

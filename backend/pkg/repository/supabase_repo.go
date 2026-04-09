@@ -41,7 +41,7 @@ func (r *SupabaseRepository) Close() error {
 // GetBlogPosts returns all published blog posts, newest first.
 func (r *SupabaseRepository) GetBlogPosts() ([]model.BlogPost, error) {
 	rows, err := r.db.Query(`
-		SELECT id, slug, title, content, preview, published_at
+		SELECT id, slug, title, content, preview, category, published_at
 		FROM blog_posts
 		ORDER BY published_at DESC
 	`)
@@ -53,7 +53,7 @@ func (r *SupabaseRepository) GetBlogPosts() ([]model.BlogPost, error) {
 	var posts []model.BlogPost
 	for rows.Next() {
 		var p model.BlogPost
-		if err := rows.Scan(&p.ID, &p.Slug, &p.Title, &p.Content, &p.Preview, &p.PublishedAt); err != nil {
+		if err := rows.Scan(&p.ID, &p.Slug, &p.Title, &p.Content, &p.Preview, &p.Category, &p.PublishedAt); err != nil {
 			return nil, fmt.Errorf("failed to scan blog post: %w", err)
 		}
 		posts = append(posts, p)
@@ -66,10 +66,10 @@ func (r *SupabaseRepository) GetBlogPosts() ([]model.BlogPost, error) {
 func (r *SupabaseRepository) GetBlogPostBySlug(slug string) (*model.BlogPost, error) {
 	var p model.BlogPost
 	err := r.db.QueryRow(`
-		SELECT id, slug, title, content, preview, published_at
+		SELECT id, slug, title, content, preview, category, published_at
 		FROM blog_posts
 		WHERE slug = $1
-	`, slug).Scan(&p.ID, &p.Slug, &p.Title, &p.Content, &p.Preview, &p.PublishedAt)
+	`, slug).Scan(&p.ID, &p.Slug, &p.Title, &p.Content, &p.Preview, &p.Category, &p.PublishedAt)
 
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("blog post with slug %q not found", slug)
@@ -104,13 +104,13 @@ func (r *SupabaseRepository) CreateContactSubmission(name, email, message string
 }
 
 // CreateBlogPost creates a new blog post and returns it.
-func (r *SupabaseRepository) CreateBlogPost(slug, title, content, preview string) (*model.BlogPost, error) {
+func (r *SupabaseRepository) CreateBlogPost(slug, title, content, preview, category string) (*model.BlogPost, error) {
 	var p model.BlogPost
 	err := r.db.QueryRow(`
-		INSERT INTO blog_posts (slug, title, content, preview)
-		VALUES ($1, $2, $3, $4)
-		RETURNING id, slug, title, content, preview, published_at
-	`, slug, title, content, preview).Scan(&p.ID, &p.Slug, &p.Title, &p.Content, &p.Preview, &p.PublishedAt)
+		INSERT INTO blog_posts (slug, title, content, preview, category)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, slug, title, content, preview, category, published_at
+	`, slug, title, content, preview, category).Scan(&p.ID, &p.Slug, &p.Title, &p.Content, &p.Preview, &p.Category, &p.PublishedAt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create blog post: %w", err)
 	}
@@ -118,14 +118,14 @@ func (r *SupabaseRepository) CreateBlogPost(slug, title, content, preview string
 }
 
 // UpdateBlogPost updates an existing blog post and returns it.
-func (r *SupabaseRepository) UpdateBlogPost(id, slug, title, content, preview string) (*model.BlogPost, error) {
+func (r *SupabaseRepository) UpdateBlogPost(id, slug, title, content, preview, category string) (*model.BlogPost, error) {
 	var p model.BlogPost
 	err := r.db.QueryRow(`
 		UPDATE blog_posts
-		SET slug = $2, title = $3, content = $4, preview = $5
+		SET slug = $2, title = $3, content = $4, preview = $5, category = $6
 		WHERE id = $1
-		RETURNING id, slug, title, content, preview, published_at
-	`, id, slug, title, content, preview).Scan(&p.ID, &p.Slug, &p.Title, &p.Content, &p.Preview, &p.PublishedAt)
+		RETURNING id, slug, title, content, preview, category, published_at
+	`, id, slug, title, content, preview, category).Scan(&p.ID, &p.Slug, &p.Title, &p.Content, &p.Preview, &p.Category, &p.PublishedAt)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("blog post with id %q not found", id)
 	}
@@ -1015,6 +1015,107 @@ func (r *SupabaseRepository) DeleteMusicTrack(id string) error {
 		return fmt.Errorf("music track with id %q not found", id)
 	}
 	return nil
+}
+
+// GetProjectStatuses returns all project statuses ordered by sort_order.
+func (r *SupabaseRepository) GetProjectStatuses() ([]model.ProjectStatus, error) {
+	rows, err := r.db.Query(`
+		SELECT id, name, status, description, next_step, links, sort_order
+		FROM projects_status
+		ORDER BY sort_order
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query project statuses: %w", err)
+	}
+	defer rows.Close()
+
+	var statuses []model.ProjectStatus
+	for rows.Next() {
+		var p model.ProjectStatus
+		var nextStep, links sql.NullString
+		if err := rows.Scan(&p.ID, &p.Name, &p.Status, &p.Description, &nextStep, &links, &p.SortOrder); err != nil {
+			return nil, fmt.Errorf("failed to scan project status: %w", err)
+		}
+		if nextStep.Valid {
+			p.NextStep = nextStep.String
+		}
+		if links.Valid {
+			p.Links = links.String
+		}
+		statuses = append(statuses, p)
+	}
+
+	return statuses, rows.Err()
+}
+
+// CreateProjectStatus creates a new project status and returns it.
+func (r *SupabaseRepository) CreateProjectStatus(name, status, description, nextStep, links string, sortOrder int) (*model.ProjectStatus, error) {
+	var p model.ProjectStatus
+	var nextStepNull, linksNull sql.NullString
+	err := r.db.QueryRow(`
+		INSERT INTO projects_status (name, status, description, next_step, links, sort_order)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING id, name, status, description, next_step, links, sort_order
+	`, name, status, description, toNullString(nextStep), toNullString(links), sortOrder).Scan(&p.ID, &p.Name, &p.Status, &p.Description, &nextStepNull, &linksNull, &p.SortOrder)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create project status: %w", err)
+	}
+	if nextStepNull.Valid {
+		p.NextStep = nextStepNull.String
+	}
+	if linksNull.Valid {
+		p.Links = linksNull.String
+	}
+	return &p, nil
+}
+
+// UpdateProjectStatus updates an existing project status and returns it.
+func (r *SupabaseRepository) UpdateProjectStatus(id, name, status, description, nextStep, links string, sortOrder int) (*model.ProjectStatus, error) {
+	var p model.ProjectStatus
+	var nextStepNull, linksNull sql.NullString
+	err := r.db.QueryRow(`
+		UPDATE projects_status
+		SET name = $2, status = $3, description = $4, next_step = $5, links = $6, sort_order = $7
+		WHERE id = $1
+		RETURNING id, name, status, description, next_step, links, sort_order
+	`, id, name, status, description, toNullString(nextStep), toNullString(links), sortOrder).Scan(&p.ID, &p.Name, &p.Status, &p.Description, &nextStepNull, &linksNull, &p.SortOrder)
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("project status with id %q not found", id)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to update project status: %w", err)
+	}
+	if nextStepNull.Valid {
+		p.NextStep = nextStepNull.String
+	}
+	if linksNull.Valid {
+		p.Links = linksNull.String
+	}
+	return &p, nil
+}
+
+// DeleteProjectStatus deletes a project status by ID.
+func (r *SupabaseRepository) DeleteProjectStatus(id string) error {
+	result, err := r.db.Exec(`DELETE FROM projects_status WHERE id = $1`, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete project status: %w", err)
+	}
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to check rows affected: %w", err)
+	}
+	if rows == 0 {
+		return fmt.Errorf("project status with id %q not found", id)
+	}
+	return nil
+}
+
+// toNullString converts an empty string to sql.NullString{Valid: false}.
+func toNullString(s string) sql.NullString {
+	if strings.TrimSpace(s) == "" {
+		return sql.NullString{Valid: false}
+	}
+	return sql.NullString{String: s, Valid: true}
 }
 
 // GetProjects is not available in Supabase.
