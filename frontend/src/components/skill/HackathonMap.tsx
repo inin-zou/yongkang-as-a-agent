@@ -77,7 +77,7 @@ export default function HackathonMap({ hackathons }: { hackathons: Hackathon[] }
   const clusters = useMemo(() => clusterByCity(hackathons), [hackathons])
   const maxCount = useMemo(() => Math.max(...clusters.map(c => c.count), 1), [clusters])
 
-  const { svgInner, pinPoints, viewBox, mapWidth } = useMemo(() => {
+  const { svgInner, pinPoints, viewBox } = useMemo(() => {
     const map = new DottedMap({ height: 100, grid: 'diagonal' })
 
     for (const cluster of clusters) {
@@ -103,10 +103,9 @@ export default function HackathonMap({ hackathons }: { hackathons: Hackathon[] }
 
     const vbMatch = svg.match(/viewBox="([^"]*)"/)
     const vb = vbMatch ? vbMatch[1] : '0 0 200 100'
-    const w = parseFloat(vb.split(' ')[2]) || 200
     const inner = svg.replace(/<svg[^>]*>/, '').replace(/<\/svg>/, '')
 
-    return { svgInner: inner, pinPoints: pins, viewBox: vb, mapWidth: w }
+    return { svgInner: inner, pinPoints: pins, viewBox: vb }
   }, [clusters, maxCount])
 
   // Drag handlers
