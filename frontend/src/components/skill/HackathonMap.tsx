@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useCallback, useEffect } from 'react'
+import { useMemo, useState, useRef } from 'react'
 import DottedMap from 'dotted-map'
 import type { Hackathon } from '../../types'
 
@@ -34,70 +34,28 @@ function clusterByCity(hackathons: Hackathon[]): CityCluster[] {
   return Array.from(map.values())
 }
 
-// Single SVG map tile (reused 3x for infinite horizontal wrap)
-function MapTile({ svgInner, viewBox, pinPoints, maxCount }: {
-  svgInner: string; viewBox: string; pinPoints: (CityCluster & { x: number; y: number })[]; maxCount: number
-}) {
-  return (
-    <div style={{ position: 'relative', flexShrink: 0, width: '100%' }}>
-      <svg className="hackathon-map-svg" viewBox={viewBox} xmlns="http://www.w3.org/2000/svg"
-        dangerouslySetInnerHTML={{ __html: svgInner }} />
-      <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
-        viewBox={viewBox} xmlns="http://www.w3.org/2000/svg">
-        {pinPoints.map((pin) => {
-          const intensity = pin.count / maxCount
-          const glowR = 2 + intensity * 6
-          return (
-            <g key={pin.city}>
-              <circle cx={pin.x} cy={pin.y} r={glowR} fill="#ff6b9d" opacity={0.08 + intensity * 0.12} />
-              <text x={pin.x} y={pin.y - (0.4 + intensity * 1.2) - 1} fill="#ff6b9d"
-                opacity={0.5 + intensity * 0.5} fontFamily="sans-serif"
-                fontSize={intensity > 0.5 ? 1.8 : 1.3} textAnchor="middle">
-                {pin.city}
-              </text>
-            </g>
-          )
-        })}
-      </svg>
-    </div>
-  )
-}
-
 export default function HackathonMap({ hackathons }: { hackathons: Hackathon[] }) {
   const [hoveredCity, setHoveredCity] = useState<CityCluster | null>(null)
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Pan state (horizontal only — no vertical to avoid blank space)
-  const [panX, setPanX] = useState(0)
-  const [zoom, setZoom] = useState(1)
-  const [containerWidth, setContainerWidth] = useState(800)
-  const dragRef = useRef<{ startX: number; startPanX: number } | null>(null)
-
-  // Track container width for accurate wrapping
-  useEffect(() => {
-    const el = containerRef.current
-    if (!el) return
-    const obs = new ResizeObserver(entries => {
-      for (const entry of entries) setContainerWidth(entry.contentRect.width)
-    })
-    obs.observe(el)
-    setContainerWidth(el.clientWidth)
-    return () => obs.disconnect()
-  }, [])
-
   const clusters = useMemo(() => clusterByCity(hackathons), [hackathons])
   const maxCount = useMemo(() => Math.max(...clusters.map(c => c.count), 1), [clusters])
 
-  const { svgInner, pinPoints, viewBox } = useMemo(() => {
+  // Build dotted map with pins added via addPin()
+  const { svgContent, pinPoints } = useMemo(() => {
     const map = new DottedMap({ height: 100, grid: 'diagonal' })
 
+    // Add each city as a pin — this uses the library's own projection
     for (const cluster of clusters) {
       const intensity = cluster.count / maxCount
       map.addPin({
         lat: cluster.lat,
         lng: cluster.lng,
-        svgOptions: { color: '#ff6b9d', radius: 0.4 + intensity * 1.2 },
+        svgOptions: {
+          color: '#ff6b9d',
+          radius: 0.4 + intensity * 1.2,
+        },
       })
     }
 
@@ -109,117 +67,96 @@ export default function HackathonMap({ hackathons }: { hackathons: Hackathon[] }
     })
 
     const pins = clusters.map(cluster => {
+      // Use getPin for position (returns {x, y} in SVG coordinate space)
       const pinPos = map.getPin({ lat: cluster.lat, lng: cluster.lng })
       return { ...cluster, x: pinPos?.x ?? 0, y: pinPos?.y ?? 0 }
     })
 
-    const vbMatch = svg.match(/viewBox="([^"]*)"/)
-    const vb = vbMatch ? vbMatch[1] : '0 0 200 100'
-    const inner = svg.replace(/<svg[^>]*>/, '').replace(/<\/svg>/, '')
-
-    return { svgInner: inner, pinPoints: pins, viewBox: vb }
+    return { svgContent: svg, pinPoints: pins }
   }, [clusters, maxCount])
 
-  // Drag handlers (horizontal only)
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    if (e.button !== 0) return
-    dragRef.current = { startX: e.clientX, startPanX: panX }
-    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
-  }, [panX])
-
-  const handlePointerMove = useCallback((e: React.PointerEvent) => {
-    if (!dragRef.current) return
-    const dx = e.clientX - dragRef.current.startX
-    setPanX(dragRef.current.startPanX + dx)
-  }, [])
-
-  const handlePointerUp = useCallback(() => {
-    dragRef.current = null
-  }, [])
-
-  // Scroll to zoom
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault()
-    setZoom(z => Math.max(0.8, Math.min(3, z - e.deltaY * 0.001)))
-  }, [])
-
-  // Tooltip on hover targets
-  const handlePinEnter = useCallback((pin: CityCluster & { x: number; y: number }, e: React.MouseEvent) => {
-    setHoveredCity(pin)
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect()
-      setTooltipPos({ x: e.clientX - rect.left + 12, y: e.clientY - rect.top - 10 })
-    }
-  }, [])
-
-  const handlePinMove = useCallback((e: React.MouseEvent) => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect()
-      setTooltipPos({ x: e.clientX - rect.left + 12, y: e.clientY - rect.top - 10 })
-    }
-  }, [])
-
-  // Wrap panX so the map loops infinitely horizontally
-  const tileWidth = containerWidth * zoom
-  // Normalize so we always show the middle copy, seamless wrap
-  const wrappedPanX = tileWidth > 0
-    ? ((panX % tileWidth) + tileWidth) % tileWidth - tileWidth
-    : 0
+  const viewBoxMatch = svgContent.match(/viewBox="([^"]*)"/)
+  const viewBox = viewBoxMatch ? viewBoxMatch[1] : '0 0 200 100'
 
   return (
-    <div
-      className="hackathon-map-container"
-      ref={containerRef}
-      onPointerDown={handlePointerDown}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
-      onPointerCancel={handlePointerUp}
-      onWheel={handleWheel}
-      style={{ cursor: dragRef.current ? 'grabbing' : 'grab', touchAction: 'none' }}
-    >
-      {/* 3 copies for infinite horizontal wrap */}
-      <div data-testid="map-inner" style={{
-        display: 'flex',
-        transform: `translateX(${wrappedPanX}px) scale(${zoom})`,
-        transformOrigin: 'top left',
-        width: '300%',
-        pointerEvents: 'none',
-      }}>
-        <MapTile svgInner={svgInner} viewBox={viewBox} pinPoints={pinPoints} maxCount={maxCount} />
-        <MapTile svgInner={svgInner} viewBox={viewBox} pinPoints={pinPoints} maxCount={maxCount} />
-        <MapTile svgInner={svgInner} viewBox={viewBox} pinPoints={pinPoints} maxCount={maxCount} />
-      </div>
+    <div className="hackathon-map-container" ref={containerRef}>
+      {/* Map with pins baked in */}
+      <svg
+        className="hackathon-map-svg"
+        viewBox={viewBox}
+        xmlns="http://www.w3.org/2000/svg"
+        dangerouslySetInnerHTML={{
+          __html: svgContent.replace(/<svg[^>]*>/, '').replace(/<\/svg>/, ''),
+        }}
+      />
 
-      {/* Invisible hover targets (positioned on the visible portion) */}
-      {[0, 1, 2].map(copy => (
-        <svg
-          key={`hits-${copy}`}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: `${100 * zoom}%`,
-            height: `${100 * zoom}%`,
-            transform: `translateX(${wrappedPanX + copy * tileWidth}px)`,
-            transformOrigin: 'top left',
-          }}
-          viewBox={viewBox}
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          {pinPoints.map((pin) => {
-            const intensity = pin.count / maxCount
-            const hitR = 3 + intensity * 5
-            return (
-              <circle key={`hit-${pin.city}-${copy}`} cx={pin.x} cy={pin.y} r={hitR}
-                fill="transparent" style={{ cursor: 'pointer' }}
-                onMouseEnter={(e) => handlePinEnter(pin, e)}
-                onMouseLeave={() => setHoveredCity(null)}
-                onMouseMove={handlePinMove}
-              />
-            )
-          })}
-        </svg>
-      ))}
+      {/* Labels + glow overlay */}
+      <svg
+        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
+        viewBox={viewBox}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {pinPoints.map((pin) => {
+          const intensity = pin.count / maxCount
+          const glowR = 2 + intensity * 6
+
+          return (
+            <g key={pin.city}>
+              {/* Glow behind pin */}
+              <circle cx={pin.x} cy={pin.y} r={glowR} fill="#ff6b9d" opacity={0.08 + intensity * 0.12} />
+              {/* Label */}
+              <text
+                x={pin.x}
+                y={pin.y - (0.4 + intensity * 1.2) - 1}
+                fill="#ff6b9d"
+                opacity={0.5 + intensity * 0.5}
+                fontFamily="sans-serif"
+                fontSize={intensity > 0.5 ? 1.8 : 1.3}
+                textAnchor="middle"
+              >
+                {pin.city}
+              </text>
+            </g>
+          )
+        })}
+      </svg>
+
+      {/* Invisible hover targets */}
+      <svg
+        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+        viewBox={viewBox}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        {pinPoints.map((pin) => {
+          const intensity = pin.count / maxCount
+          const hitR = 3 + intensity * 5
+
+          return (
+            <circle
+              key={`hit-${pin.city}`}
+              cx={pin.x}
+              cy={pin.y}
+              r={hitR}
+              fill="transparent"
+              style={{ cursor: 'pointer' }}
+              onMouseEnter={(e) => {
+                setHoveredCity(pin)
+                if (containerRef.current) {
+                  const rect = containerRef.current.getBoundingClientRect()
+                  setTooltipPos({ x: e.clientX - rect.left + 12, y: e.clientY - rect.top - 10 })
+                }
+              }}
+              onMouseLeave={() => setHoveredCity(null)}
+              onMouseMove={(e) => {
+                if (containerRef.current) {
+                  const rect = containerRef.current.getBoundingClientRect()
+                  setTooltipPos({ x: e.clientX - rect.left + 12, y: e.clientY - rect.top - 10 })
+                }
+              }}
+            />
+          )
+        })}
+      </svg>
 
       {/* Tooltip */}
       {hoveredCity && (
