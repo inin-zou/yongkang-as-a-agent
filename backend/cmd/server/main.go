@@ -36,6 +36,7 @@ func main() {
 
 	supabaseURL := os.Getenv("SUPABASE_URL")
 	anonKey := os.Getenv("SUPABASE_ANON_KEY")
+	geminiKey := os.Getenv("GEMINI_API_KEY")
 
 	jsonRepo := repository.NewJSONRepository(dataDir)
 
@@ -115,6 +116,7 @@ func main() {
 			r.Post("/experience", h.HandleCreateExperience)
 			r.Put("/experience/{id}", h.HandleUpdateExperience)
 			r.Delete("/experience/{id}", h.HandleDeleteExperience)
+			r.Post("/generate-draft", h.HandleGenerateDraft(geminiKey))
 		})
 	})
 

@@ -39,7 +39,7 @@ function MemorySidebar({ posts }: { posts: BlogPost[] }) {
       <div className="sidebar-slider-container">
         <div
           className="sidebar-slider"
-          style={{ transform: activeCategory ? 'translateX(-100%)' : 'translateX(0)' }}
+          style={{ transform: activeCategory ? 'translateX(-50%)' : 'translateX(0)' }}
         >
           {/* Panel 1: Categories */}
           <nav className="sidebar-panel">
@@ -123,7 +123,7 @@ export default function Sidebar({ tab, memoryPosts }: SidebarProps) {
       <div className="sidebar-header">
         {tab.label}
       </div>
-      <nav>
+      <nav style={{ flex: 1, overflowY: 'auto' }}>
         {tab.sidebarItems.map((item) => {
           const fullPath = item.routeSegment
             ? `${tab.basePath}/${item.routeSegment}`
