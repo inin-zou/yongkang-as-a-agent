@@ -259,16 +259,13 @@ func uploadToGeminiFileAPI(apiKey string, mediaBytes []byte, mimeType string, di
 	}, nil
 }
 
-// geminiSupportedMIME returns true if Gemini can analyze this media type.
-// Images: PNG, JPEG, WEBP, HEIC, HEIF. Videos: MP4, MPEG, MOV, AVI, FLV, MPG, WebM, WMV, 3GPP.
-// Unsupported (e.g. GIF, SVG, BMP): upload to Supabase only, user places manually.
+// geminiSupportedMIME returns true if Gemini can analyze this media type via File API.
+// Only images — videos require async processing that exceeds serverless timeouts.
+// Unsupported types (GIF, SVG, videos): placed via text-only URL context.
 func geminiSupportedMIME(mimeType string) bool {
 	supported := map[string]bool{
 		"image/png": true, "image/jpeg": true, "image/webp": true,
 		"image/heic": true, "image/heif": true,
-		"video/mp4": true, "video/mpeg": true, "video/quicktime": true,
-		"video/x-msvideo": true, "video/x-flv": true, "video/mpg": true,
-		"video/webm": true, "video/x-ms-wmv": true, "video/3gpp": true,
 	}
 	return supported[mimeType]
 }
