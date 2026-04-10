@@ -1,6 +1,24 @@
 import { useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 
+const MAX_VIDEO_SIZE_MB = 50
+const MAX_VIDEO_SIZE = MAX_VIDEO_SIZE_MB * 1024 * 1024
+
+function isHEIC(file: File): boolean {
+  return file.type === 'image/heic' || file.type === 'image/heif' || /\.heic$/i.test(file.name) || /\.heif$/i.test(file.name)
+}
+
+function isVideo(file: File): boolean {
+  return file.type.startsWith('video/') || /\.(mp4|webm|mov|avi)$/i.test(file.name)
+}
+
+async function convertHEIC(file: File): Promise<File> {
+  const heic2any = (await import('heic2any')).default
+  const blob = await heic2any({ blob: file, toType: 'image/png', quality: 0.9 }) as Blob
+  const name = file.name.replace(/\.heic$/i, '.png').replace(/\.heif$/i, '.png')
+  return new File([blob], name, { type: 'image/png' })
+}
+
 export interface UseBlogMediaUploadReturn {
   mediaUrls: string[]
   uploading: boolean
@@ -22,7 +40,17 @@ export function useBlogMediaUpload(): UseBlogMediaUploadReturn {
     setUploading(true)
     setError('')
     try {
-      for (const file of Array.from(files)) {
+      for (let file of Array.from(files)) {
+        // Convert HEIC/HEIF to PNG
+        if (isHEIC(file)) {
+          file = await convertHEIC(file)
+        }
+
+        // Check video size limit
+        if (isVideo(file) && file.size > MAX_VIDEO_SIZE) {
+          throw new Error(`Video too large (${(file.size / 1024 / 1024).toFixed(0)}MB). Max ${MAX_VIDEO_SIZE_MB}MB. Compress the video before uploading.`)
+        }
+
         const ext = file.name.split('.').pop() ?? 'bin'
         const path = `blog/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
         const { error: uploadError } = await supabase.storage.from('blog-media').upload(path, file, { upsert: true })
@@ -34,7 +62,6 @@ export function useBlogMediaUpload(): UseBlogMediaUploadReturn {
       setError(err instanceof Error ? err.message : 'Upload failed')
     } finally {
       setUploading(false)
-      // Reset the input so the same file can be re-selected
       e.target.value = ''
     }
   }, [])
