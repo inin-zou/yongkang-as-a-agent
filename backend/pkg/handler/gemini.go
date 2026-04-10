@@ -209,15 +209,48 @@ func uploadToGeminiFileAPI(apiKey string, mediaBytes []byte, mimeType string, di
 		return nil, fmt.Errorf("upload returned %d: %s", uploadResp.StatusCode, string(uploadBody))
 	}
 
-	// Parse the file info to get the URI
+	// Parse the file info to get the URI and state
 	var fileInfo struct {
 		File struct {
+			Name     string `json:"name"`
 			URI      string `json:"uri"`
 			MIMEType string `json:"mimeType"`
+			State    string `json:"state"`
 		} `json:"file"`
 	}
 	if err := json.Unmarshal(uploadBody, &fileInfo); err != nil {
 		return nil, fmt.Errorf("failed to parse file info: %w", err)
+	}
+
+	// Step 3: Poll until file is ACTIVE (videos need processing time)
+	if fileInfo.File.State != "ACTIVE" && fileInfo.File.Name != "" {
+		getURL := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/files/%s", fileInfo.File.Name)
+		for i := 0; i < 30; i++ { // max ~150s wait
+			time.Sleep(5 * time.Second)
+			getReq, err := http.NewRequest(http.MethodGet, getURL, nil)
+			if err != nil {
+				break
+			}
+			getReq.Header.Set("x-goog-api-key", apiKey)
+			getResp, err := client.Do(getReq)
+			if err != nil {
+				break
+			}
+			getBody, _ := io.ReadAll(getResp.Body)
+			getResp.Body.Close()
+
+			var status struct {
+				State string `json:"state"`
+			}
+			json.Unmarshal(getBody, &status)
+			log.Printf("file %s state: %s (poll %d)", fileInfo.File.Name, status.State, i+1)
+			if status.State == "ACTIVE" {
+				break
+			}
+			if status.State == "FAILED" {
+				return nil, fmt.Errorf("file processing failed for %s", fileInfo.File.Name)
+			}
+		}
 	}
 
 	return &geminiUploadedFile{
