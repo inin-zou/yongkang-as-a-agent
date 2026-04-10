@@ -22,15 +22,18 @@ cd backend && go build -o bin/server cmd/server/main.go
 # Test
 cd frontend && npm test               # All unit tests (vitest)
 cd frontend && npx vitest run src/components/admin/__tests__/AdminBar.test.tsx  # Single test file
-cd frontend && npm run test:e2e       # Playwright e2e (10 smoke tests)
+cd frontend && npm run test:e2e       # Playwright e2e
 
 # Lint
 cd frontend && npm run lint           # ESLint
+
+# Deploy (auto-deploys on git push via Vercel Git integration)
+git push origin main
 ```
 
 ## Architecture
 
-**Go backend** (`backend/`) serves a REST API via chi router. The Vercel serverless entrypoint is `api/index.go` — a thin wrapper that initializes the same chi router with `sync.Once`. Go module: `github.com/inin-zou/yongkang-as-a-agent`.
+**Go backend** (`backend/`) serves a REST API via chi router. The Vercel serverless entrypoint is `api/index.go` — a thin wrapper that initializes the same chi router with `sync.Once`. Go module: `github.com/inin-zou/yongkang-as-a-agent`. There is no `backend/go.mod` — only the root `go.mod`.
 
 **React frontend** (`frontend/`) uses React 19 + Vite + TanStack Query + Three.js + GSAP. Tailwind CSS v4. Vite proxies `/api` to the Go backend in dev.
 
@@ -45,11 +48,15 @@ cd frontend && npm run lint           # ESLint
 ## Key Patterns
 
 - **Pages:** `{Name}Page.tsx` in `pages/`, content components in `components/{section}/`
-- **Admin editing:** `useAdminEdit()` hook returns `{ isAdmin, token }`. Admin UI components in `components/admin/` — `AdminBar` (EDIT/SAVE/CANCEL bar), `EditableItem` (reorder/edit/delete wrapper), `*Editor` forms
+- **Admin editing:** `useAdminEdit()` hook returns `{ isAdmin, token }`. Admin UI in `components/admin/` — `AdminBar`, `EditableItem`, `PostEditor`, `MediaUploadBar`, `*Editor` forms
 - **Sidebar:** Static tab config in `sidebarConfig.ts`, dynamic sidebar (e.g. MEMORY.md drill-down) built in `FileSystemLayout.tsx`
 - **Go handlers:** Use `writeCachedJSON` for GET endpoints, `writeJSON` for mutations, `writeError` for errors
 - **Go admin CRUD:** Full CRUD on `SupabaseRepository` for all Supabase tables; admin routes use the JWT-validated supabase connection
-- **CSS:** Custom properties in `theme.css`. Class prefixes: `.editor-*` (pages), `.cli-*` (terminal blocks), `.admin-*` / `.editable-item-*` (admin UI)
+- **CSS:** Custom properties in `theme.css`. Class prefixes: `.editor-*` (pages), `.cli-*` (terminal blocks), `.admin-*` / `.editable-item-*` (admin UI), `.music-player-*` (player bar), `.blog-post-content` (rendered blog posts), `.media-upload-*` (upload chips)
+- **Blog content:** Stored as HTML in Supabase. Edited as markdown (turndown HTML→MD, marked MD→HTML). `BlogPostContent` component renders with `dangerouslySetInnerHTML` + lightbox portal.
+- **Music player:** `MusicPlayerContext` owns a global `<audio>` element that persists across navigation. `MusicPlayerBar` at bottom of `FileSystemLayout`. `AudioPlayer` in MusicPage reads from the same context.
+- **AI endpoints:** `POST /api/admin/generate-draft` (rough idea → HTML) and `POST /api/admin/refine-draft` (existing content → markdown). Both upload media to Gemini File API for visual analysis. Refine returns markdown directly; generate returns HTML.
+- **Media upload:** `useBlogMediaUpload` hook + `MediaUploadBar` shared component. Uploads to Supabase Storage `blog-media` bucket. Gemini File API for supported types (PNG/JPEG/WEBP/MP4/etc.), skips unsupported (GIF).
 
 ## Supabase Tables
 
@@ -64,7 +71,7 @@ guestbook, page_views, admin_notifications
 - `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `DATABASE_URL` — Supabase connection
 - `ADMIN_EMAIL` — admin gate (must match exactly, no trailing whitespace)
 - `FRONTEND_URL` — CORS origin
-- `GEMINI_API_KEY` — AI draft generation endpoint
+- `GEMINI_API_KEY` — AI draft generation and refinement
 
 ## Design Decisions
 
@@ -73,3 +80,5 @@ guestbook, page_views, admin_notifications
 - **Inline editing:** Admin edits content in place — no separate CMS UI
 - **CLI aesthetic:** `$ agent --command` terminal blocks throughout
 - **MEMORY.md sidebar:** Two-level drill-down with CSS slide animation (categories → posts)
+- **Blog images:** Two-type strategy — inline figures with captions (Type A) for illustrations, `.img-gallery` grid (Type B) for event photos. Lightbox via `createPortal` to `document.body`.
+- **Music:** Persistent player bar at bottom of app-window, Spotify-style queue (play from here), repeat modes (off/all/one)
