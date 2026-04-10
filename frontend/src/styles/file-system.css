@@ -662,6 +662,121 @@
   }
 }
 
+/* ===== MOBILE RESPONSIVE ===== */
+@media (max-width: 768px) {
+  /* Full-screen app window */
+  .app-window-wrapper {
+    padding: 0;
+    min-height: 100vh;
+    align-items: stretch;
+  }
+
+  .app-window {
+    width: 100%;
+    max-width: 100%;
+    height: 100vh;
+    border-radius: 0;
+  }
+
+  /* Tab bar: scrollable horizontal */
+  .tab-bar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 0;
+  }
+
+  .tab-bar nav {
+    flex-shrink: 0;
+  }
+
+  .tab-bar nav a {
+    font-size: 0.6rem;
+    padding: 6px 8px;
+    white-space: nowrap;
+  }
+
+  /* App body: stack sidebar above editor */
+  .app-body {
+    flex-direction: column;
+    border-radius: 0;
+  }
+
+  .app-body .sidebar {
+    width: 100%;
+    min-width: 100%;
+    max-height: 35vh;
+    border-right: none;
+    border-bottom: 1px solid var(--glass-border);
+    border-radius: 0;
+  }
+
+  .sidebar {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  /* Editor content */
+  .app-editor {
+    overflow-y: auto;
+  }
+
+  .app-editor-content {
+    padding: var(--space-sm);
+  }
+
+  /* Breadcrumb */
+  .breadcrumb {
+    font-size: 0.6rem;
+    padding: 6px var(--space-sm);
+  }
+
+  /* Editor page content */
+  .editor-page {
+    padding: var(--space-sm);
+  }
+
+  .editor-title {
+    font-size: 1.2rem;
+  }
+
+  .editor-content {
+    font-size: 0.9rem;
+  }
+
+  /* Blog post content adjustments */
+  .blog-post-content h2 {
+    font-size: 1.2rem;
+  }
+
+  .blog-post-content h3 {
+    font-size: 1rem;
+  }
+
+  .blog-post-content pre {
+    font-size: 0.75rem;
+  }
+
+  .blog-post-content table {
+    font-size: 0.75rem;
+  }
+
+  .blog-post-content th,
+  .blog-post-content td {
+    padding: 6px 8px;
+  }
+
+  /* Hackathon map — full width */
+  .hackathon-map-container {
+    margin: var(--space-sm) 0;
+  }
+
+  /* Hackathon tooltip */
+  .hackathon-tooltip {
+    max-width: 200px;
+    font-size: 0.65rem;
+  }
+}
+
 /* Prismatic divider instead of plain grey */
 .editor-divider {
   height: 1px;
