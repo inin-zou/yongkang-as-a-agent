@@ -80,8 +80,10 @@ export const ADMIN_TAB: TabConfig = {
   label: 'ADMIN.md',
   basePath: '/files/admin',
   sidebarItems: [
-    { id: 'feedback', label: 'FEEDBACK', preview: 'View visitor feedback', routeSegment: '' },
+    { id: 'posts', label: 'POSTS', preview: 'Create & manage blog posts', routeSegment: '' },
+    { id: 'feedback', label: 'FEEDBACK', preview: 'View visitor feedback', routeSegment: 'feedback' },
+    { id: 'music', label: 'MUSIC', preview: 'Upload & manage tracks', routeSegment: 'music' },
     { id: 'notifications', label: 'NOTIFICATIONS', preview: 'Activity feed', routeSegment: 'notifications' },
   ],
-  defaultItem: 'feedback',
+  defaultItem: 'posts',
 }

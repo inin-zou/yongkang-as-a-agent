@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import '../styles/memory.css'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../lib/AuthContext'
+import { supabase } from '../lib/supabase'
 import AsciiTitle from '../components/global/AsciiTitle'
 import { useBlogMediaUpload } from '../hooks/useBlogMediaUpload'
 import MediaUploadBar from '../components/admin/MediaUploadBar'
@@ -18,8 +19,12 @@ import {
   deleteBlogPost,
   generateDraft,
   refineDraft,
+  fetchMusicTracks,
+  createMusicTrack,
+  updateMusicTrack,
+  deleteMusicTrack,
 } from '../lib/api'
-import type { Feedback, AdminNotification, BlogPost } from '../types/index'
+import type { Feedback, AdminNotification, BlogPost, MusicTrack } from '../types/index'
 import type { DraftResponse } from '../lib/api'
 import { htmlToMarkdown, markdownToHtml } from '../lib/markdown'
 import '../styles/admin.css'
@@ -626,6 +631,209 @@ function NotificationsTab() {
   )
 }
 
+/* ─── Music manager tab ─── */
+
+function MusicManager() {
+  const { session } = useAuth()
+  const queryClient = useQueryClient()
+  const token = session?.access_token ?? ''
+
+  const [mode, setMode] = useState<'list' | 'create' | 'edit'>('list')
+  const [editingTrack, setEditingTrack] = useState<MusicTrack | null>(null)
+  const [uploading, setUploading] = useState(false)
+
+  const { data: tracks, isLoading } = useQuery({
+    queryKey: ['admin-music-tracks'],
+    queryFn: fetchMusicTracks,
+    enabled: !!token,
+  })
+
+  async function handleDelete(track: MusicTrack) {
+    if (!track.id || !confirm(`Delete "${track.name}"?`)) return
+    await deleteMusicTrack(token, track.id)
+    queryClient.invalidateQueries({ queryKey: ['admin-music-tracks'] })
+    queryClient.invalidateQueries({ queryKey: ['music-tracks'] })
+  }
+
+  if (mode === 'create' || (mode === 'edit' && editingTrack)) {
+    return (
+      <MusicTrackEditor
+        initial={editingTrack ?? undefined}
+        uploading={uploading}
+        setUploading={setUploading}
+        onSave={async (data) => {
+          if (editingTrack?.id) {
+            await updateMusicTrack(token, editingTrack.id, data)
+          } else {
+            await createMusicTrack(token, data)
+          }
+          queryClient.invalidateQueries({ queryKey: ['admin-music-tracks'] })
+          queryClient.invalidateQueries({ queryKey: ['music-tracks'] })
+          setMode('list')
+          setEditingTrack(null)
+        }}
+        onCancel={() => { setMode('list'); setEditingTrack(null) }}
+      />
+    )
+  }
+
+  if (isLoading) return <p className="admin-empty">Loading tracks...</p>
+
+  return (
+    <>
+      <button
+        className="admin-btn admin-bar-btn-add"
+        onClick={() => setMode('create')}
+        style={{ marginBottom: 'var(--space-md)' }}
+      >
+        + NEW TRACK
+      </button>
+
+      {!tracks || tracks.length === 0 ? (
+        <p className="admin-empty">No tracks yet. Upload your first one.</p>
+      ) : (
+        tracks.map((track) => (
+          <div key={track.id} className="admin-post-item">
+            <div className="admin-post-info">
+              <div className="admin-post-title">{track.name}</div>
+              <div className="admin-post-slug">{track.genre} — {track.original === 'true' || track.original === 'original' ? 'Original' : 'Cover'}</div>
+            </div>
+            <div className="admin-actions">
+              <button className="admin-btn" onClick={() => { setEditingTrack(track); setMode('edit') }}>
+                EDIT
+              </button>
+              <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(track)}>
+                DELETE
+              </button>
+            </div>
+          </div>
+        ))
+      )}
+    </>
+  )
+}
+
+function MusicTrackEditor({
+  initial,
+  uploading,
+  setUploading,
+  onSave,
+  onCancel,
+}: {
+  initial?: MusicTrack
+  uploading: boolean
+  setUploading: (v: boolean) => void
+  onSave: (data: Omit<MusicTrack, 'id'>) => Promise<void>
+  onCancel: () => void
+}) {
+  const [name, setName] = useState(initial?.name ?? '')
+  const [slug, setSlug] = useState(initial?.slug ?? '')
+  const [genre, setGenre] = useState(initial?.genre ?? '')
+  const [original, setOriginal] = useState(initial?.original ?? 'true')
+  const [notes, setNotes] = useState(initial?.notes ?? '')
+  const [fileUrl, setFileUrl] = useState(initial?.fileUrl ?? '')
+  const [sortOrder, setSortOrder] = useState(initial?.sortOrder ?? 0)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    setError('')
+    try {
+      const ext = file.name.split('.').pop() ?? 'mp3'
+      const path = `music/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const { error: uploadErr } = await supabase.storage.from('blog-media').upload(path, file, { upsert: true })
+      if (uploadErr) throw uploadErr
+      const { data: urlData } = supabase.storage.from('blog-media').getPublicUrl(path)
+      setFileUrl(urlData.publicUrl)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      setUploading(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setSaving(true)
+    setError('')
+    try {
+      await onSave({ name, slug, genre, original, notes, fileUrl, sortOrder })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Save failed')
+      setSaving(false)
+    }
+  }
+
+  return (
+    <form className="admin-editor" onSubmit={handleSubmit}>
+      {error && <div className="admin-error">{error}</div>}
+
+      <div>
+        <label htmlFor="track-name" className="memory-feedback-label">Track Name</label>
+        <input id="track-name" type="text" className="memory-feedback-input" value={name} onChange={(e) => setName(e.target.value)} required />
+      </div>
+
+      <div>
+        <label htmlFor="track-slug" className="memory-feedback-label">Slug</label>
+        <input id="track-slug" type="text" className="memory-feedback-input" placeholder="my-track" value={slug} onChange={(e) => setSlug(e.target.value)} required />
+      </div>
+
+      <div>
+        <label htmlFor="track-genre" className="memory-feedback-label">Genre</label>
+        <input id="track-genre" type="text" className="memory-feedback-input" placeholder="R&B, Pop, etc." value={genre} onChange={(e) => setGenre(e.target.value)} />
+      </div>
+
+      <div>
+        <label htmlFor="track-original" className="memory-feedback-label">Type</label>
+        <select id="track-original" className="memory-feedback-input" value={original} onChange={(e) => setOriginal(e.target.value)}>
+          <option value="true">Original</option>
+          <option value="false">Cover</option>
+        </select>
+      </div>
+
+      <div>
+        <label htmlFor="track-notes" className="memory-feedback-label">Notes</label>
+        <input id="track-notes" type="text" className="memory-feedback-input" placeholder="Production notes, credits, etc." value={notes} onChange={(e) => setNotes(e.target.value)} />
+      </div>
+
+      <div>
+        <label htmlFor="track-order" className="memory-feedback-label">Sort Order</label>
+        <input id="track-order" type="number" className="memory-feedback-input" value={sortOrder} onChange={(e) => setSortOrder(Number(e.target.value))} />
+      </div>
+
+      <div>
+        <label className="memory-feedback-label">Audio File</label>
+        {fileUrl && (
+          <div style={{ marginBottom: '6px' }}>
+            <audio controls src={fileUrl} style={{ width: '100%', height: '32px' }} />
+            <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: 'var(--color-ink-faint)', marginTop: '2px', wordBreak: 'break-all' }}>
+              {fileUrl.split('/').pop()}
+            </div>
+          </div>
+        )}
+        <input ref={fileInputRef} type="file" accept="audio/*" onChange={handleFileUpload} style={{ display: 'none' }} />
+        <button type="button" className="admin-bar-btn" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+          {uploading ? 'UPLOADING...' : fileUrl ? 'REPLACE FILE' : 'UPLOAD AUDIO'}
+        </button>
+      </div>
+
+      <div className="admin-actions">
+        <button type="submit" className="admin-btn admin-btn-primary" disabled={saving || uploading || !name.trim() || !fileUrl}>
+          {saving ? 'SAVING...' : initial ? 'UPDATE' : 'CREATE'}
+        </button>
+        <button type="button" className="admin-btn" onClick={onCancel} disabled={saving}>
+          CANCEL
+        </button>
+      </div>
+    </form>
+  )
+}
+
 /* ─── Main admin page ─── */
 
 export default function AdminPage() {
@@ -649,6 +857,7 @@ export default function AdminPage() {
   const sectionMap: Record<string, { label: string; ascii: string }> = {
     '': { label: 'Posts', ascii: 'posts' },
     posts: { label: 'Posts', ascii: 'posts' },
+    music: { label: 'Music', ascii: 'music' },
     feedback: { label: 'Feedback', ascii: 'feedback' },
     notifications: { label: 'Notifications', ascii: 'notifications' },
   }
@@ -659,6 +868,7 @@ export default function AdminPage() {
   const content = (() => {
     switch (section) {
       case 'notifications': return <NotificationsTab />
+      case 'music': return <MusicManager />
       case 'feedback': return <FeedbackTab />
       case '':
       case 'posts':
