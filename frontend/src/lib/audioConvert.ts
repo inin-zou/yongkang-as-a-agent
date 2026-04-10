@@ -27,9 +27,8 @@ export async function convertToMp3(file: File): Promise<File> {
   await ff.deleteFile(inputName)
   await ff.deleteFile(outputName)
 
-  // ffmpeg returns Uint8Array with ArrayBufferLike — copy to a plain ArrayBuffer for Blob
-  const bytes = data as Uint8Array
-  const blob = new Blob([bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)], { type: 'audio/mpeg' })
+  // ffmpeg returns Uint8Array with ArrayBufferLike — copy to plain Uint8Array<ArrayBuffer>
+  const blob = new Blob([new Uint8Array(data as Uint8Array)], { type: 'audio/mpeg' })
   const mp3Name = file.name.replace(/\.[^.]+$/, '.mp3')
   return new File([blob], mp3Name, { type: 'audio/mpeg' })
 }
