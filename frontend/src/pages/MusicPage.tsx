@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchMusic, fetchMusicTracks, fetchPage, updatePage, createMusicTrack, updateMusicTrack, deleteMusicTrack } from '../lib/api'
 import { useAdminEdit } from '../hooks/useAdminEdit'
+import { useMusicPlayer } from '../lib/MusicPlayerContext'
 import AdminBar from '../components/admin/AdminBar'
 import TrackEditor from '../components/admin/TrackEditor'
 import AsciiTitle from '../components/global/AsciiTitle'
@@ -63,76 +64,47 @@ function PauseIcon() {
   )
 }
 
-/* ===== Audio Player ===== */
+/* ===== Audio Player (reads from global MusicPlayerContext) ===== */
 const BAR_COUNT = 100
 
-function AudioPlayer({ src }: { src: string }) {
-  const audioRef = useRef<HTMLAudioElement>(null)
+function AudioPlayer({ track, allTracks }: { track: MusicTrack; allTracks: MusicTrack[] }) {
+  const { currentTrack, playing, currentTime, duration, togglePlay, seek, play } = useMusicPlayer()
   const waveformRef = useRef<HTMLDivElement>(null)
-  const [playing, setPlaying] = useState(false)
-  const [currentTime, setCurrentTime] = useState(0)
-  const [duration, setDuration] = useState(0)
   const [bars, setBars] = useState<number[]>([])
+
+  const isThisTrack = currentTrack?.slug === track.slug
 
   // Extract real waveform on mount
   useEffect(() => {
-    extractWaveform(src, BAR_COUNT).then(setBars).catch(() => {
-      // Fallback: flat bars if decode fails
+    extractWaveform(track.fileUrl, BAR_COUNT).then(setBars).catch(() => {
       setBars(Array(BAR_COUNT).fill(0.3))
     })
-  }, [src])
+  }, [track.fileUrl])
 
-  useEffect(() => {
-    const audio = audioRef.current
-    if (!audio) return
-
-    const onTime = () => setCurrentTime(audio.currentTime)
-    const onMeta = () => setDuration(audio.duration)
-    const onEnd = () => setPlaying(false)
-
-    audio.addEventListener('timeupdate', onTime)
-    audio.addEventListener('loadedmetadata', onMeta)
-    audio.addEventListener('ended', onEnd)
-
-    return () => {
-      audio.removeEventListener('timeupdate', onTime)
-      audio.removeEventListener('loadedmetadata', onMeta)
-      audio.removeEventListener('ended', onEnd)
-    }
-  }, [])
-
-  useEffect(() => {
-    return () => {
-      audioRef.current?.pause()
-    }
-  }, [])
-
-  function togglePlay() {
-    const audio = audioRef.current
-    if (!audio) return
-    if (playing) {
-      audio.pause()
+  // Start playing this track if not already
+  function handlePlay() {
+    if (!isThisTrack) {
+      play(track, allTracks)
     } else {
-      audio.play()
+      togglePlay()
     }
-    setPlaying(!playing)
   }
 
   function seekTo(e: React.MouseEvent<HTMLDivElement>) {
-    const audio = audioRef.current
-    if (!audio || !duration) return
+    if (!isThisTrack || !duration) return
     const rect = e.currentTarget.getBoundingClientRect()
     const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))
-    audio.currentTime = ratio * duration
+    seek(ratio * duration)
   }
 
-  const progress = duration > 0 ? (currentTime / duration) * 100 : 0
+  const thisPlaying = isThisTrack && playing
+  const thisTime = isThisTrack ? currentTime : 0
+  const thisDuration = isThisTrack ? duration : 0
+  const progress = thisDuration > 0 ? (thisTime / thisDuration) * 100 : 0
 
   return (
     <div className="music-player">
-      <audio ref={audioRef} src={src} preload="metadata" />
-
-      <div className="music-waveform" ref={waveformRef} onClick={seekTo}>
+      <div className="music-waveform" ref={waveformRef} onClick={seekTo} style={{ cursor: isThisTrack ? 'pointer' : 'default' }}>
         <div className="music-waveform-bars">
           {bars.map((amplitude, i) => {
             const barProgress = ((i + 0.5) / bars.length) * 100
@@ -149,17 +121,17 @@ function AudioPlayer({ src }: { src: string }) {
       </div>
 
       <div className="music-controls">
-        <button className="music-play-btn" aria-label={playing ? 'Pause' : 'Play'} type="button" onClick={togglePlay}>
-          {playing ? <PauseIcon /> : <PlayIcon />}
+        <button className="music-play-btn" aria-label={thisPlaying ? 'Pause' : 'Play'} type="button" onClick={handlePlay}>
+          {thisPlaying ? <PauseIcon /> : <PlayIcon />}
         </button>
 
         <div className="music-progress-wrapper">
-          <div className="music-progress" onClick={seekTo} style={{ cursor: 'pointer' }}>
+          <div className="music-progress" onClick={seekTo} style={{ cursor: isThisTrack ? 'pointer' : 'default' }}>
             <div className="music-progress-fill" style={{ width: `${progress}%` }} />
           </div>
           <div className="music-time">
-            <span>{formatTime(currentTime)}</span>
-            <span>{duration > 0 ? formatTime(duration) : '--:--'}</span>
+            <span>{formatTime(thisTime)}</span>
+            <span>{thisDuration > 0 ? formatTime(thisDuration) : '--:--'}</span>
           </div>
         </div>
       </div>
@@ -168,7 +140,7 @@ function AudioPlayer({ src }: { src: string }) {
 }
 
 /* ===== Track Detail View ===== */
-function TrackView({ track }: { track: MusicTrack }) {
+function TrackView({ track, allTracks }: { track: MusicTrack; allTracks: MusicTrack[] }) {
   const { isAdmin, token } = useAdminEdit()
   const [isEditing, setIsEditing] = useState(false)
   const queryClient = useQueryClient()
@@ -227,7 +199,7 @@ function TrackView({ track }: { track: MusicTrack }) {
               <span>Genre: {track.genre}</span>
             </div>
 
-            <AudioPlayer src={track.fileUrl} />
+            <AudioPlayer track={track} allTracks={allTracks} />
 
             <p className="music-track-notes">{track.notes}</p>
 
@@ -476,7 +448,7 @@ export default function MusicPage() {
 
   const currentTrack = tracks?.find(t => t.slug === item)
 
-  if (currentTrack) return <TrackView track={currentTrack} />
+  if (currentTrack) return <TrackView track={currentTrack} allTracks={tracks} />
 
   // Fallback: if tracks haven't loaded yet, show loading
   if (!tracks) {

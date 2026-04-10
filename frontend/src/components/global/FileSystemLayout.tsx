@@ -8,6 +8,7 @@ import Breadcrumb from '../navigation/Breadcrumb'
 import { FILE_TABS, ADMIN_TAB, type TabConfig, type SidebarItem } from '../navigation/sidebarConfig'
 import { fetchBlogPosts, fetchMusicTracks } from '../../lib/api'
 import { useAuth } from '../../lib/AuthContext'
+import MusicPlayerBar from './MusicPlayerBar'
 
 function AdminTabLink() {
   const { user } = useAuth()
@@ -99,6 +100,9 @@ export default function FileSystemLayout() {
             </div>
           </div>
         </div>
+
+        {/* Persistent music player bar at bottom */}
+        <MusicPlayerBar />
       </div>
     </div>
   )
