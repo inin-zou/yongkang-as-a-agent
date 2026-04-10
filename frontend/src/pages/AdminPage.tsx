@@ -734,15 +734,23 @@ function MusicTrackEditor({
   const [fileUrl, setFileUrl] = useState(initial?.fileUrl ?? '')
   const [sortOrder, setSortOrder] = useState(initial?.sortOrder ?? 0)
   const [saving, setSaving] = useState(false)
+  const [converting, setConverting] = useState(false)
   const [error, setError] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
+    let file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
     setError('')
     try {
+      // Convert WAV/FLAC/AIFF to MP3 client-side before uploading
+      const { needsConversion, convertToMp3 } = await import('../lib/audioConvert')
+      if (needsConversion(file)) {
+        setConverting(true)
+        file = await convertToMp3(file)
+        setConverting(false)
+      }
       const ext = file.name.split('.').pop() ?? 'mp3'
       const path = `music/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
       const { error: uploadErr } = await supabase.storage.from('blog-media').upload(path, file, { upsert: true })
@@ -750,6 +758,7 @@ function MusicTrackEditor({
       const { data: urlData } = supabase.storage.from('blog-media').getPublicUrl(path)
       setFileUrl(urlData.publicUrl)
     } catch (err) {
+      setConverting(false)
       setError(err instanceof Error ? err.message : 'Upload failed')
     } finally {
       setUploading(false)
@@ -817,8 +826,8 @@ function MusicTrackEditor({
           </div>
         )}
         <input ref={fileInputRef} type="file" accept="audio/*" onChange={handleFileUpload} style={{ display: 'none' }} />
-        <button type="button" className="admin-bar-btn" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-          {uploading ? 'UPLOADING...' : fileUrl ? 'REPLACE FILE' : 'UPLOAD AUDIO'}
+        <button type="button" className="admin-bar-btn" onClick={() => fileInputRef.current?.click()} disabled={uploading || converting}>
+          {converting ? 'CONVERTING TO MP3...' : uploading ? 'UPLOADING...' : fileUrl ? 'REPLACE FILE' : 'UPLOAD AUDIO'}
         </button>
       </div>
 
