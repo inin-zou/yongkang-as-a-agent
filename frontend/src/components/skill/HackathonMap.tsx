@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useCallback } from 'react'
+import { useMemo, useState, useRef, useCallback, useEffect } from 'react'
 import DottedMap from 'dotted-map'
 import type { Hackathon } from '../../types'
 
@@ -68,11 +68,23 @@ export default function HackathonMap({ hackathons }: { hackathons: Hackathon[] }
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Pan state
+  // Pan state (horizontal only — no vertical to avoid blank space)
   const [panX, setPanX] = useState(0)
-  const [panY, setPanY] = useState(0)
   const [zoom, setZoom] = useState(1)
-  const dragRef = useRef<{ startX: number; startY: number; startPanX: number; startPanY: number } | null>(null)
+  const [containerWidth, setContainerWidth] = useState(800)
+  const dragRef = useRef<{ startX: number; startPanX: number } | null>(null)
+
+  // Track container width for accurate wrapping
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const obs = new ResizeObserver(entries => {
+      for (const entry of entries) setContainerWidth(entry.contentRect.width)
+    })
+    obs.observe(el)
+    setContainerWidth(el.clientWidth)
+    return () => obs.disconnect()
+  }, [])
 
   const clusters = useMemo(() => clusterByCity(hackathons), [hackathons])
   const maxCount = useMemo(() => Math.max(...clusters.map(c => c.count), 1), [clusters])
@@ -108,20 +120,18 @@ export default function HackathonMap({ hackathons }: { hackathons: Hackathon[] }
     return { svgInner: inner, pinPoints: pins, viewBox: vb }
   }, [clusters, maxCount])
 
-  // Drag handlers
+  // Drag handlers (horizontal only)
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     if (e.button !== 0) return
-    dragRef.current = { startX: e.clientX, startY: e.clientY, startPanX: panX, startPanY: panY }
+    dragRef.current = { startX: e.clientX, startPanX: panX }
     ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
-  }, [panX, panY])
+  }, [panX])
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
     if (!dragRef.current) return
     const dx = e.clientX - dragRef.current.startX
-    const dy = e.clientY - dragRef.current.startY
     setPanX(dragRef.current.startPanX + dx)
-    setPanY(Math.max(-100 * zoom, Math.min(100 * zoom, dragRef.current.startPanY + dy)))
-  }, [zoom])
+  }, [])
 
   const handlePointerUp = useCallback(() => {
     dragRef.current = null
@@ -149,10 +159,12 @@ export default function HackathonMap({ hackathons }: { hackathons: Hackathon[] }
     }
   }, [])
 
-  // Wrap panX so the map loops infinitely
-  const containerWidth = containerRef.current?.clientWidth ?? 800
+  // Wrap panX so the map loops infinitely horizontally
   const tileWidth = containerWidth * zoom
-  const wrappedPanX = ((panX % tileWidth) + tileWidth) % tileWidth - tileWidth
+  // Normalize so we always show the middle copy, seamless wrap
+  const wrappedPanX = tileWidth > 0
+    ? ((panX % tileWidth) + tileWidth) % tileWidth - tileWidth
+    : 0
 
   return (
     <div
@@ -166,11 +178,11 @@ export default function HackathonMap({ hackathons }: { hackathons: Hackathon[] }
       style={{ cursor: dragRef.current ? 'grabbing' : 'grab', touchAction: 'none' }}
     >
       {/* 3 copies for infinite horizontal wrap */}
-      <div style={{
+      <div data-testid="map-inner" style={{
         display: 'flex',
-        transform: `translate(${wrappedPanX}px, ${panY}px) scale(${zoom})`,
+        transform: `translateX(${wrappedPanX}px) scale(${zoom})`,
         transformOrigin: 'top left',
-        width: `${300}%`,
+        width: '300%',
         pointerEvents: 'none',
       }}>
         <MapTile svgInner={svgInner} viewBox={viewBox} pinPoints={pinPoints} maxCount={maxCount} />
@@ -188,7 +200,7 @@ export default function HackathonMap({ hackathons }: { hackathons: Hackathon[] }
             left: 0,
             width: `${100 * zoom}%`,
             height: `${100 * zoom}%`,
-            transform: `translate(${wrappedPanX + copy * tileWidth}px, ${panY}px)`,
+            transform: `translateX(${wrappedPanX + copy * tileWidth}px)`,
             transformOrigin: 'top left',
           }}
           viewBox={viewBox}
