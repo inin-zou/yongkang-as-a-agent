@@ -77,7 +77,7 @@ function DraftCreator({ onDone, initial }: { onDone: () => void; initial?: BlogP
   const [genError, setGenError] = useState('')
 
   // Media uploads (shared hook)
-  const { mediaUrls, uploading, error: uploadError, handleUpload, removeUrl } = useBlogMediaUpload()
+  const { mediaUrls, uploading, status: uploadStatus, error: uploadError, handleUpload, removeUrl } = useBlogMediaUpload()
   const editorTextareaRef = useRef<HTMLTextAreaElement>(null)
   const prevUrlCountRef = useRef(mediaUrls.length)
 
@@ -253,6 +253,7 @@ function DraftCreator({ onDone, initial }: { onDone: () => void; initial?: BlogP
               <MediaUploadBar
                 mediaUrls={mediaUrls}
                 uploading={uploading}
+                status={uploadStatus}
                 onUpload={handleUpload}
                 onRemove={removeUrl}
                 compact
@@ -373,6 +374,7 @@ function DraftCreator({ onDone, initial }: { onDone: () => void; initial?: BlogP
         <MediaUploadBar
           mediaUrls={mediaUrls}
           uploading={uploading}
+          status={uploadStatus}
           onUpload={handleUpload}
           onRemove={removeUrl}
         />
@@ -758,7 +760,7 @@ function MusicTrackEditor({
     setError('')
     try {
       // Convert WAV/FLAC/AIFF to MP3 client-side before uploading
-      const { needsConversion, convertToMp3 } = await import('../lib/audioConvert')
+      const { needsAudioConversion: needsConversion, convertToMp3 } = await import('../lib/mediaConvert')
       if (needsConversion(file)) {
         setConverting(true)
         file = await convertToMp3(file)

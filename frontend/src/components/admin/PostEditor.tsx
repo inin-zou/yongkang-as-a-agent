@@ -28,7 +28,7 @@ export default function PostEditor({ initial, token, onSave, onCancel }: PostEdi
   const [refining, setRefining] = useState(false)
   const [error, setError] = useState('')
 
-  const { mediaUrls, uploading, error: uploadError, handleUpload, removeUrl } = useBlogMediaUpload()
+  const { mediaUrls, uploading, status: uploadStatus, error: uploadError, handleUpload, removeUrl } = useBlogMediaUpload()
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -166,6 +166,7 @@ export default function PostEditor({ initial, token, onSave, onCancel }: PostEdi
         <MediaUploadBar
           mediaUrls={mediaUrls}
           uploading={uploading}
+          status={uploadStatus}
           onUpload={handleUpload}
           onRemove={removeUrl}
           compact
