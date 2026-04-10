@@ -71,6 +71,7 @@ function DraftCreator({ onDone, initial }: { onDone: () => void; initial?: BlogP
   // Step 1: Input rough idea
   const [title, setTitle] = useState(initial?.title ?? '')
   const [category, setCategory] = useState(initial?.category ?? 'technical')
+  const [publishedAt, setPublishedAt] = useState(initial?.publishedAt?.split('T')[0] ?? '')
   const [roughIdea, setRoughIdea] = useState(initial ? '' : '')
   const [generating, setGenerating] = useState(false)
   const [genError, setGenError] = useState('')
@@ -177,6 +178,7 @@ function DraftCreator({ onDone, initial }: { onDone: () => void; initial?: BlogP
           content: htmlContent,
           preview: editPreview,
           category,
+          publishedAt: publishedAt || undefined,
         })
       }
       queryClient.invalidateQueries({ queryKey: ['admin-posts'] })
@@ -341,6 +343,17 @@ function DraftCreator({ onDone, initial }: { onDone: () => void; initial?: BlogP
           <option value="hackathon">Hackathon Journey</option>
           <option value="research">Research Reading</option>
         </select>
+      </div>
+
+      <div>
+        <label htmlFor="idea-published" className="memory-feedback-label">Published Date</label>
+        <input
+          id="idea-published"
+          type="date"
+          className="memory-feedback-input"
+          value={publishedAt}
+          onChange={(e) => setPublishedAt(e.target.value)}
+        />
       </div>
 
       <div>

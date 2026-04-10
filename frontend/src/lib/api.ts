@@ -94,7 +94,7 @@ export async function submitFeedback(data: { name: string; message: string }): P
 
 export async function createBlogPost(
   token: string,
-  data: { slug: string; title: string; content: string; preview: string; category: string },
+  data: { slug: string; title: string; content: string; preview: string; category: string; publishedAt?: string },
 ): Promise<BlogPost> {
   const res = await fetch(`${BASE_URL}/admin/posts`, {
     method: 'POST',

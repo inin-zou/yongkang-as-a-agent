@@ -443,7 +443,7 @@ func (h *APIHandler) HandleCreateBlogPost(w http.ResponseWriter, r *http.Request
 	if category == "" {
 		category = "technical"
 	}
-	post, err := h.svc.CreateBlogPost(req.Slug, req.Title, req.Content, req.Preview, category)
+	post, err := h.svc.CreateBlogPost(req.Slug, req.Title, req.Content, req.Preview, category, req.PublishedAt)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
