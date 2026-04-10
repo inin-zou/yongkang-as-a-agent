@@ -400,6 +400,20 @@
   margin-bottom: 0.35rem;
 }
 
+/* Mermaid diagrams */
+.blog-post-content pre.mermaid {
+  background: transparent;
+  border: none;
+  padding: var(--space-sm) 0;
+  margin: var(--space-md) 0;
+  overflow-x: auto;
+}
+
+.blog-post-content pre.mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
 .blog-post-content iframe {
   border-radius: 6px;
 }
