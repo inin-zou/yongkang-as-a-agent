@@ -23,12 +23,14 @@ export default function ContactPage() {
   const email = (pageData?.email as string) ?? 'yongkang.zou.ai@gmail.com'
   const github = (pageData?.github as string) ?? 'https://github.com/inin-zou'
   const linkedin = (pageData?.linkedin as string) ?? 'https://www.linkedin.com/in/yongkang-zou'
+  const huggingface = (pageData?.huggingface as string) ?? 'https://huggingface.co/YongkangZOU'
 
   // Edit form state
   const [editMeta, setEditMeta] = useState('')
   const [editEmail, setEditEmail] = useState('')
   const [editGithub, setEditGithub] = useState('')
   const [editLinkedin, setEditLinkedin] = useState('')
+  const [editHuggingface, setEditHuggingface] = useState('')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -41,6 +43,7 @@ export default function ContactPage() {
       setEditEmail(email)
       setEditGithub(github)
       setEditLinkedin(linkedin)
+      setEditHuggingface(huggingface)
       setIsEditing(true)
     }
   }
@@ -54,6 +57,7 @@ export default function ContactPage() {
         email: editEmail,
         github: editGithub,
         linkedin: editLinkedin,
+        huggingface: editHuggingface,
       })
       queryClient.setQueryData(['pages', 'contact'], updated)
       setIsEditing(false)
@@ -67,6 +71,7 @@ export default function ContactPage() {
   // Extract display names from URLs
   const githubDisplay = github.replace(/^https?:\/\/(www\.)?/, '')
   const linkedinDisplay = linkedin.replace(/^https?:\/\/(www\.)?/, '')
+  const huggingfaceDisplay = huggingface.replace(/^https?:\/\/(www\.)?/, '')
 
   if (item === 'message') {
     return (
@@ -143,6 +148,17 @@ export default function ContactPage() {
               />
             </div>
 
+            <div>
+              <label htmlFor="contact-huggingface" className="memory-feedback-label">Hugging Face URL</label>
+              <input
+                id="contact-huggingface"
+                type="url"
+                className="memory-feedback-input"
+                value={editHuggingface}
+                onChange={(e) => setEditHuggingface(e.target.value)}
+              />
+            </div>
+
           </div>
         ) : (
           <>
@@ -164,6 +180,12 @@ export default function ContactPage() {
                 <a href={linkedin} target="_blank" rel="noopener noreferrer" data-interactive style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
                   {linkedinDisplay}
+                </a>
+              </li>
+              <li>
+                <a href={huggingface} target="_blank" rel="noopener noreferrer" data-interactive style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                  <svg width="16" height="16" viewBox="0 0 120 120" fill="currentColor"><path d="M60 0C26.9 0 0 26.9 0 60s26.9 60 60 60 60-26.9 60-60S93.1 0 60 0zm-9.8 80.5c-6.8 0-12.3-5.5-12.3-12.3 0-2.5.8-4.9 2.1-6.8-.3-1.3-.5-2.7-.5-4.1 0-9.6 7.8-17.4 17.4-17.4 3.2 0 6.2.9 8.8 2.4 2.6-1.5 5.6-2.4 8.8-2.4 9.6 0 17.4 7.8 17.4 17.4 0 1.4-.2 2.8-.5 4.1 1.3 1.9 2.1 4.3 2.1 6.8 0 6.8-5.5 12.3-12.3 12.3-3.3 0-6.3-1.3-8.5-3.5-2.2 2.2-5.2 3.5-8.5 3.5s-6.3-1.3-8.5-3.5c-2.2 2.2-5.2 3.5-8.5 3.5z"/></svg>
+                  {huggingfaceDisplay}
                 </a>
               </li>
             </ul>
