@@ -448,7 +448,7 @@ export default function MusicPage() {
 
   const currentTrack = tracks?.find(t => t.slug === item)
 
-  if (currentTrack) return <TrackView track={currentTrack} allTracks={tracks} />
+  if (currentTrack) return <TrackView track={currentTrack} allTracks={tracks ?? []} />
 
   // Fallback: if tracks haven't loaded yet, show loading
   if (!tracks) {
