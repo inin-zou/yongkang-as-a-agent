@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Outlet, useParams, Navigate, NavLink, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import TabNavigation from './TabNavigation'
@@ -9,6 +9,21 @@ import { FILE_TABS, ADMIN_TAB, type TabConfig, type SidebarItem } from '../navig
 import { fetchBlogPosts, fetchMusicTracks } from '../../lib/api'
 import { useAuth } from '../../lib/AuthContext'
 import MusicPlayerBar from './MusicPlayerBar'
+
+function MobileSidebarWrapper({ label, children }: { label: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className={`mobile-sidebar-wrapper ${open ? 'mobile-sidebar-wrapper--open' : ''}`}>
+      <button className="mobile-sidebar-toggle" onClick={() => setOpen(!open)}>
+        <span>{label}</span>
+        <span className={`mobile-sidebar-chevron ${open ? 'mobile-sidebar-chevron--open' : ''}`}>&#9662;</span>
+      </button>
+      <div className="mobile-sidebar-content">
+        {children}
+      </div>
+    </div>
+  )
+}
 
 function AdminTabLink() {
   const { user } = useAuth()
@@ -92,7 +107,11 @@ export default function FileSystemLayout() {
 
         {/* Window body: sidebar + editor */}
         <div className={`app-body ${hasSidebar ? '' : 'no-sidebar'}`}>
-          {hasSidebar && <Sidebar tab={effectiveTab} memoryPosts={isMemory ? (posts ?? []) : undefined} />}
+          {hasSidebar && (
+            <MobileSidebarWrapper label={effectiveTab.label}>
+              <Sidebar tab={effectiveTab} memoryPosts={isMemory ? (posts ?? []) : undefined} />
+            </MobileSidebarWrapper>
+          )}
           <div className="app-editor">
             <Breadcrumb />
             <div className="app-editor-content">
