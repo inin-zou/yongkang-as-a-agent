@@ -37,6 +37,7 @@ function clusterByCity(hackathons: Hackathon[]): CityCluster[] {
 export default function HackathonMap({ hackathons }: { hackathons: Hackathon[] }) {
   const [hoveredCity, setHoveredCity] = useState<CityCluster | null>(null)
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 })
+  const [tooltipFlipped, setTooltipFlipped] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const clusters = useMemo(() => clusterByCity(hackathons), [hackathons])
@@ -143,14 +144,26 @@ export default function HackathonMap({ hackathons }: { hackathons: Hackathon[] }
                 setHoveredCity(pin)
                 if (containerRef.current) {
                   const rect = containerRef.current.getBoundingClientRect()
-                  setTooltipPos({ x: e.clientX - rect.left + 12, y: e.clientY - rect.top - 10 })
+                  const localX = e.clientX - rect.left
+                  const flipped = localX > rect.width * 0.6
+                  setTooltipPos({
+                    x: flipped ? localX - 12 : localX + 12,
+                    y: e.clientY - rect.top - 10,
+                  })
+                  setTooltipFlipped(flipped)
                 }
               }}
               onMouseLeave={() => setHoveredCity(null)}
               onMouseMove={(e) => {
                 if (containerRef.current) {
                   const rect = containerRef.current.getBoundingClientRect()
-                  setTooltipPos({ x: e.clientX - rect.left + 12, y: e.clientY - rect.top - 10 })
+                  const localX = e.clientX - rect.left
+                  const flipped = localX > rect.width * 0.6
+                  setTooltipPos({
+                    x: flipped ? localX - 12 : localX + 12,
+                    y: e.clientY - rect.top - 10,
+                  })
+                  setTooltipFlipped(flipped)
                 }
               }}
             />
@@ -160,7 +173,10 @@ export default function HackathonMap({ hackathons }: { hackathons: Hackathon[] }
 
       {/* Tooltip */}
       {hoveredCity && (
-        <div className="hackathon-tooltip" style={{ left: tooltipPos.x, top: tooltipPos.y }}>
+        <div className="hackathon-tooltip" style={tooltipFlipped
+          ? { right: `calc(100% - ${tooltipPos.x}px)`, top: tooltipPos.y }
+          : { left: tooltipPos.x, top: tooltipPos.y }
+        }>
           <div className="hackathon-tooltip-city">{hoveredCity.city}, {hoveredCity.country}</div>
           <div className="hackathon-tooltip-count">{hoveredCity.count} hackathon{hoveredCity.count > 1 ? 's' : ''}</div>
           {hoveredCity.hackathons.map((h, i) => (
