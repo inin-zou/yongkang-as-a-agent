@@ -344,11 +344,18 @@
   color: var(--color-prism-teal);
 }
 
-.blog-post-content img,
-.blog-post-content video {
+.blog-post-content img {
   max-width: 100%;
   border-radius: 6px;
   margin: var(--space-sm) 0;
+}
+
+.blog-post-content video {
+  max-width: 100%;
+  max-height: 60vh;
+  border-radius: 6px;
+  margin: var(--space-sm) auto;
+  display: block;
 }
 
 /* No extra margin when inside a figure */
