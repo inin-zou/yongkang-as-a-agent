@@ -27,7 +27,7 @@ export async function convertToMp3(file: File): Promise<File> {
   await ff.deleteFile(inputName)
   await ff.deleteFile(outputName)
 
-  const blob = new Blob([data], { type: 'audio/mpeg' })
+  const blob = new Blob([data as Uint8Array], { type: 'audio/mpeg' })
   const mp3Name = file.name.replace(/\.[^.]+$/, '.mp3')
   return new File([blob], mp3Name, { type: 'audio/mpeg' })
 }
