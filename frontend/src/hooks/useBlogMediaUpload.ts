@@ -50,15 +50,12 @@ export function useBlogMediaUpload(): UseBlogMediaUploadReturn {
           file = await convertHEIC(file)
         }
 
-        // Auto-compress videos that exceed the size limit
+        // Check video size limit
         if (isVideo(file) && file.size > MAX_UPLOAD_SIZE) {
-          setStatus(`Compressing video (${(file.size / 1024 / 1024).toFixed(0)}MB)...`)
-          const { compressVideo } = await import('../lib/mediaConvert')
-          file = await compressVideo(file, MAX_UPLOAD_SIZE_MB - 5)
-          // If still too large after compression, error out
-          if (file.size > MAX_UPLOAD_SIZE) {
-            throw new Error(`Video still too large after compression (${(file.size / 1024 / 1024).toFixed(0)}MB). Try a shorter clip.`)
-          }
+          throw new Error(
+            `Video too large (${(file.size / 1024 / 1024).toFixed(0)}MB). ` +
+            `Max ${MAX_UPLOAD_SIZE_MB}MB. Compress with HandBrake or ffmpeg before uploading.`
+          )
         }
 
         setStatus('Uploading...')
