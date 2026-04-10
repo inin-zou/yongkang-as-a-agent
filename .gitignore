@@ -18,4 +18,11 @@ backend/bin/
 
 # Superpowers
 .superpowers/
+
+# Vercel
 .vercel
+.env.vercel
+
+# Playwright MCP (temp snapshots/logs)
+.playwright-mcp/
+frontend/test-results/
