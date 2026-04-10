@@ -34,8 +34,8 @@ export default function BlogPostContent({ html }: BlogPostContentProps) {
     const mermaidBlocks = el.querySelectorAll('pre.mermaid')
     if (mermaidBlocks.length === 0) return
 
-    // Dynamically import mermaid (only when needed)
-    import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs' as string).then((mod) => {
+    // Dynamic import so mermaid only loads when a post has diagrams
+    import('mermaid').then((mod) => {
       const mermaid = mod.default
       mermaid.initialize({
         startOnLoad: false,
@@ -47,13 +47,9 @@ export default function BlogPostContent({ html }: BlogPostContentProps) {
           lineColor: '#707070',
           secondaryColor: '#4dd0e1',
           tertiaryColor: '#3a3a3c',
-          fontFamily: 'var(--font-mono, monospace)',
-          fontSize: '12px',
         },
       })
       mermaid.run({ nodes: mermaidBlocks as NodeListOf<HTMLElement> })
-    }).catch(() => {
-      // Mermaid failed to load — leave as code blocks
     })
   }, [html])
 
