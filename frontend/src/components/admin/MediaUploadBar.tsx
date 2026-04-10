@@ -18,7 +18,7 @@ export default function MediaUploadBar({ mediaUrls, uploading, onUpload, onRemov
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*,video/*"
+          accept="image/*,video/*,.heic,.heif"
           multiple
           onChange={onUpload}
           style={{ display: 'none' }}
