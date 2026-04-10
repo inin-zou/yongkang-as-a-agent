@@ -400,6 +400,33 @@
   margin-bottom: 0.35rem;
 }
 
+/* Horizontal rule + closing note */
+.blog-post-content hr {
+  border: none;
+  height: 1px;
+  background: var(--glass-border);
+  margin: var(--space-lg) 0 var(--space-md);
+}
+
+.blog-post-content hr + p {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-ink-faint);
+  line-height: 1.6;
+  border-left: 2px solid var(--glass-border);
+  padding-left: var(--space-sm);
+}
+
+.blog-post-content hr + p a {
+  color: var(--color-ink-muted);
+  border-bottom-color: var(--glass-border);
+}
+
+.blog-post-content hr + p a:hover {
+  color: var(--color-prism-teal);
+  border-bottom-color: var(--color-prism-teal);
+}
+
 /* Mermaid diagrams */
 .blog-post-content pre.mermaid {
   background: transparent;
