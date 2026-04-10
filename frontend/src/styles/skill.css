@@ -589,4 +589,5 @@ a.cli-log-project:hover {
   color: var(--color-ink-muted);
   font-size: 0.85rem;
   margin-top: 2px;
+  white-space: pre-line;
 }
