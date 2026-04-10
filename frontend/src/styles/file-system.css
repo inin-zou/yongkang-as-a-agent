@@ -593,39 +593,46 @@
 }
 
 /* ===== Social-media-style image gallery ===== */
-/* Image gallery: flexbox row, equal height, no cropping */
+/* Image gallery: LinkedIn-style grid, crop with generous 3:4 ratio */
 .blog-post-content .img-gallery {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 4px;
   margin: var(--space-lg) 0;
   border-radius: 10px;
   overflow: hidden;
 }
 
+/* Single image: full width */
+.blog-post-content .img-gallery.img-gallery--1 {
+  grid-template-columns: 1fr;
+}
+
 .blog-post-content .img-gallery figure {
   margin: 0;
   overflow: hidden;
   border-radius: 4px;
-  background: rgba(0, 0, 0, 0.2);
-  flex: 1 1 auto;
-  min-width: 120px;
-  max-height: 300px;
+  aspect-ratio: 3 / 4;
+}
+
+.blog-post-content .img-gallery.img-gallery--1 figure {
+  aspect-ratio: 4 / 3;
 }
 
 .blog-post-content .img-gallery img {
   width: 100%;
   height: 100%;
-  max-height: 300px;
-  object-fit: contain;
+  max-height: none;
+  object-fit: cover;
   margin: 0;
   border-radius: 0;
   display: block;
-  transition: opacity 0.15s ease;
+  cursor: zoom-in;
+  transition: transform 0.2s ease;
 }
 
 .blog-post-content .img-gallery img:hover {
-  opacity: 0.85;
+  transform: scale(1.03);
 }
 
 .blog-post-content .img-gallery figcaption {
