@@ -4,12 +4,13 @@ import '../../styles/admin.css'
 interface MediaUploadBarProps {
   mediaUrls: string[]
   uploading: boolean
+  status?: string
   onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void
   onRemove: (index: number) => void
   compact?: boolean
 }
 
-export default function MediaUploadBar({ mediaUrls, uploading, onUpload, onRemove, compact }: MediaUploadBarProps) {
+export default function MediaUploadBar({ mediaUrls, uploading, status, onUpload, onRemove, compact }: MediaUploadBarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   return (
@@ -29,7 +30,7 @@ export default function MediaUploadBar({ mediaUrls, uploading, onUpload, onRemov
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
         >
-          {uploading ? 'UPLOADING...' : '📷 UPLOAD'}
+          {uploading ? (status || 'UPLOADING...') : '📷 UPLOAD'}
         </button>
         {mediaUrls.length > 0 && (
           <span className="media-upload-count">
