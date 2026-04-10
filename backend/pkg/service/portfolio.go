@@ -145,11 +145,11 @@ func (s *PortfolioService) CreateContactSubmission(name, email, message string) 
 }
 
 // CreateBlogPost creates a new blog post.
-func (s *PortfolioService) CreateBlogPost(slug, title, content, preview, category string) (*model.BlogPost, error) {
+func (s *PortfolioService) CreateBlogPost(slug, title, content, preview, category, publishedAt string) (*model.BlogPost, error) {
 	if s.supabase == nil {
 		return nil, fmt.Errorf("database not configured")
 	}
-	return s.supabase.CreateBlogPost(slug, title, content, preview, category)
+	return s.supabase.CreateBlogPost(slug, title, content, preview, category, publishedAt)
 }
 
 // UpdateBlogPost updates an existing blog post.

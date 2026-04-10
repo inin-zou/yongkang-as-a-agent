@@ -104,13 +104,22 @@ func (r *SupabaseRepository) CreateContactSubmission(name, email, message string
 }
 
 // CreateBlogPost creates a new blog post and returns it.
-func (r *SupabaseRepository) CreateBlogPost(slug, title, content, preview, category string) (*model.BlogPost, error) {
+func (r *SupabaseRepository) CreateBlogPost(slug, title, content, preview, category, publishedAt string) (*model.BlogPost, error) {
 	var p model.BlogPost
-	err := r.db.QueryRow(`
-		INSERT INTO blog_posts (slug, title, content, preview, category)
-		VALUES ($1, $2, $3, $4, $5)
-		RETURNING id, slug, title, content, preview, category, published_at, updated_at
-	`, slug, title, content, preview, category).Scan(&p.ID, &p.Slug, &p.Title, &p.Content, &p.Preview, &p.Category, &p.PublishedAt, &p.UpdatedAt)
+	var err error
+	if publishedAt != "" {
+		err = r.db.QueryRow(`
+			INSERT INTO blog_posts (slug, title, content, preview, category, published_at)
+			VALUES ($1, $2, $3, $4, $5, $6::timestamptz)
+			RETURNING id, slug, title, content, preview, category, published_at, updated_at
+		`, slug, title, content, preview, category, publishedAt+"T00:00:00Z").Scan(&p.ID, &p.Slug, &p.Title, &p.Content, &p.Preview, &p.Category, &p.PublishedAt, &p.UpdatedAt)
+	} else {
+		err = r.db.QueryRow(`
+			INSERT INTO blog_posts (slug, title, content, preview, category)
+			VALUES ($1, $2, $3, $4, $5)
+			RETURNING id, slug, title, content, preview, category, published_at, updated_at
+		`, slug, title, content, preview, category).Scan(&p.ID, &p.Slug, &p.Title, &p.Content, &p.Preview, &p.Category, &p.PublishedAt, &p.UpdatedAt)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to create blog post: %w", err)
 	}
