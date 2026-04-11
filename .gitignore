@@ -23,6 +23,9 @@ backend/bin/
 .vercel
 .env.vercel
 
+# Music files (stored in Supabase Storage)
+backend/data/music/
+
 # Playwright MCP (temp snapshots/logs)
 .playwright-mcp/
 frontend/test-results/
