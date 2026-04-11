@@ -24,22 +24,42 @@ interface GraphEdge {
   target: string
 }
 
-/* ── colors per kind ───────────────────────────────────────── */
+/* ── colors per kind (holographic minimalism: desaturated fill + prismatic glow) */
 
-const KIND_COLORS: Record<NodeKind, string> = {
-  skill: '#4dd0e1',     // prism-teal
-  company: '#ff8a65',   // prism-coral
-  domain: '#b388ff',    // prism-lavender
-  hackathon: '#555555',  // muted grey
-  tech: '#69f0ae',      // prism-mint
+// Desaturated fills — soft, milky versions that sit on warm grey
+const KIND_FILL: Record<NodeKind, string> = {
+  skill: 'rgba(77, 208, 225, 0.35)',    // teal, translucent
+  company: 'rgba(255, 138, 101, 0.3)',   // coral, translucent
+  domain: 'rgba(179, 136, 255, 0.3)',    // lavender, translucent
+  hackathon: 'rgba(255, 255, 255, 0.06)', // barely visible
+  tech: 'rgba(105, 240, 174, 0.25)',     // mint, translucent
 }
 
+// Full-saturation stroke for the ring
+const KIND_STROKE: Record<NodeKind, string> = {
+  skill: 'rgba(77, 208, 225, 0.7)',
+  company: 'rgba(255, 138, 101, 0.6)',
+  domain: 'rgba(179, 136, 255, 0.6)',
+  hackathon: 'rgba(255, 255, 255, 0.1)',
+  tech: 'rgba(105, 240, 174, 0.5)',
+}
+
+// Glow halo color (used with shadowBlur for holographic bleed)
 const KIND_GLOW: Record<NodeKind, string> = {
-  skill: 'rgba(77, 208, 225, 0.3)',
-  company: 'rgba(255, 138, 101, 0.3)',
-  domain: 'rgba(179, 136, 255, 0.3)',
-  hackathon: 'rgba(85, 85, 85, 0.1)',
-  tech: 'rgba(105, 240, 174, 0.25)',
+  skill: '#4dd0e1',
+  company: '#ff8a65',
+  domain: '#b388ff',
+  hackathon: 'transparent',
+  tech: '#69f0ae',
+}
+
+// Solid colors for legend dots
+const KIND_LEGEND: Record<NodeKind, string> = {
+  skill: '#4dd0e1',
+  company: '#ff8a65',
+  domain: '#b388ff',
+  hackathon: '#555',
+  tech: '#69f0ae',
 }
 
 /* ── domain → skill domain mapping ─────────────────────────── */
@@ -152,12 +172,32 @@ function buildGraph(
     }
   }
 
+  // Size ALL nodes by connection count (edge degree)
+  const degreeMap = new Map<string, number>()
+  for (const e of edges) {
+    degreeMap.set(e.source, (degreeMap.get(e.source) ?? 0) + 1)
+    degreeMap.set(e.target, (degreeMap.get(e.target) ?? 0) + 1)
+  }
+  // Min/max radius per kind
+  const RADIUS_RANGE: Record<NodeKind, [number, number]> = {
+    skill:     [12, 28],
+    company:   [8, 18],
+    domain:    [8, 18],
+    hackathon: [3, 8],
+    tech:      [3, 14],
+  }
+  for (const n of nodes) {
+    const degree = degreeMap.get(n.id) ?? 1
+    const [min, max] = RADIUS_RANGE[n.kind]
+    n.radius = Math.min(max, min + degree * 1.5)
+  }
+
   // Initialize positions in a circle
-  const cx = 0, cy = 0, r = 250
+  const cx = 0, cy = 0, r = 300
   nodes.forEach((n, i) => {
     const angle = (2 * Math.PI * i) / nodes.length
-    n.x = cx + r * Math.cos(angle) + (Math.random() - 0.5) * 50
-    n.y = cy + r * Math.sin(angle) + (Math.random() - 0.5) * 50
+    n.x = cx + r * Math.cos(angle) + (Math.random() - 0.5) * 60
+    n.y = cy + r * Math.sin(angle) + (Math.random() - 0.5) * 60
   })
 
   return { nodes, edges }
@@ -320,7 +360,7 @@ export default function KnowledgeGraph() {
       }
     }
 
-    // Draw nodes
+    // Draw nodes (holographic: glow halo → translucent fill → thin stroke ring)
     for (const n of nodes) {
       const isHovered = hovered?.id === n.id
       const isConnected = hovered && edges.some(
@@ -328,24 +368,40 @@ export default function KnowledgeGraph() {
              (e.target === hovered.id && e.source === n.id)
       )
       const dimmed = hovered && !isHovered && !isConnected
+      const r = isHovered ? n.radius * 1.3 : n.radius
 
-      // Glow
-      if ((isHovered || isConnected) && n.kind !== 'hackathon') {
-        ctx.shadowColor = KIND_GLOW[n.kind]
-        ctx.shadowBlur = 12
+      if (dimmed) {
+        // Dimmed: barely visible dot
+        ctx.globalAlpha = 0.15
+        ctx.fillStyle = 'rgba(255,255,255,0.1)'
+        ctx.beginPath()
+        ctx.arc(n.x, n.y, r, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.globalAlpha = 1
+      } else {
+        // 1. Glow halo (always on for non-hackathon, brighter on hover)
+        if (n.kind !== 'hackathon') {
+          ctx.shadowColor = KIND_GLOW[n.kind]
+          ctx.shadowBlur = isHovered ? 24 : 10
+          ctx.fillStyle = 'rgba(0,0,0,0.01)' // invisible fill to trigger shadow
+          ctx.beginPath()
+          ctx.arc(n.x, n.y, r + 2, 0, Math.PI * 2)
+          ctx.fill()
+          ctx.shadowColor = 'transparent'
+          ctx.shadowBlur = 0
+        }
+
+        // 2. Translucent fill
+        ctx.fillStyle = KIND_FILL[n.kind]
+        ctx.beginPath()
+        ctx.arc(n.x, n.y, r, 0, Math.PI * 2)
+        ctx.fill()
+
+        // 3. Thin stroke ring
+        ctx.strokeStyle = KIND_STROKE[n.kind]
+        ctx.lineWidth = isHovered ? 1.5 : 0.8
+        ctx.stroke()
       }
-
-      ctx.fillStyle = dimmed
-        ? 'rgba(255,255,255,0.08)'
-        : KIND_COLORS[n.kind]
-      ctx.globalAlpha = dimmed ? 0.3 : (n.kind === 'hackathon' ? 0.5 : 0.9)
-      ctx.beginPath()
-      ctx.arc(n.x, n.y, isHovered ? n.radius * 1.3 : n.radius, 0, Math.PI * 2)
-      ctx.fill()
-
-      ctx.shadowColor = 'transparent'
-      ctx.shadowBlur = 0
-      ctx.globalAlpha = 1
 
       // Labels: skip small nodes unless hovered/connected
       const isSmallNode = n.kind === 'hackathon' || (n.kind === 'tech' && n.radius <= 5)
@@ -372,8 +428,8 @@ export default function KnowledgeGraph() {
     ]
     kinds.forEach(({ kind, label }, i) => {
       const y = legendY + i * 18
-      ctx.fillStyle = KIND_COLORS[kind]
-      ctx.globalAlpha = kind === 'hackathon' ? 0.5 : 0.9
+      ctx.fillStyle = KIND_LEGEND[kind]
+      ctx.globalAlpha = kind === 'hackathon' ? 0.4 : 0.8
       ctx.beginPath()
       ctx.arc(legendX, y + 5, 4, 0, Math.PI * 2)
       ctx.fill()
