@@ -75,6 +75,35 @@ const DOMAIN_SKILL_MAP: Record<string, string[]> = {
   'Geospatial ML': ['ML Training', 'Data & Visualization', 'Cloud & Deploy'],
 }
 
+/* ── hackathon → tech stack (from GitHub repo analysis) ────── */
+
+const HACKATHON_TECHS: Record<string, string[]> = {
+  'Gemini Hackathon': ['Go', 'TypeScript', 'Python', 'Gemini', 'AWS', 'Modal'],
+  'From RAG to Agentic AI': ['Python', 'React', 'Claude', 'AWS'],
+  'Big Berlin': ['TypeScript', 'Next.js', 'React', 'Python', 'Modal', 'n8n', 'Weaviate'],
+  'Hack Nation MIT': ['TypeScript', 'Python', 'Go', 'Modal'],
+  'Mistral Online': ['TypeScript', 'Python', 'Express', 'ElevenLabs', 'Mistral', 'HuggingFace', 'Docker'],
+  'Quantum Challenge': ['Python', 'Qiskit'],
+  'Junction': ['TypeScript', 'Next.js', 'Dify', 'Vercel'],
+  'AMD Hackathon': ['Python', 'vLLM'],
+  'Project ElevenLabs': ['TypeScript', 'Python', 'FastAPI', 'Claude', 'Docker', 'Supabase'],
+  'Mistral AI MCP': ['Python', 'Mistral', 'MCP', 'AWS', 'Vercel'],
+  'Tech Europe Paris': ['TypeScript', 'Next.js', 'React', 'Go', 'MCP', 'OpenAI', 'PostgreSQL', 'Supabase', 'Tailwind'],
+  'Phagos': ['Python', 'PyTorch', 'HuggingFace'],
+  'Pond Speedrun': ['Python', 'Go', 'FastAPI', 'ElevenLabs', 'Vercel'],
+  'Doctolib': ['Python'],
+  'GeoAI Hack': ['Python', 'Go', 'HuggingFace'],
+  'Datacraft': ['Python', 'Mistral', 'Weaviate', 'Vue'],
+  'TechEurope Stockholm': ['TypeScript', 'Go', 'React', 'Gemini', 'Supabase', 'Tailwind'],
+  'Dify Paris': ['Python', 'Dify'],
+  'SpotOn Edge Device': ['Python'],
+  'RAISE Summit': ['Python', 'ElevenLabs'],
+  'TechEurope Paris': ['TypeScript', 'Python', 'React', 'ElevenLabs', 'OpenAI', 'Modal'],
+  'Entrepreneurs First': ['TypeScript', 'Claude'],
+  'ShipItSunday': ['Python', 'TypeScript', 'OpenAI', 'Redis', 'Supabase'],
+  'HackEurope': ['TypeScript', 'Next.js', 'React', 'Go', 'Redis', 'Tailwind', 'Vercel'],
+}
+
 /* ── build graph from API data ─────────────────────────────── */
 
 function buildGraph(
@@ -121,6 +150,7 @@ function buildGraph(
     addNode(`hack:${h.name}`, h.projectName || h.name, 'hackathon', 6)
     // edge: hackathon → its domain
     if (h.domain) addEdge(`hack:${h.name}`, `domain:${h.domain}`)
+    // hackathon → tech edges are wired in step 8 (after tech nodes are created)
   }
 
   // 5. Edges: skill domain → company (via battle_tested)
@@ -164,11 +194,18 @@ function buildGraph(
       allTechs.push(...(sub.skills ?? []))
     }
     for (const tech of allTechs) {
-      const count = techDomainCount.get(tech) ?? 1
-      // Scale radius: single-domain techs are tiny, multi-domain techs grow
-      const radius = count > 1 ? 5 + count * 2 : 4
-      addNode(`tech:${tech}`, tech, 'tech', radius)
+      addNode(`tech:${tech}`, tech, 'tech', 4) // placeholder radius, resized below
       addEdge(`tech:${tech}`, `skill:${s.title}`)
+    }
+  }
+
+  // 8. Create tech nodes from hackathon stacks that aren't already in skill domains
+  //    and wire up the hackathon → tech edges (deferred from step 4)
+  for (const h of hackathons) {
+    const techs = HACKATHON_TECHS[h.name] ?? []
+    for (const tech of techs) {
+      addNode(`tech:${tech}`, tech, 'tech', 4)
+      addEdge(`hack:${h.name}`, `tech:${tech}`)
     }
   }
 
