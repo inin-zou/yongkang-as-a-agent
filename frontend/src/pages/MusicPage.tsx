@@ -444,7 +444,7 @@ function ArtistOverview() {
                       fontSize: '0.95rem',
                       lineHeight: 1.7,
                       color: 'var(--color-ink)',
-                      fontStyle: 'italic',
+                      fontStyle: 'normal',
                     }}>
                       {desc.join(' ')}
                     </p>
