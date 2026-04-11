@@ -7,7 +7,14 @@ import Layout from './components/global/Layout'
 import FileSystemLayout from './components/global/FileSystemLayout'
 import NoiseOverlay from './components/global/NoiseOverlay'
 
-const queryClient = new QueryClient()
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      gcTime: 0,                  // don't keep stale data after unmount
+      refetchOnWindowFocus: false, // don't refetch when tabbing back to browser
+    },
+  },
+})
 
 // Lazy-loaded pages — retryImport reloads on stale chunk errors after deploys
 function retryImport<T>(fn: () => Promise<T>): Promise<T> {
