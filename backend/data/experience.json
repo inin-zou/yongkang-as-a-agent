@@ -1,85 +1,109 @@
 [
   {
-    "role": "Assistant Financial Analyst Intern",
-    "company": "CITIC Securities",
-    "location": "Beijing, China",
-    "startDate": "2022-07",
-    "endDate": "2022-09",
-    "skillAssembled": "Analytical thinking and financial modeling — learned to evaluate companies through data, build DCF models, and present quantitative stories to senior stakeholders",
-    "highlights": [
-      "Built DCF valuation models for equity research covering multiple sectors",
-      "Analyzed financial statements and market data to support investment recommendations",
-      "Created data visualizations and dashboards for senior analyst presentations",
-      "Developed proficiency in financial data analysis using Excel VBA and Python"
-    ]
-  },
-  {
-    "role": "Data Scientist Intern",
-    "company": "Smart Gadget Home",
-    "location": "Paris, France",
-    "startDate": "2023-07",
-    "endDate": "2023-09",
-    "skillAssembled": "ML foundations and optimization — applied XGBoost and deep learning to real inventory problems, achieving 150% improvement in pricing",
-    "highlights": [
-      "Developed pricing optimization model using XGBoost achieving 150% improvement over baseline",
-      "Applied deep learning techniques to inventory demand forecasting",
-      "Built data pipelines for cleaning and preprocessing e-commerce product data",
-      "Deployed ML models to production environment for real-time pricing recommendations"
-    ]
-  },
-  {
-    "role": "Data Scientist / AI Consultant Intern",
-    "company": "Societe Generale (via Alenia)",
-    "location": "Paris, France",
-    "startDate": "2024-04",
-    "endDate": "2024-10",
-    "skillAssembled": "Enterprise AI and RAG systems — built production RAG chatbot with LangChain and ElasticSearch, learned to navigate corporate AI deployment",
-    "highlights": [
-      "Built production RAG chatbot using LangChain and ElasticSearch for internal knowledge retrieval",
-      "Implemented hybrid search combining dense vector and sparse keyword retrieval for improved accuracy",
-      "Designed and deployed document ingestion pipeline processing thousands of internal documents",
-      "Navigated enterprise security and compliance requirements for AI system deployment"
-    ]
-  },
-  {
+    "id": "3a43cb67-42d1-4ea5-a9f8-95ff56a4d8da",
     "role": "AI Engineer",
     "company": "Misogi Labs",
     "location": "Paris, France",
-    "startDate": "2025-05",
-    "endDate": "2025-09",
-    "skillAssembled": "Multi-agent orchestration — developed molecule screening systems with PaperQA and LangGraph, coordinating AI workflows for drug discovery",
+    "start_date": "2025-05",
+    "end_date": "2025-09",
+    "skill_assembled": "Multi-agent orchestration — developed molecule screening systems with PaperQA and LangGraph, coordinating AI workflows for drug discovery",
     "highlights": [
       "Developed multi-agent molecule screening system using PaperQA and LangGraph for drug discovery",
       "Orchestrated AI workflows coordinating literature search, molecular analysis, and candidate ranking",
       "Integrated scientific paper retrieval with molecular property prediction models",
       "Built automated pipelines for screening potential drug candidates against target criteria"
-    ]
+    ],
+    "note": null,
+    "sort_order": 3,
+    "created_at": "2026-04-07T17:08:56.012339+00:00"
   },
   {
+    "id": "5ab99a20-1e7c-4dd6-8c3a-93a16f45429f",
     "role": "AI Engineer",
     "company": "Mozart AI",
     "location": "Paris, France",
-    "startDate": "2025-10",
-    "endDate": "2026-01",
-    "skillAssembled": "Creative AI and music engineering — built end-to-end agentic workflows for AI music video creation, bridging technical AI with artistic production",
+    "start_date": "2025-10",
+    "end_date": "2026-01",
+    "skill_assembled": "Creative AI + music engineering — built end-to-end agentic workflows for AI music video creation, bridging technical AI with artistic production",
     "highlights": [
       "Built end-to-end agentic workflows for AI music video creation",
       "Developed front-end audio interaction features for real-time music manipulation",
       "Integrated multiple AI models for coordinated audio-visual content generation",
       "Bridged technical AI engineering with artistic production requirements"
-    ]
+    ],
+    "note": null,
+    "sort_order": 4,
+    "created_at": "2026-04-07T17:08:56.012339+00:00"
   },
   {
-    "role": "AI Engineer",
+    "id": "5e72d34b-63f6-4a3d-93f8-a519df13e95f",
+    "role": "Assistant Financial Analyst Intern",
+    "company": "CITIC Securities",
+    "location": "Beijing, China",
+    "start_date": "2022-07",
+    "end_date": "2022-09",
+    "skill_assembled": "Analytical thinking and financial modeling — learned to evaluate companies through data, build DCF models, and present quantitative stories to senior stakeholders",
+    "highlights": [
+      "Built DCF valuation models for equity research covering multiple sectors",
+      "Analyzed financial statements and market data to support investment recommendations",
+      "Created data visualizations and dashboards for senior analyst presentations",
+      "Developed proficiency in financial data analysis using Excel VBA and Python"
+    ],
+    "note": null,
+    "sort_order": 0,
+    "created_at": "2026-04-07T17:08:56.012339+00:00"
+  },
+  {
+    "id": "8ad32de0-0074-4762-aa4b-5e9709fdc809",
+    "role": "Data Scientist Intern",
+    "company": "Smart Gadget Home",
+    "location": "Paris, France",
+    "start_date": "2023-07",
+    "end_date": "2023-09",
+    "skill_assembled": "ML foundations and optimization — applied XGBoost and deep learning to real inventory problems, achieving 150% improvement in pricing",
+    "highlights": [
+      "Developed pricing optimization model using XGBoost achieving 150% improvement over baseline",
+      "Applied deep learning techniques to inventory demand forecasting",
+      "Built data pipelines for cleaning and preprocessing e-commerce product data",
+      "Deployed ML models to production environment for real-time pricing recommendations"
+    ],
+    "note": null,
+    "sort_order": 1,
+    "created_at": "2026-04-07T17:08:56.012339+00:00"
+  },
+  {
+    "id": "960678c5-fb0e-46e8-9491-ff3b1511e8c8",
+    "role": "Data Scientist / AI Consultant Intern",
+    "company": "Societe Generale (via Alenia)",
+    "location": "Paris, France",
+    "start_date": "2024-04",
+    "end_date": "2024-10",
+    "skill_assembled": "Enterprise AI and RAG systems — built production RAG chatbot with LangChain and ElasticSearch, learned to navigate corporate AI deployment",
+    "highlights": [
+      "Built production RAG chatbot using LangChain and ElasticSearch for internal knowledge retrieval",
+      "Implemented hybrid search combining dense vector and sparse keyword retrieval for improved accuracy",
+      "Designed and deployed document ingestion pipeline processing thousands of internal documents",
+      "Navigated enterprise security and compliance requirements for AI system deployment"
+    ],
+    "note": null,
+    "sort_order": 2,
+    "created_at": "2026-04-07T17:08:56.012339+00:00"
+  },
+  {
+    "id": "afb27d44-3bce-4ac1-8520-2326547804b6",
+    "role": "Founding AI Engineer",
     "company": "Epiminds",
     "location": "Stockholm, Sweden",
-    "startDate": "2026-02",
-    "endDate": "2026-03",
-    "skillAssembled": "Marketing AI — applied AI agent techniques to content marketing automation",
+    "start_date": "2026-02",
+    "end_date": "2026-03",
+    "skill_assembled": "Marketing AI — applied AI agent techniques to content marketing automation",
     "highlights": [
-      "Applied AI agent techniques to automate content marketing workflows",
-      "Built marketing content generation pipelines using LLM-based agents"
+      "Applied AI agent techniques to automate ad distribution workflows",
+      "Built marketing content generation pipelines using LLM-based agents",
+      "Optimisation and Eval for Agentic System (20+ specialist agents)"
     ],
-    "note": "Team restructured"
+    "note": null,
+    "sort_order": 5,
+    "created_at": "2026-04-07T17:08:56.012339+00:00"
   }
 ]

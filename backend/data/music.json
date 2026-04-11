@@ -1,12 +1,68 @@
-{
-  "artistName": "inhibitor",
-  "genre": "Alternative RnB / Lo-Fi",
-  "status": "Recording in progress",
-  "location": "Paris, France",
-  "bio": "inhibitor is an indie RnB singer-songwriter crafting emotional soundscapes that bridge the gap between digital production and raw human feeling.",
-  "platforms": {
-    "spotify": "https://open.spotify.com/search/inhibitor",
-    "douyin": "https://www.douyin.com/user/MS4wLjABAAAA2h40NMhjS5rGc09h9kFMxb0_2DP7H5vpCZza_OP_ymbrLM6j2_2HQa-_Lbju4VER",
-    "netease": "https://music.163.com/#/artist?id=31338333"
+[
+  {
+    "id": "045a5495-9d11-48db-aa9a-743dac6cf115",
+    "slug": "dream",
+    "name": "Dream",
+    "genre": "Lo-Fi RnB",
+    "original": "keshi",
+    "notes": "",
+    "file_url": "https://ktdvafynhgszkmrgmeyk.supabase.co/storage/v1/object/public/music/Dream.mp3",
+    "sort_order": 2,
+    "created_at": "2026-04-07T22:34:25.237524+00:00"
+  },
+  {
+    "id": "344bb917-7c1a-4576-9a88-4bd3d2082725",
+    "slug": "deep-green",
+    "name": "Deep Green",
+    "genre": "RnB",
+    "original": "Christian Kuria",
+    "notes": "",
+    "file_url": "https://ktdvafynhgszkmrgmeyk.supabase.co/storage/v1/object/public/blog-media/music/1775783431253-cy8j93inmsi.mp3",
+    "sort_order": 6,
+    "created_at": "2026-04-10T01:11:13.329236+00:00"
+  },
+  {
+    "id": "5ccfcc6a-63b9-4a13-8d78-3277c1693c93",
+    "slug": "light",
+    "name": "light",
+    "genre": "lo-fi indie pop / indie rock",
+    "original": "Wave To Earth",
+    "notes": "",
+    "file_url": "https://ktdvafynhgszkmrgmeyk.supabase.co/storage/v1/object/public/blog-media/music/1775780297765-swsdtanipx.mp3",
+    "sort_order": 0,
+    "created_at": "2026-04-10T00:19:29.526435+00:00"
+  },
+  {
+    "id": "67ea7d3b-fa8b-4fcb-902c-b524d7478976",
+    "slug": "fall-into-me",
+    "name": "Fall Into Me",
+    "genre": "Alternative RnB",
+    "original": "Sylo",
+    "notes": "",
+    "file_url": "https://ktdvafynhgszkmrgmeyk.supabase.co/storage/v1/object/public/blog-media/music/1775835274178-9i2bbj4ndv.mp3",
+    "sort_order": 3,
+    "created_at": "2026-04-10T15:35:34.772957+00:00"
+  },
+  {
+    "id": "8350447f-cfdd-45c3-ad79-bec8f6bc7913",
+    "slug": "futile-devices",
+    "name": "Futile Devices",
+    "genre": "Indie Pop",
+    "original": "Sufjan Stevens",
+    "notes": "",
+    "file_url": "https://ktdvafynhgszkmrgmeyk.supabase.co/storage/v1/object/public/blog-media/music/1775780752871-q4oo7mz9xy8.mp3",
+    "sort_order": 5,
+    "created_at": "2026-04-10T00:26:50.456806+00:00"
+  },
+  {
+    "id": "e197f0d5-e3ed-4edb-8153-c9bedf054983",
+    "slug": "soft-spot",
+    "name": "Soft Spot",
+    "genre": "Lo-Fi RnB",
+    "original": "keshi",
+    "notes": "",
+    "file_url": "https://ktdvafynhgszkmrgmeyk.supabase.co/storage/v1/object/public/music/Soft%20Spot.mp3",
+    "sort_order": 1,
+    "created_at": "2026-04-07T22:34:25.237524+00:00"
   }
-}
+]
