@@ -6,6 +6,7 @@ import { MusicPlayerProvider } from './lib/MusicPlayerContext'
 import Layout from './components/global/Layout'
 import FileSystemLayout from './components/global/FileSystemLayout'
 import NoiseOverlay from './components/global/NoiseOverlay'
+import ErrorBoundary from './components/global/ErrorBoundary'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -115,7 +116,9 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <MusicPlayerProvider>
         <AuthProvider>
-          <RouterProvider router={router} />
+          <ErrorBoundary>
+            <RouterProvider router={router} />
+          </ErrorBoundary>
         </AuthProvider>
       </MusicPlayerProvider>
     </QueryClientProvider>

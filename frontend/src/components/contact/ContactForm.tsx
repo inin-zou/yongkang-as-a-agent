@@ -88,6 +88,7 @@ export default function ContactForm() {
   return (
     <form
       onSubmit={handleSubmit}
+      aria-describedby="contact-status"
       style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}
     >
       {/* Name */}
@@ -180,30 +181,32 @@ export default function ContactForm() {
       </button>
 
       {/* Status message */}
-      {status === 'success' && (
-        <p
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.8rem',
-            color: 'var(--color-win)',
-            margin: 0,
-          }}
-        >
-          {statusMessage}
-        </p>
-      )}
-      {status === 'error' && (
-        <p
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '0.8rem',
-            color: 'var(--color-highlight)',
-            margin: 0,
-          }}
-        >
-          {statusMessage}
-        </p>
-      )}
+      <div id="contact-status" aria-live="polite">
+        {status === 'success' && (
+          <p
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.8rem',
+              color: 'var(--color-win)',
+              margin: 0,
+            }}
+          >
+            {statusMessage}
+          </p>
+        )}
+        {status === 'error' && (
+          <p
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.8rem',
+              color: 'var(--color-highlight)',
+              margin: 0,
+            }}
+          >
+            {statusMessage}
+          </p>
+        )}
+      </div>
     </form>
   )
 }

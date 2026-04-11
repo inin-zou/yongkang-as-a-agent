@@ -14,7 +14,7 @@ function MobileSidebarWrapper({ label, children }: { label: string; children: Re
   const [open, setOpen] = useState(false)
   return (
     <div className={`mobile-sidebar-wrapper ${open ? 'mobile-sidebar-wrapper--open' : ''}`}>
-      <button className="mobile-sidebar-toggle" onClick={() => setOpen(!open)}>
+      <button className="mobile-sidebar-toggle" aria-expanded={open} onClick={() => setOpen(!open)}>
         <span>{label}</span>
         <span className={`mobile-sidebar-chevron ${open ? 'mobile-sidebar-chevron--open' : ''}`}>&#9662;</span>
       </button>

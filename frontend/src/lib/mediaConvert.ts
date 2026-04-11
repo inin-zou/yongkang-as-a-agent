@@ -1,10 +1,9 @@
-import { FFmpeg } from '@ffmpeg/ffmpeg'
-import { fetchFile } from '@ffmpeg/util'
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let ffmpeg: any = null
 
-let ffmpeg: FFmpeg | null = null
-
-async function getFFmpeg(): Promise<FFmpeg> {
+async function getFFmpeg() {
   if (ffmpeg && ffmpeg.loaded) return ffmpeg
+  const { FFmpeg } = await import('@ffmpeg/ffmpeg')
   ffmpeg = new FFmpeg()
   await ffmpeg.load()
   return ffmpeg
@@ -18,6 +17,7 @@ export async function convertToMp3(file: File): Promise<File> {
   const inputName = 'input' + (file.name.substring(file.name.lastIndexOf('.')) || '.wav')
   const outputName = 'output.mp3'
 
+  const { fetchFile } = await import('@ffmpeg/util')
   await ff.writeFile(inputName, await fetchFile(file))
   await ff.exec(['-i', inputName, '-codec:a', 'libmp3lame', '-b:a', '192k', outputName])
   const data = await ff.readFile(outputName)
@@ -46,6 +46,7 @@ export async function compressVideo(file: File, maxSizeMB = 45): Promise<File> {
   const inputName = 'input' + ext
   const outputName = 'output.mp4'
 
+  const { fetchFile } = await import('@ffmpeg/util')
   await ff.writeFile(inputName, await fetchFile(file))
 
   // Estimate target bitrate: (maxSize in bits) / (duration estimate)
