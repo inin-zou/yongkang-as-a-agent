@@ -29,6 +29,7 @@ export const FILE_TABS: TabConfig[] = [
     sidebarItems: [
       { id: 'readme', label: 'README', preview: 'Who is the agent', routeSegment: '' },
       { id: 'projects', label: 'PROJECTS', preview: 'Currently cooking', routeSegment: 'projects' },
+      { id: 'graph', label: 'GRAPH', preview: 'Knowledge graph', routeSegment: 'graph' },
     ],
     defaultItem: 'readme',
   },
