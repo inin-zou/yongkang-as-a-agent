@@ -399,7 +399,7 @@ function ArtistOverview() {
           </div>
         ) : (
           <>
-            <p>{bio}</p>
+            <p style={{ whiteSpace: 'pre-line' }}>{bio}</p>
 
             <div className="editor-divider" />
 
