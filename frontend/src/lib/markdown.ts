@@ -55,11 +55,11 @@ turndown.addRule('mermaid', {
 // Custom marked renderer: ```mermaid blocks → <pre class="mermaid">
 const renderer = new marked.Renderer()
 const originalCode = renderer.code.bind(renderer)
-renderer.code = function ({ text, lang }: { text: string; lang?: string | null }) {
-  if (lang === 'mermaid') {
-    return `<pre class="mermaid">\n${text}\n</pre>`
+renderer.code = function (token: Parameters<typeof originalCode>[0]) {
+  if (token.lang === 'mermaid') {
+    return `<pre class="mermaid">\n${token.text}\n</pre>`
   }
-  return originalCode({ text, lang: lang ?? undefined })
+  return originalCode(token)
 }
 marked.use({ renderer })
 
