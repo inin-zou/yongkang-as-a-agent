@@ -79,7 +79,7 @@ const DOMAIN_SKILL_MAP: Record<string, string[]> = {
 
 const HACKATHON_TECHS: Record<string, string[]> = {
   'TechEurope Stockholm': ['TypeScript', 'Go', 'React', 'Three.js', 'Tailwind', 'shadcn', 'Vite', 'TanStack', 'Supabase', 'Gemini', 'Playwright'],
-  'Mistral Online': ['TypeScript', 'Python', 'Next.js', 'React', 'Tailwind', 'shadcn', 'Framer Motion', 'FastAPI', 'Express', 'PyTorch', 'Transformers', 'HuggingFace', 'Whisper', 'ElevenLabs', 'Gradio', 'Modal', 'Docker'],
+  'Mistral Online': ['TypeScript', 'Python', 'Next.js', 'React', 'Tailwind', 'shadcn', 'Framer Motion', 'FastAPI', 'Express', 'PyTorch', 'Transformers', 'HuggingFace', 'Whisper', 'ElevenLabs', 'Gradio', 'Modal', 'Docker', 'Weights & Biases', 'LoRA', 'Mistral', 'WebSocket'],
   'HackEurope': ['TypeScript', 'Next.js', 'React', 'Three.js', 'Tailwind', 'shadcn', 'TanStack', 'Stripe', 'ElevenLabs', 'Gemini', 'Claude', 'Vercel', 'Redis', 'Zustand'],
   'Gemini Hackathon': ['TypeScript', 'Go', 'Next.js', 'React', 'Three.js', 'Tailwind', 'shadcn', 'Zustand', 'Supabase', 'PostgreSQL', 'Redis', 'Gemini', 'Modal'],
   'TechEurope Paris': ['TypeScript', 'Python', 'React', 'Vite', 'Tailwind', 'FastAPI', 'OpenAI', 'ElevenLabs', 'Modal'],
