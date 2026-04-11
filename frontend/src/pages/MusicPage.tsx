@@ -411,7 +411,47 @@ function ArtistOverview() {
                 opacity: 0.85,
               }}
             />
-            <p style={{ whiteSpace: 'pre-line' }}>{bio}</p>
+            {(() => {
+              // Split bio into timeline lines (with dates/colons) and description
+              const lines = (bio || '').split('\n').filter(Boolean)
+              const timeline: string[] = []
+              const desc: string[] = []
+              let pastTimeline = false
+              for (const line of lines) {
+                if (!pastTimeline && /^\d{4}/.test(line.trim())) {
+                  timeline.push(line.trim())
+                } else {
+                  pastTimeline = true
+                  desc.push(line.trim())
+                }
+              }
+              return (
+                <>
+                  {timeline.length > 0 && (
+                    <div style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: '0.75rem',
+                      color: 'var(--color-ink-muted)',
+                      lineHeight: 1.8,
+                      marginBottom: 'var(--space-sm)',
+                    }}>
+                      {timeline.map((line, i) => <div key={i}>{line}</div>)}
+                    </div>
+                  )}
+                  {desc.length > 0 && (
+                    <p style={{
+                      fontFamily: 'var(--font-sans)',
+                      fontSize: '0.95rem',
+                      lineHeight: 1.7,
+                      color: 'var(--color-ink)',
+                      fontStyle: 'italic',
+                    }}>
+                      {desc.join(' ')}
+                    </p>
+                  )}
+                </>
+              )
+            })()}
 
             <div className="editor-divider" style={{ clear: 'both' }} />
 
