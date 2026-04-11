@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OG Image Cropper (1200x630)</title>
+<style>
+  * { margin: 0; box-sizing: border-box; }
+  body { background: #1a1a1a; color: #eee; font-family: system-ui, sans-serif; padding: 24px; }
+  h1 { font-size: 1.2rem; margin-bottom: 16px; }
+  .info { font-size: 0.8rem; color: #888; margin-bottom: 16px; }
+  .controls { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .controls label { font-size: 0.8rem; color: #aaa; }
+  .controls input[type="range"] { width: 200px; }
+  .controls span { font-size: 0.75rem; color: #666; min-width: 40px; }
+  button { padding: 8px 20px; background: #fff; color: #000; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; }
+  button:hover { background: #ddd; }
+  button#download { background: #4ecdc4; color: #000; font-weight: 600; }
+  .drop-zone { border: 2px dashed #444; border-radius: 8px; padding: 40px; text-align: center; color: #666; cursor: pointer; margin-bottom: 16px; transition: border-color 0.15s; }
+  .drop-zone:hover, .drop-zone.drag-over { border-color: #4ecdc4; color: #aaa; }
+  .canvas-wrap { position: relative; display: inline-block; cursor: grab; margin-bottom: 16px; border: 1px solid #333; }
+  .canvas-wrap:active { cursor: grabbing; }
+  .preview-label { font-size: 0.75rem; color: #666; margin-bottom: 4px; }
+  canvas { display: block; }
+  #output-wrap { margin-top: 16px; }
+  #output-wrap canvas { border: 1px solid #333; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<h1>OG Image Cropper</h1>
+<p class="info">Target: 1200 x 630px (1.91:1). Drop an image, drag to position, zoom to fit, then download.</p>
+
+<div class="drop-zone" id="dropZone">Drop image here or click to select</div>
+<input type="file" id="fileInput" accept="image/*" class="hidden">
+
+<div id="editor" class="hidden">
+  <div class="controls">
+    <label>Zoom</label>
+    <input type="range" id="zoom" min="1" max="500" value="100">
+    <span id="zoomVal">100%</span>
+    <button id="fitBtn">Fit</button>
+    <button id="fillBtn">Fill</button>
+    <button id="download">Download OG Image</button>
+  </div>
+
+  <div class="preview-label">Preview (scaled down) &mdash; drag to reposition</div>
+  <div class="canvas-wrap" id="canvasWrap">
+    <canvas id="preview" width="600" height="315"></canvas>
+  </div>
+
+  <div id="output-wrap" class="hidden">
+    <div class="preview-label">Output (1200 x 630)</div>
+    <canvas id="output" width="1200" height="630"></canvas>
+  </div>
+</div>
+
+<script>
+const OG_W = 1200, OG_H = 630;
+const PREVIEW_SCALE = 0.5;
+const PW = OG_W * PREVIEW_SCALE, PH = OG_H * PREVIEW_SCALE;
+
+let img = null;
+let zoom = 1;
+let panX = 0, panY = 0;
+let dragging = false, dragStartX = 0, dragStartY = 0, panStartX = 0, panStartY = 0;
+
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const editor = document.getElementById('editor');
+const preview = document.getElementById('preview');
+const pctx = preview.getContext('2d');
+const output = document.getElementById('output');
+const octx = output.getContext('2d');
+const zoomSlider = document.getElementById('zoom');
+const zoomVal = document.getElementById('zoomVal');
+const canvasWrap = document.getElementById('canvasWrap');
+
+// File loading
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) loadFile(fileInput.files[0]); });
+
+function loadFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    img = new Image();
+    img.onload = () => {
+      editor.classList.remove('hidden');
+      dropZone.style.display = 'none';
+      fitImage();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// Zoom — sync slider range so it always covers the current zoom
+function syncSlider() {
+  const pct = Math.round(zoom * 100);
+  zoomSlider.min = Math.min(parseInt(zoomSlider.min), pct);
+  zoomSlider.max = Math.max(parseInt(zoomSlider.max), pct);
+  zoomSlider.value = pct;
+  zoomVal.textContent = pct + '%';
+}
+
+function fitImage() {
+  if (!img) return;
+  const scaleW = OG_W / img.width;
+  const scaleH = OG_H / img.height;
+  zoom = Math.min(scaleW, scaleH);
+  panX = (OG_W - img.width * zoom) / 2;
+  panY = (OG_H - img.height * zoom) / 2;
+  syncSlider();
+  draw();
+}
+
+function fillImage() {
+  if (!img) return;
+  const scaleW = OG_W / img.width;
+  const scaleH = OG_H / img.height;
+  zoom = Math.max(scaleW, scaleH);
+  panX = (OG_W - img.width * zoom) / 2;
+  panY = (OG_H - img.height * zoom) / 2;
+  syncSlider();
+  draw();
+}
+
+document.getElementById('fitBtn').addEventListener('click', fitImage);
+document.getElementById('fillBtn').addEventListener('click', fillImage);
+
+zoomSlider.addEventListener('input', () => {
+  const oldZoom = zoom;
+  zoom = parseInt(zoomSlider.value) / 100;
+  zoomVal.textContent = Math.round(zoom * 100) + '%';
+  // Zoom toward center
+  const cx = OG_W / 2, cy = OG_H / 2;
+  panX = cx - (cx - panX) * (zoom / oldZoom);
+  panY = cy - (cy - panY) * (zoom / oldZoom);
+  draw();
+});
+
+// Pan
+canvasWrap.addEventListener('mousedown', e => {
+  dragging = true;
+  dragStartX = e.clientX;
+  dragStartY = e.clientY;
+  panStartX = panX;
+  panStartY = panY;
+});
+window.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  const dx = (e.clientX - dragStartX) / PREVIEW_SCALE;
+  const dy = (e.clientY - dragStartY) / PREVIEW_SCALE;
+  panX = panStartX + dx;
+  panY = panStartY + dy;
+  draw();
+});
+window.addEventListener('mouseup', () => { dragging = false; });
+
+// Draw
+function draw() {
+  if (!img) return;
+  // Preview
+  pctx.fillStyle = '#1a1a1a';
+  pctx.fillRect(0, 0, PW, PH);
+  pctx.save();
+  pctx.scale(PREVIEW_SCALE, PREVIEW_SCALE);
+  pctx.drawImage(img, panX, panY, img.width * zoom, img.height * zoom);
+  pctx.restore();
+}
+
+// Download
+document.getElementById('download').addEventListener('click', () => {
+  if (!img) return;
+  octx.fillStyle = '#1a1a1a';
+  octx.fillRect(0, 0, OG_W, OG_H);
+  octx.drawImage(img, panX, panY, img.width * zoom, img.height * zoom);
+
+  const link = document.createElement('a');
+  link.download = 'og-image.png';
+  link.href = output.toDataURL('image/png');
+  link.click();
+});
+</script>
+</body>
+</html>
