@@ -107,8 +107,18 @@ const HACKATHON_TECHS: Record<string, string[]> = {
 /* ── company → tech stack + extra skill domains ───────────── */
 
 const COMPANY_TECHS: Record<string, string[]> = {
-  'Mozart AI': ['TypeScript', 'Python', 'React', 'Next.js', 'LangChain', 'OpenAI', 'Vercel'],
-  'Epiminds': ['TypeScript', 'Python', 'React', 'Next.js', 'LangGraph', 'Claude', 'Vercel', 'Supabase'],
+  'Mozart AI': [
+    'TypeScript', 'Python', 'React', 'Vite', 'Tailwind', 'Zustand', 'Framer Motion',
+    'Express', 'FastAPI', 'OpenAI', 'Claude', 'ElevenLabs', 'Replicate',
+    'PyTorch', 'TensorFlow', 'ffmpeg', 'Docker', 'GCP', 'Playwright',
+    'WebSocket', 'Stripe',
+  ],
+  'Epiminds': [
+    'TypeScript', 'React', 'Vite', 'Tailwind', 'shadcn', 'Zustand', 'TanStack',
+    'Framer Motion', 'Vercel AI SDK', 'Express', 'OpenAI', 'Claude', 'Gemini',
+    'LangChain', 'LangGraph', 'MCP', 'Supabase', 'PostgreSQL', 'Redis', 'Prisma',
+    'Docker', 'GCP', 'Stripe', 'Playwright', 'n8n',
+  ],
   'Misogi Labs': ['Python', 'LangGraph', 'LangChain'],
   'Societe Generale': ['Python', 'Hadoop', 'Spark', 'Airflow', 'LangChain'],
   'CITIC Securities': ['Python', 'R', 'VBA'],
@@ -116,8 +126,8 @@ const COMPANY_TECHS: Record<string, string[]> = {
 }
 
 const COMPANY_EXTRA_SKILLS: Record<string, string[]> = {
-  'Mozart AI': ['Agent Orchestration', 'AI Integration', 'Frontend'],
-  'Epiminds': ['Agent Orchestration', 'AI Integration', 'Frontend', 'Cloud & Deploy'],
+  'Mozart AI': ['Agent Orchestration', 'AI Integration', 'Frontend', 'Cloud & Deploy', 'DevOps', 'ML Training'],
+  'Epiminds': ['Agent Orchestration', 'AI Integration', 'Frontend', 'Cloud & Deploy', 'DevOps', 'Database & Storage'],
   'Misogi Labs': ['Agent Orchestration', 'AI Integration'],
   'Societe Generale': ['Data & Visualization', 'Agent Orchestration', 'AI Integration', 'Cloud & Deploy', 'DevOps'],
 }
