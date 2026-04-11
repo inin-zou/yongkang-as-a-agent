@@ -33,9 +33,13 @@ git push origin main
 
 ## Architecture
 
-**Go backend** (`backend/`) serves a REST API via chi router. The Vercel serverless entrypoint is `api/index.go` — a thin wrapper that initializes the same chi router with `sync.Once`. Go module: `github.com/inin-zou/yongkang-as-a-agent`. There is no `backend/go.mod` — only the root `go.mod`.
+**Go backend** (`backend/`) serves a REST API via chi v5 router. Go 1.23, module `github.com/inin-zou/yongkang-as-a-agent`. There is no `backend/go.mod` — only the root `go.mod`. The only dependencies are `go-chi/chi/v5` and `lib/pq`.
 
-**React frontend** (`frontend/`) uses React 19 + Vite + TanStack Query + Three.js + GSAP. Tailwind CSS v4. Vite proxies `/api` to the Go backend in dev.
+**Vercel serverless:** `api/index.go` (package `handler`, not `main`) is a thin wrapper that initializes the same chi router with `sync.Once`. `vercel.json` rewrites all `/api/*` to this single function, and all non-API paths to `/index.html` (SPA fallback).
+
+**React frontend** (`frontend/`) uses React 19 + Vite + TanStack Query + Three.js + GSAP. Tailwind CSS v4 via `@tailwindcss/vite` plugin (no separate tailwind config). Vite proxies `/api` to the Go backend in dev.
+
+**Frontend routing:** `createBrowserRouter` with `/files/:tab/:item/:sub` pattern. Tab names (`soul`, `skill`, `memory`, `contact`, `music`, `admin`) map to lazy-loaded `{Name}Page.tsx`. `retryImport` wrapper catches stale chunk errors after deploys and reloads the page once. Landing page (`/`) uses a separate layout without the file-system chrome.
 
 **Data flow:** `api/index.go` → `handler.APIHandler` → `service.PortfolioService` → `repository.DataRepository` (interface). Two implementations: `SupabaseRepository` (primary, PostgreSQL via `lib/pq`) and `EmbeddedRepository` (fallback, `embed.FS` from `backend/data/*.json`). The service tries primary first, falls back to embedded if primary is nil or returns empty results.
 
@@ -44,6 +48,8 @@ git push origin main
 **Auth:** GitHub OAuth via Supabase. Admin routes (`/api/admin/*`) gated by `middleware.AdminOnly` which validates the Supabase JWT and checks email against `ADMIN_EMAIL` env var.
 
 **Caching:** GET handlers use `writeCachedJSON` which sets `Vercel-CDN-Cache-Control: s-maxage=86400` for edge caching. Browser sees `max-age=10`. Client-side `?_t=timestamp` busts CDN cache after mutations.
+
+**Rate limiting:** IP-based middleware on sensitive endpoints (contact, feedback, likes, comments, guestbook). Configured per-route with different limits.
 
 ## Key Patterns
 
@@ -54,7 +60,7 @@ git push origin main
 - **Go admin CRUD:** Full CRUD on `SupabaseRepository` for all Supabase tables; admin routes use the JWT-validated supabase connection
 - **CSS:** Custom properties in `theme.css`. Class prefixes: `.editor-*` (pages), `.cli-*` (terminal blocks), `.admin-*` / `.editable-item-*` (admin UI), `.music-player-*` (player bar), `.blog-post-content` (rendered blog posts), `.media-upload-*` (upload chips)
 - **Blog content:** Stored as HTML in Supabase. Edited as markdown (turndown HTML→MD, marked MD→HTML). `BlogPostContent` component renders with `dangerouslySetInnerHTML` + lightbox portal + mermaid.js diagram rendering.
-- **Blog images:** Two-type strategy in Gemini prompts — inline `<figure>` with `<figcaption>` (Type A) for illustrations, `.img-gallery` (Type B) for event/gallery photos. Gallery uses WeChat Moments layout: 1 image shows full (no crop), 2+ images crop to squares in adaptive grid (2-col for 2/4, 3-col for 3/5-9). Click any image for fullscreen lightbox via `createPortal`.
+- **Blog images:** Two-type strategy in Gemini prompts — inline `<figure>` with `<figcaption>` (Type A) for illustrations, plain `<figure><img>` tags under a `## Photos` heading (Type B) for event/gallery photos. `BlogPostContent` auto-detects "Photos" headings and wraps following images into `.img-gallery` containers. Gallery uses WeChat Moments layout: 1 image shows full (no crop), 2+ images crop to squares in adaptive grid (2-col for 2/4, 3-col for 3/5-9). Click any image for fullscreen lightbox via `createPortal`. Old posts with explicit `.img-gallery` HTML classes still render correctly.
 - **Blog diagrams:** `<pre class="mermaid">` blocks rendered by mermaid.js (dynamically imported, dark monochrome theme). Avoid colons and slashes in mermaid node labels.
 - **Music player:** `MusicPlayerContext` owns a global `<audio>` element that persists across navigation. `MusicPlayerBar` at bottom of `FileSystemLayout`. `AudioPlayer` in MusicPage reads from the same context.
 - **AI endpoints:** `POST /api/admin/generate-draft` (rough idea → HTML) and `POST /api/admin/refine-draft` (existing content → markdown). Both upload images to Gemini File API for visual analysis. Videos and GIFs skip File API (text-only URL context). Refine returns markdown directly; generate returns HTML.
