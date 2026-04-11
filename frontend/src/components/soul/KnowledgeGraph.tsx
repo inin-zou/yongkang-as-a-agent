@@ -120,7 +120,7 @@ const COMPANY_TECHS: Record<string, string[]> = {
     'Docker', 'GCP', 'Stripe', 'Playwright', 'n8n',
   ],
   'Misogi Labs': ['Python', 'LangGraph', 'LangChain'],
-  'Societe Generale (via Alenia)': ['Python', 'LangChain', 'ElasticSearch', 'Streamlit', 'Hadoop', 'Spark', 'Airflow', 'RabbitMQ', 'GitHub Actions', 'Docker'],
+  'Societe Generale': ['Python', 'LangChain', 'ElasticSearch', 'Streamlit', 'Hadoop', 'Spark', 'Airflow', 'RabbitMQ', 'GitHub Actions', 'Docker'],
   'CITIC Securities': ['Python', 'R', 'VBA'],
   'Smart Gadget Home': ['Python', 'Tableau'],
 }
@@ -129,7 +129,17 @@ const COMPANY_EXTRA_SKILLS: Record<string, string[]> = {
   'Mozart AI': ['Agent Orchestration', 'AI Integration', 'Frontend', 'Cloud & Deploy', 'DevOps', 'ML Training'],
   'Epiminds': ['Agent Orchestration', 'AI Integration', 'Frontend', 'Cloud & Deploy', 'DevOps', 'Database & Storage'],
   'Misogi Labs': ['Agent Orchestration', 'AI Integration'],
-  'Societe Generale (via Alenia)': ['Data & Visualization', 'Agent Orchestration', 'AI Integration', 'Cloud & Deploy', 'DevOps'],
+  'Societe Generale': ['Data & Visualization', 'Agent Orchestration', 'AI Integration', 'Cloud & Deploy', 'DevOps'],
+}
+
+/* ── normalize company names ───────────────────────────────── */
+
+const COMPANY_ALIASES: Record<string, string> = {
+  'Societe Generale (via Alenia)': 'Societe Generale',
+}
+
+function normalizeCompany(name: string): string {
+  return COMPANY_ALIASES[name] ?? name
 }
 
 /* ── build graph from API data ─────────────────────────────── */
@@ -164,7 +174,8 @@ function buildGraph(
 
   // 2. Companies from experience (medium)
   for (const e of experience) {
-    addNode(`company:${e.company}`, e.company, 'company', 14)
+    const name = normalizeCompany(e.company)
+    addNode(`company:${name}`, name, 'company', 14)
   }
 
   // 3. Hackathon domains (medium)
@@ -187,13 +198,8 @@ function buildGraph(
     const bt = (s as any).battle_tested as string[] | undefined
     const battleTested = bt ?? s.battleTested ?? []
     for (const companyName of battleTested) {
-      // Exact match first
       if (nodeIds.has(`company:${companyName}`)) {
         addEdge(`skill:${s.title}`, `company:${companyName}`)
-      } else {
-        // Fuzzy: battle_tested has "Societe Generale", node is "Societe Generale (via Alenia)"
-        const match = nodes.find(n => n.kind === 'company' && n.id.includes(companyName))
-        if (match) addEdge(`skill:${s.title}`, match.id)
       }
     }
   }
@@ -244,14 +250,15 @@ function buildGraph(
 
   // 9. Company → tech stack + extra skill domain edges
   for (const e of experience) {
-    const techs = COMPANY_TECHS[e.company] ?? []
+    const name = normalizeCompany(e.company)
+    const techs = COMPANY_TECHS[name] ?? []
     for (const tech of techs) {
       addNode(`tech:${tech}`, tech, 'tech', 4)
-      addEdge(`company:${e.company}`, `tech:${tech}`)
+      addEdge(`company:${name}`, `tech:${tech}`)
     }
-    const extraSkills = COMPANY_EXTRA_SKILLS[e.company] ?? []
+    const extraSkills = COMPANY_EXTRA_SKILLS[name] ?? []
     for (const skillTitle of extraSkills) {
-      addEdge(`skill:${skillTitle}`, `company:${e.company}`)
+      addEdge(`skill:${skillTitle}`, `company:${name}`)
     }
   }
 
