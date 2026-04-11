@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Pixel Portrait Editor</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #1a1a1a; color: #eee; font-family: 'SF Mono', monospace; padding: 16px; }
+  h2 { margin-bottom: 8px; font-size: 14px; color: #aaa; }
+
+  .top-bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; padding: 12px; background: #222; border-radius: 6px; }
+  .top-bar label { font-size: 11px; color: #888; }
+  .top-bar input[type=range] { width: 100px; }
+  .top-bar input[type=file] { font-size: 11px; }
+  .top-bar span { font-size: 11px; color: #ff6b9d; min-width: 24px; }
+  button { padding: 6px 14px; background: #333; color: #eee; border: 1px solid #555; border-radius: 4px; cursor: pointer; font-size: 11px; font-family: inherit; }
+  button:hover { background: #444; }
+  button.primary { background: #ff6b9d; border-color: #ff6b9d; color: #111; }
+  button.danger { background: #c0392b; border-color: #c0392b; }
+
+  .workspace { display: flex; gap: 16px; margin-top: 8px; align-items: flex-start; }
+  .panel { background: #222; border-radius: 6px; padding: 12px; }
+  .panel h3 { font-size: 11px; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+
+  /* Crop canvas — user drags a rectangle */
+  #cropCanvas { cursor: crosshair; border: 1px solid #333; display: block; }
+  #editorCanvas { cursor: crosshair; image-rendering: pixelated; border: 1px solid #333; display: block; }
+
+  .tools { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+  .tools button.active { border-color: #ff6b9d; color: #ff6b9d; }
+
+  #output { white-space: pre; font-size: 9px; max-height: 280px; overflow: auto; background: #111; padding: 8px; border-radius: 4px; margin-top: 8px; color: #4dd0e1; }
+  .info { font-size: 10px; color: #666; margin-top: 4px; }
+  .color-palette { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 8px; }
+  .color-swatch { width: 20px; height: 20px; border: 2px solid transparent; border-radius: 3px; cursor: pointer; }
+  .color-swatch.active { border-color: #fff; }
+  .color-swatch.eraser { background: repeating-conic-gradient(#333 0% 25%, #555 0% 50%) 50%/10px 10px; }
+
+  .steps { display: flex; gap: 6px; margin-bottom: 12px; }
+  .steps button { padding: 8px 16px; }
+  .steps button.current { background: #ff6b9d; color: #111; border-color: #ff6b9d; }
+
+  .crop-info { font-size: 10px; color: #888; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<h2>Pixel Portrait Editor</h2>
+
+<div class="steps">
+  <button id="step1btn" class="current" onclick="showStep(1)">1. Load & Crop</button>
+  <button id="step2btn" onclick="showStep(2)">2. Pixelate</button>
+  <button id="step3btn" onclick="showStep(3)">3. Edit & Export</button>
+</div>
+
+<!-- STEP 1: Load + Crop -->
+<div id="step1" class="workspace">
+  <div class="panel">
+    <h3>Load photo & drag to crop</h3>
+    <input type="file" id="fileInput" accept="image/*" style="margin-bottom:8px;" />
+    <canvas id="cropCanvas" width="400" height="550"></canvas>
+    <div class="crop-info" id="cropInfo">Load a photo, then drag a rectangle to crop</div>
+    <button class="primary" style="margin-top:8px;" onclick="applyCrop()">Crop & Next →</button>
+  </div>
+</div>
+
+<!-- STEP 2: Pixelate settings -->
+<div id="step2" class="workspace" style="display:none;">
+  <div class="panel">
+    <h3>Pixelate settings</h3>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+      <div>
+        <label style="font-size:11px;color:#888;">Grid width (pixels):</label>
+        <input type="range" id="gridW" min="16" max="1024" value="64" style="width:300px;" />
+        <span id="gridWVal">28</span>
+      </div>
+      <div>
+        <label style="font-size:11px;color:#888;">Palette colors:</label>
+        <input type="range" id="numColors" min="6" max="64" value="24" style="width:200px;" />
+        <span id="numColorsVal">16</span>
+      </div>
+      <div>
+        <label style="font-size:11px;color:#888;">Method:</label>
+        <select id="method" style="background:#333;color:#eee;border:1px solid #555;padding:4px;font-size:11px;">
+          <option value="nearest">Nearest Neighbor (sharp)</option>
+          <option value="lanczos" selected>Lanczos (smooth)</option>
+        </select>
+      </div>
+    </div>
+    <canvas id="previewCanvas" width="400" height="400" style="border:1px solid #333;image-rendering:pixelated;"></canvas>
+    <div style="margin-top:8px;display:flex;gap:6px;">
+      <button onclick="pixelate()">Preview</button>
+      <button class="primary" onclick="pixelateAndEdit()">Accept & Edit →</button>
+    </div>
+  </div>
+  <div class="panel">
+    <h3>Cropped source</h3>
+    <canvas id="croppedPreview" width="200" height="280" style="border:1px solid #333;"></canvas>
+  </div>
+</div>
+
+<!-- STEP 3: Edit + Export -->
+<div id="step3" class="workspace" style="display:none;">
+  <div class="panel">
+    <h3>Edit pixels (click/drag)</h3>
+    <div class="tools">
+      <button id="toolPaint" class="active" onclick="setTool('paint')">🖌 Paint</button>
+      <button id="toolErase" onclick="setTool('erase')">✕ Erase</button>
+      <button id="toolPick" onclick="setTool('pick')">💧 Pick</button>
+      <button id="toolFill" onclick="setTool('fill')">🪣 Fill</button>
+      <button onclick="undo()">↩ Undo</button>
+    </div>
+    <canvas id="editorCanvas" width="440" height="640"></canvas>
+    <div class="info" id="cursorInfo">Hover over pixel...</div>
+    <div class="color-palette" id="palette"></div>
+  </div>
+  <div class="panel">
+    <h3>Reference</h3>
+    <canvas id="refCanvas" width="200" height="280" style="border:1px solid #333;"></canvas>
+    <h3 style="margin-top:12px;">TSX Output</h3>
+    <button onclick="copyTSX()" style="margin-bottom:6px;">📋 Copy TSX</button>
+    <div id="output">Edit pixels then copy...</div>
+  </div>
+</div>
+
+<script>
+// ========== STATE ==========
+let img = null;
+let croppedCanvas = null; // the cropped image
+let grid = [];
+let gridW = 28, gridH = 32;
+let pixelSize = 20;
+let currentTool = 'paint';
+let currentColor = '#af9484';
+let paletteColors = [];
+let history = [];
+
+// Crop state
+let cropStart = null, cropEnd = null, isCropping = false;
+const cropCanvas = document.getElementById('cropCanvas');
+const cropCtx = cropCanvas.getContext('2d');
+
+// ========== STEP NAVIGATION ==========
+function showStep(n) {
+  document.querySelectorAll('.steps button').forEach((b,i) => b.classList.toggle('current', i === n-1));
+  document.getElementById('step1').style.display = n===1 ? 'flex' : 'none';
+  document.getElementById('step2').style.display = n===2 ? 'flex' : 'none';
+  document.getElementById('step3').style.display = n===3 ? 'flex' : 'none';
+}
+
+// ========== STEP 1: LOAD + CROP ==========
+document.getElementById('fileInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    img = new Image();
+    img.onload = () => drawCropCanvas();
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+let cropScale = 1;
+function drawCropCanvas() {
+  if (!img) return;
+  // Fit image into 400x550
+  cropScale = Math.min(400 / img.width, 550 / img.height);
+  cropCanvas.width = Math.floor(img.width * cropScale);
+  cropCanvas.height = Math.floor(img.height * cropScale);
+  cropCtx.drawImage(img, 0, 0, cropCanvas.width, cropCanvas.height);
+
+  // Draw crop rectangle if exists
+  if (cropStart && cropEnd) {
+    cropCtx.strokeStyle = '#ff6b9d';
+    cropCtx.lineWidth = 2;
+    cropCtx.setLineDash([5, 5]);
+    const x = Math.min(cropStart.x, cropEnd.x);
+    const y = Math.min(cropStart.y, cropEnd.y);
+    const w = Math.abs(cropEnd.x - cropStart.x);
+    const h = Math.abs(cropEnd.y - cropStart.y);
+    cropCtx.strokeRect(x, y, w, h);
+    cropCtx.setLineDash([]);
+
+    // Dim outside
+    cropCtx.fillStyle = 'rgba(0,0,0,0.5)';
+    cropCtx.fillRect(0, 0, cropCanvas.width, y);
+    cropCtx.fillRect(0, y+h, cropCanvas.width, cropCanvas.height-y-h);
+    cropCtx.fillRect(0, y, x, h);
+    cropCtx.fillRect(x+w, y, cropCanvas.width-x-w, h);
+
+    const realW = Math.round(w / cropScale);
+    const realH = Math.round(h / cropScale);
+    document.getElementById('cropInfo').textContent = `Crop: ${realW}×${realH}px`;
+  }
+}
+
+cropCanvas.addEventListener('mousedown', e => {
+  if (!img) return;
+  isCropping = true;
+  const rect = cropCanvas.getBoundingClientRect();
+  cropStart = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  cropEnd = { ...cropStart };
+});
+cropCanvas.addEventListener('mousemove', e => {
+  if (!isCropping) return;
+  const rect = cropCanvas.getBoundingClientRect();
+  cropEnd = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  drawCropCanvas();
+});
+cropCanvas.addEventListener('mouseup', () => { isCropping = false; });
+
+function applyCrop() {
+  if (!img || !cropStart || !cropEnd) { alert('Draw a crop rectangle first'); return; }
+
+  const x = Math.min(cropStart.x, cropEnd.x) / cropScale;
+  const y = Math.min(cropStart.y, cropEnd.y) / cropScale;
+  const w = Math.abs(cropEnd.x - cropStart.x) / cropScale;
+  const h = Math.abs(cropEnd.y - cropStart.y) / cropScale;
+
+  if (w < 10 || h < 10) { alert('Crop too small'); return; }
+
+  // Create cropped canvas at full resolution
+  croppedCanvas = document.createElement('canvas');
+  croppedCanvas.width = Math.round(w);
+  croppedCanvas.height = Math.round(h);
+  const cctx = croppedCanvas.getContext('2d');
+  cctx.drawImage(img, Math.round(x), Math.round(y), Math.round(w), Math.round(h), 0, 0, croppedCanvas.width, croppedCanvas.height);
+
+  // Show preview
+  const preview = document.getElementById('croppedPreview');
+  const ps = Math.min(200 / croppedCanvas.width, 280 / croppedCanvas.height);
+  preview.width = Math.floor(croppedCanvas.width * ps);
+  preview.height = Math.floor(croppedCanvas.height * ps);
+  preview.getContext('2d').drawImage(croppedCanvas, 0, 0, preview.width, preview.height);
+
+  showStep(2);
+  pixelate();
+}
+
+// ========== STEP 2: PIXELATE ==========
+['gridW', 'numColors'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    document.getElementById(id + 'Val').textContent = document.getElementById(id).value;
+    pixelate();
+  });
+});
+document.getElementById('method').addEventListener('change', () => pixelate());
+
+function pixelate() {
+  if (!croppedCanvas) return;
+
+  gridW = parseInt(document.getElementById('gridW').value);
+  const numColors = parseInt(document.getElementById('numColors').value);
+  const method = document.getElementById('method').value;
+
+  const aspect = croppedCanvas.height / croppedCanvas.width;
+  gridH = Math.round(gridW * aspect);
+
+  // Downscale
+  const tmpCanvas = document.createElement('canvas');
+  tmpCanvas.width = gridW;
+  tmpCanvas.height = gridH;
+  const tctx = tmpCanvas.getContext('2d');
+
+  if (method === 'nearest') {
+    tctx.imageSmoothingEnabled = false;
+  } else {
+    tctx.imageSmoothingEnabled = true;
+    tctx.imageSmoothingQuality = 'high';
+  }
+  tctx.drawImage(croppedCanvas, 0, 0, gridW, gridH);
+
+  const imageData = tctx.getImageData(0, 0, gridW, gridH);
+  const pixels = imageData.data;
+
+  // Get all colors
+  const allColors = [];
+  for (let i = 0; i < pixels.length; i += 4) {
+    allColors.push([pixels[i], pixels[i+1], pixels[i+2]]);
+  }
+
+  // K-means
+  const centers = kMeans(allColors, numColors);
+  paletteColors = centers.map(c => rgbToHex(c[0], c[1], c[2]));
+
+  // Map pixels to palette — NO background removal
+  grid = [];
+  for (let y = 0; y < gridH; y++) {
+    const row = [];
+    for (let x = 0; x < gridW; x++) {
+      const idx = y * gridW + x;
+      const [r, g, b] = allColors[idx];
+      let minDist = Infinity, best = 0;
+      for (let j = 0; j < centers.length; j++) {
+        const d = colorDist([r,g,b], centers[j]);
+        if (d < minDist) { minDist = d; best = j; }
+      }
+      row.push(paletteColors[best]);
+    }
+    grid.push(row);
+  }
+
+  // Preview
+  const pCanvas = document.getElementById('previewCanvas');
+  const ps = Math.floor(Math.min(400 / gridW, 400 / gridH));
+  pCanvas.width = gridW * ps;
+  pCanvas.height = gridH * ps;
+  const pctx = pCanvas.getContext('2d');
+  pctx.fillStyle = '#232323';
+  pctx.fillRect(0, 0, pCanvas.width, pCanvas.height);
+  for (let y = 0; y < gridH; y++) {
+    for (let x = 0; x < gridW; x++) {
+      if (grid[y][x]) {
+        pctx.fillStyle = grid[y][x];
+        pctx.fillRect(x * ps, y * ps, ps, ps);
+      }
+    }
+  }
+}
+
+function pixelateAndEdit() {
+  if (grid.length === 0) { alert('Generate first'); return; }
+
+  // Copy ref
+  const ref = document.getElementById('refCanvas');
+  const rps = Math.min(200 / gridW, 280 / gridH);
+  ref.width = Math.floor(gridW * rps);
+  ref.height = Math.floor(gridH * rps);
+  const rctx = ref.getContext('2d');
+  for (let y = 0; y < gridH; y++) {
+    for (let x = 0; x < gridW; x++) {
+      if (grid[y][x]) {
+        rctx.fillStyle = grid[y][x];
+        rctx.fillRect(x * rps, y * rps, rps, rps);
+      }
+    }
+  }
+
+  currentColor = paletteColors[0] || '#af9484';
+  history = [];
+  showStep(3);
+  renderPalette();
+  renderEditor();
+  generateTSX();
+}
+
+// ========== K-MEANS ==========
+function kMeans(data, k, iters = 30) {
+  k = Math.min(k, data.length);
+  const centers = [];
+  const used = new Set();
+  while (centers.length < k) {
+    const i = Math.floor(Math.random() * data.length);
+    if (!used.has(i)) { centers.push([...data[i]]); used.add(i); }
+  }
+  for (let iter = 0; iter < iters; iter++) {
+    const clusters = Array.from({length: k}, () => []);
+    for (const px of data) {
+      let minD = Infinity, best = 0;
+      for (let j = 0; j < k; j++) {
+        const d = colorDist(px, centers[j]);
+        if (d < minD) { minD = d; best = j; }
+      }
+      clusters[best].push(px);
+    }
+    for (let j = 0; j < k; j++) {
+      if (clusters[j].length > 0) {
+        centers[j] = [
+          Math.round(clusters[j].reduce((s,c)=>s+c[0],0)/clusters[j].length),
+          Math.round(clusters[j].reduce((s,c)=>s+c[1],0)/clusters[j].length),
+          Math.round(clusters[j].reduce((s,c)=>s+c[2],0)/clusters[j].length),
+        ];
+      }
+    }
+  }
+  return centers;
+}
+
+function colorDist(a, b) {
+  return Math.sqrt((a[0]-b[0])**2 + (a[1]-b[1])**2 + (a[2]-b[2])**2);
+}
+
+function rgbToHex(r, g, b) {
+  return '#' + [r,g,b].map(c => Math.max(0,Math.min(255,c)).toString(16).padStart(2,'0')).join('');
+}
+
+// ========== STEP 3: EDITOR ==========
+const editorCanvas = document.getElementById('editorCanvas');
+const ectx = editorCanvas.getContext('2d');
+
+function renderEditor() {
+  pixelSize = Math.max(3, Math.floor(Math.min(700 / gridW, 900 / gridH)));
+  editorCanvas.width = gridW * pixelSize;
+  editorCanvas.height = gridH * pixelSize;
+
+  ectx.fillStyle = '#232323';
+  ectx.fillRect(0, 0, editorCanvas.width, editorCanvas.height);
+
+  // Checkerboard for transparent
+  for (let y = 0; y < gridH; y++) {
+    for (let x = 0; x < gridW; x++) {
+      if (!grid[y]?.[x]) {
+        ectx.fillStyle = (x+y)%2===0 ? '#2a2a2a' : '#1e1e1e';
+        ectx.fillRect(x*pixelSize, y*pixelSize, pixelSize, pixelSize);
+      }
+    }
+  }
+
+  // Pixels
+  for (let y = 0; y < gridH; y++) {
+    for (let x = 0; x < gridW; x++) {
+      if (grid[y]?.[x]) {
+        ectx.fillStyle = grid[y][x];
+        ectx.fillRect(x*pixelSize, y*pixelSize, pixelSize, pixelSize);
+      }
+    }
+  }
+
+  // Grid lines
+  ectx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ectx.lineWidth = 0.5;
+  for (let x = 0; x <= gridW; x++) { ectx.beginPath(); ectx.moveTo(x*pixelSize,0); ectx.lineTo(x*pixelSize,gridH*pixelSize); ectx.stroke(); }
+  for (let y = 0; y <= gridH; y++) { ectx.beginPath(); ectx.moveTo(0,y*pixelSize); ectx.lineTo(gridW*pixelSize,y*pixelSize); ectx.stroke(); }
+}
+
+function renderPalette() {
+  const el = document.getElementById('palette');
+  el.innerHTML = '';
+  const eraser = document.createElement('div');
+  eraser.className = 'color-swatch eraser' + (currentColor===''?' active':'');
+  eraser.title = 'Eraser';
+  eraser.onclick = () => { currentColor=''; renderPalette(); };
+  el.appendChild(eraser);
+  for (const hex of paletteColors) {
+    const s = document.createElement('div');
+    s.className = 'color-swatch'+(currentColor===hex?' active':'');
+    s.style.background = hex;
+    s.title = hex;
+    s.onclick = () => { currentColor=hex; setTool('paint'); renderPalette(); };
+    el.appendChild(s);
+  }
+}
+
+function setTool(t) {
+  currentTool = t;
+  document.querySelectorAll('.tools button').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('tool'+t.charAt(0).toUpperCase()+t.slice(1));
+  if (btn) btn.classList.add('active');
+}
+
+function saveHistory() { history.push(grid.map(r=>[...r])); if(history.length>50) history.shift(); }
+function undo() { if(!history.length) return; grid=history.pop(); renderEditor(); generateTSX(); }
+
+let isDrawing = false;
+function getCoord(e) {
+  const r = editorCanvas.getBoundingClientRect();
+  return {
+    x: Math.max(0,Math.min(gridW-1, Math.floor((e.clientX-r.left)/pixelSize))),
+    y: Math.max(0,Math.min(gridH-1, Math.floor((e.clientY-r.top)/pixelSize))),
+  };
+}
+
+function applyTool(x, y) {
+  if (!grid[y]) return;
+  if (currentTool==='paint') grid[y][x] = currentColor||'';
+  else if (currentTool==='erase') grid[y][x] = '';
+  else if (currentTool==='pick') { if(grid[y][x]) { currentColor=grid[y][x]; setTool('paint'); renderPalette(); } }
+  else if (currentTool==='fill') floodFill(x,y,grid[y][x],currentColor||'');
+  renderEditor();
+}
+
+function floodFill(x,y,target,rep) {
+  if(target===rep) return;
+  const stack=[[x,y]], visited=new Set();
+  while(stack.length) {
+    const [cx,cy]=stack.pop(), key=cx+','+cy;
+    if(visited.has(key)||cx<0||cx>=gridW||cy<0||cy>=gridH) continue;
+    if(grid[cy][cx]!==target) continue;
+    visited.add(key);
+    grid[cy][cx]=rep;
+    stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]);
+  }
+}
+
+editorCanvas.addEventListener('mousedown', e => { isDrawing=true; saveHistory(); const{x,y}=getCoord(e); applyTool(x,y); generateTSX(); });
+editorCanvas.addEventListener('mousemove', e => {
+  const{x,y}=getCoord(e);
+  document.getElementById('cursorInfo').textContent = `(${x},${y}) ${grid[y]?.[x]||'transparent'}`;
+  if(isDrawing&&(currentTool==='paint'||currentTool==='erase')) { applyTool(x,y); generateTSX(); }
+});
+editorCanvas.addEventListener('mouseup', ()=>isDrawing=false);
+editorCanvas.addEventListener('mouseleave', ()=>isDrawing=false);
+
+// TSX
+function generateTSX() {
+  const colorSet = new Map(); let idx=0;
+  for(const row of grid) for(const c of row) if(c&&!colorSet.has(c)) colorSet.set(c,'c'+(idx++));
+  let out = `const _ = '' // transparent\n`;
+  for(const[hex,name] of colorSet) out+=`const ${name} = '${hex}'\n`;
+  out+=`\nconst PIXELS: string[][] = [\n`;
+  for(const row of grid) out+=`  [${row.map(c=>c?colorSet.get(c):'_').join(',')}],\n`;
+  out+=`]\n\nconst PIXEL_SIZE = 11\nconst WIDTH = ${gridW}\nconst HEIGHT = ${gridH}`;
+  document.getElementById('output').textContent = out;
+}
+
+function copyTSX() {
+  navigator.clipboard.writeText(document.getElementById('output').textContent).then(()=>alert('Copied!'));
+}
+
+// Pre-load existing portrait data for quick cleanup
+function loadExisting() {
+  const _ = '';
+  const c0='#2f2523',c1='#271d1c',c2='#0a080e',c3='#7f685a',c4='#63534a',c5='#1c1519',c6='#262526',c7='#c5a99e',c8='#292c3d',c9='#9e7d66',c10='#494242',c11='#120f15',c12='#322d2c',c13='#1f1e24',c14='#af8f82',c15='#3e3835';
+
+  paletteColors = [c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15];
+  gridW = 36; gridH = 44;
+  grid = [
+  [_,c0,c1,c0,c0,c2,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,c3,c4,c3,c5,c2,_,_,_,_,c4,c4,_],
+  [c0,c0,c0,c0,c0,c0,c4,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,c3,c3,_,c6,c6,_,_,_,c3,c4,c2,c0],
+  [c0,c0,c0,c0,c0,c0,c4,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,c6,c3,_,_,c5,c6,c0,c2,_],
+  [c0,c0,c0,c0,c0,c0,c2,c2,c3,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,c3,c5,_,c4,c6,c5,_,c3,_,_],
+  [c2,c0,c0,c0,c0,c1,c2,c6,c3,_,_,_,_,_,_,_,_,_,_,_,c3,_,_,_,_,_,c3,c4,c5,c3,c3,_,_,_,_,_],
+  [c1,c0,c0,c0,c0,c1,c6,_,_,_,_,_,_,_,_,_,_,_,_,_,c3,c3,_,_,_,c3,c4,c6,c2,_,_,_,_,_,_,_],
+  [c0,c0,c0,c0,c0,c0,c2,_,_,c3,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,c5,c5,c6,c5,_,_,_,_,_,_,_],
+  [c0,c0,c0,c0,c6,c2,c0,_,_,_,_,_,_,_,_,c4,c6,c6,_,_,_,_,_,_,_,_,c5,c5,c4,c3,_,_,_,_,c7,c7],
+  [c2,c6,c6,c4,c6,c2,c2,_,_,_,_,_,_,c5,c5,c2,c1,c1,c6,c4,c4,_,_,_,_,_,c3,c2,c2,c3,c4,_,_,c7,c7,c7],
+  [_,_,_,_,c5,c3,c3,_,_,_,_,_,c6,c2,c0,c8,c8,c1,c6,c3,_,_,_,_,_,_,c4,c6,c6,c5,c3,_,_,c7,c7,c7],
+  [_,_,_,_,c5,c3,c4,_,_,_,_,c3,c4,c4,c1,c8,c8,c0,c6,c6,c6,c5,c3,_,_,_,_,c7,c7,c5,c3,_,_,c7,c7,c5],
+  [_,_,_,_,c4,c4,c5,_,_,_,c3,c3,c5,c2,c6,c2,c2,c3,c2,c0,c2,c0,c0,c3,_,_,_,c7,c5,c3,c3,c3,_,c3,c5,c7],
+  [_,_,_,_,c4,c3,_,_,c3,c2,c6,c1,c8,c1,c0,c5,c5,c2,c8,c6,c6,c2,c0,c5,_,_,_,c6,c5,_,c4,c5,_,c3,c6,c3],
+  [_,_,_,_,c4,c4,_,_,c4,c6,c8,c8,c1,c6,c1,c6,c0,c2,c8,c1,c0,c1,c1,c6,c6,c5,_,c6,c2,c3,c6,c6,c5,c5,c6,c6],
+  [c6,c4,c4,c4,c4,c4,c5,c3,_,_,c8,c8,c8,c1,c1,c2,c8,c2,c2,c8,c1,c1,c6,c6,c2,c5,_,c4,c6,c5,c7,c4,c6,c6,c4,c4],
+  [c3,c7,c4,c4,_,c3,c5,c3,_,c3,c0,c8,c8,c8,c0,c0,c8,c8,c2,c6,c2,c6,c2,c0,c6,c6,_,c7,c5,c4,c4,_,_,_,_,_],
+  [c4,_,_,_,_,_,_,_,c3,c2,c6,c0,c0,c2,c2,c1,c1,c0,c2,c0,c1,c1,c1,c2,c2,c2,_,_,c3,_,c3,c3,c3,_,_,_],
+  [_,_,_,_,_,_,_,_,_,c0,c1,c1,c1,c1,c8,c0,c0,c2,c0,c1,c1,c1,c0,c0,c0,c5,_,_,_,_,c5,c5,c3,_,_,_],
+  [_,_,_,_,_,_,_,_,_,c6,c1,c8,c8,c8,c8,c8,c1,c0,c0,c1,c1,c1,c0,c2,c5,_,c7,c3,_,_,c5,c6,c3,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,c0,c1,c8,c8,c8,c2,c6,c2,c6,c6,c1,c1,c0,c0,_,_,_,c6,c3,_,_,c6,c7,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,c6,c1,c8,c8,c8,c0,c1,c1,c0,c0,c1,c0,c0,c6,_,_,_,c5,_,_,_,c5,c4,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,c2,c8,c8,c8,c8,c1,c0,c0,c1,c1,c0,c0,c4,_,_,_,c5,c5,c5,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,c3,c1,c8,c8,c8,c8,c8,c8,c1,c1,c0,c2,c4,_,_,c3,c6,c6,c7,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,c4,c0,c1,c8,c8,c8,c8,c1,c2,c6,c0,c5,_,_,_,c3,c3,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,c5,c1,c2,c2,c0,c1,c0,c2,c6,c2,c0,c5,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,c8,c1,c0,c2,c6,c6,c6,c2,c0,c0,c6,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,c1,c8,c1,c1,c1,c0,c0,c0,c0,c0,c6,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,c0,c8,c1,c1,c8,c8,c1,c2,c0,c0,c2,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,c6,c8,c8,c1,c1,c1,c0,c2,c0,c0,c6,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,c1,c8,c8,c1,c1,c0,c0,c0,c2,c5,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,c2,c8,c8,c1,c1,c1,c1,c0,c6,c6,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,c6,c1,c1,c8,c1,c1,c1,c0,c0,c5,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,c1,c8,c8,c1,c1,c8,c8,c8,c3,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,c2,c8,c8,c8,c8,c8,c8,c1,_,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,c3,c8,c8,c8,c8,c8,c8,c2,_,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,c2,c8,c8,c8,c8,c8,c5,_,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,c3,c8,c8,c1,c1,c0,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,c0,c1,c1,c1,c6,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,c5,c1,c1,c1,c3,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,c2,c8,c2,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,c2,c2,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+  [_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_,_],
+  ];
+
+  currentColor = paletteColors[0];
+  history = [];
+  showStep(3);
+  renderPalette();
+  renderEditor();
+  generateTSX();
+}
+
+// Auto-load on page open
+window.addEventListener('load', () => {
+  loadExisting();
+});
+</script>
+</body>
+</html>

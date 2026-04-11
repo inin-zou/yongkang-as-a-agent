@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html><head><title>Edit Full Portrait</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#1a1a1a;color:#eee;font-family:monospace;padding:16px}
+canvas{cursor:crosshair;border:1px solid #333}
+.tools{display:flex;gap:6px;margin:8px 0;flex-wrap:wrap}
+button{padding:6px 14px;background:#333;color:#eee;border:1px solid #555;border-radius:4px;cursor:pointer;font-size:11px}
+button:hover{background:#444}
+button.active{border-color:#ff6b9d;color:#ff6b9d}
+button.primary{background:#ff6b9d;border-color:#ff6b9d;color:#111}
+.palette{display:flex;flex-wrap:wrap;gap:3px;margin:8px 0}
+.swatch{width:22px;height:22px;border:2px solid transparent;border-radius:3px;cursor:pointer}
+.swatch.active{border-color:#fff}
+.swatch.eraser{background:repeating-conic-gradient(#333 0% 25%,#555 0% 50%) 50%/10px 10px}
+.info{font-size:10px;color:#666;margin:4px 0}
+#output{white-space:pre;font-size:9px;max-height:250px;overflow:auto;background:#111;padding:8px;border-radius:4px;color:#4dd0e1;margin-top:8px}
+.workspace{display:flex;gap:16px}
+</style></head><body>
+<h3 style="font-size:13px;color:#888;margin-bottom:8px">Full portrait — erase background pixels, then Copy TSX</h3>
+<div class="tools">
+  <button id="bPaint" class="active" onclick="T='paint';upTools()">🖌 Paint</button>
+  <button id="bErase" onclick="T='erase';upTools()">✕ Erase</button>
+  <button id="bPick" onclick="T='pick';upTools()">💧 Pick</button>
+  <button id="bFill" onclick="T='fill';upTools()">🪣 Fill</button>
+  <button onclick="undo()">↩ Undo</button>
+  <button class="primary" onclick="copyTSX()">📋 Copy TSX</button>
+</div>
+<div class="workspace">
+<div>
+<canvas id="c"></canvas>
+<div class="info" id="info">hover...</div>
+<div class="palette" id="pal"></div>
+</div>
+<div id="output">...</div>
+</div>
+<script>
+const _='';
+const c0='#2f2523',c1='#271d1c',c2='#0a080e',c3='#7f685a',c4='#63534a',c5='#1c1519',c6='#262526',c7='#c5a99e',c8='#292c3d',c9='#9e7d66',c10='#494242',c11='#120f15',c12='#322d2c',c13='#1f1e24',c14='#af8f82',c15='#3e3835';
+const PAL=[c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,c11,c12,c13,c14,c15];
+const W=36,H=44;
+let G=[
+[c9,c9,c14,c9,c9,c3,c12,c6,c6,c6,c6,c15,c6,c6,c6,c6,c6,c6,c6,c6,c6,c6,c6,c6,c12,c15,c12,c10,c3,c4,c13,c15,c6,c15,c15,c10],
+[c9,c9,c9,c9,c9,c9,c15,c6,c6,c6,c15,c12,c6,c6,c6,c6,c6,c6,c6,c6,c6,c6,c6,c12,c12,c12,c6,c4,c4,c10,c13,c12,c12,c15,c3,c9],
+[c9,c9,c9,c9,c9,c9,c15,c6,c12,c12,c6,c13,c1,c1,c5,c5,c5,c1,c0,c1,c6,c12,c6,c12,c6,c6,c6,c4,c12,c13,c6,c10,c4,c9,c3,c4],
+[c9,c9,c9,c9,c9,c9,c3,c3,c12,c6,c13,c5,c5,c5,c5,c5,c5,c5,c1,c0,c1,c1,c6,c6,c6,c6,c12,c10,c6,c15,c4,c10,c6,c12,c6,c13],
+[c3,c9,c9,c9,c9,c14,c3,c4,c12,c6,c1,c5,c5,c0,c1,c1,c1,c0,c0,c0,c12,c1,c1,c6,c12,c6,c12,c15,c10,c12,c12,c13,c6,c6,c6,c6],
+[c14,c9,c9,c9,c9,c14,c4,c13,c0,c0,c1,c1,c0,c0,c0,c1,c0,c0,c0,c0,c12,c12,c1,c6,c6,c12,c15,c4,c3,c13,c6,c6,c6,c6,c6,c6],
+[c9,c9,c9,c9,c9,c9,c3,c6,c0,c12,c1,c1,c0,c1,c5,c1,c0,c0,c5,c5,c1,c1,c0,c1,c13,c10,c10,c4,c10,c6,c6,c6,c6,c6,c0,c6],
+[c9,c9,c9,c9,c4,c3,c9,c6,c1,c0,c1,c1,c0,c1,c5,c15,c4,c4,c0,c0,c1,c5,c5,c5,c1,c6,c10,c10,c15,c12,c6,c6,c6,c6,c8,c8],
+[c3,c4,c4,c15,c4,c3,c3,c13,c0,c1,c1,c5,c0,c10,c10,c3,c14,c14,c4,c15,c15,c5,c5,c5,c5,c6,c12,c3,c3,c12,c15,c12,c6,c8,c8,c8],
+[c13,c13,c13,c13,c10,c12,c12,c6,c1,c1,c5,c5,c4,c3,c9,c7,c7,c14,c4,c12,c0,c11,c11,c5,c5,c1,c15,c4,c4,c10,c12,c6,c13,c8,c8,c8],
+[c12,c6,c6,c6,c10,c12,c15,c13,c5,c5,c0,c12,c15,c15,c14,c7,c7,c9,c4,c4,c4,c10,c12,c5,c1,c1,c6,c8,c8,c10,c12,c6,c6,c8,c8,c10],
+[c12,c6,c12,c13,c15,c15,c10,c13,c5,c1,c12,c12,c10,c3,c4,c3,c3,c12,c3,c9,c3,c9,c9,c12,c5,c1,c6,c8,c10,c12,c12,c12,c6,c12,c10,c8],
+[c6,c12,c12,c13,c15,c12,c6,c1,c12,c3,c4,c14,c7,c14,c9,c10,c10,c3,c7,c4,c4,c3,c9,c10,c11,c6,c6,c4,c10,c13,c15,c10,c6,c12,c4,c12],
+[c12,c6,c13,c13,c15,c15,c6,c1,c15,c4,c7,c7,c14,c4,c14,c4,c9,c3,c7,c14,c9,c14,c14,c4,c4,c10,c5,c4,c3,c12,c4,c4,c10,c10,c4,c4],
+[c4,c15,c15,c15,c15,c15,c10,c12,c5,c13,c7,c7,c7,c14,c14,c3,c7,c3,c3,c7,c14,c14,c4,c4,c3,c10,c13,c15,c4,c10,c8,c15,c4,c4,c15,c15],
+[c12,c8,c15,c15,c6,c12,c10,c12,c6,c12,c9,c7,c7,c7,c9,c9,c7,c7,c3,c4,c3,c4,c3,c9,c4,c4,c13,c8,c10,c15,c15,c6,c13,c6,c13,c6],
+[c15,c13,c13,c6,c6,c6,c13,c13,c12,c3,c4,c9,c9,c3,c3,c14,c14,c9,c3,c9,c14,c14,c14,c3,c3,c3,c13,c6,c12,c6,c12,c12,c12,c12,c6,c10],
+[c12,c13,c13,c6,c6,c6,c6,c6,c6,c9,c14,c14,c14,c14,c7,c9,c9,c3,c9,c14,c14,c14,c9,c9,c9,c10,c13,c6,c6,c6,c10,c10,c12,c6,c6,c10],
+[c6,c6,c13,c6,c6,c6,c6,c6,c13,c4,c14,c7,c7,c7,c7,c7,c14,c9,c9,c14,c14,c14,c9,c3,c10,c0,c8,c12,c6,c6,c10,c4,c12,c6,c6,c10],
+[c6,c6,c13,c6,c6,c6,c6,c6,c6,c0,c9,c14,c7,c7,c7,c3,c4,c3,c4,c4,c14,c14,c9,c9,c6,c6,c6,c4,c12,c6,c1,c4,c8,c6,c6,c10],
+[c13,c13,c13,c6,c6,c6,c6,c6,c6,c6,c4,c14,c7,c7,c7,c9,c14,c14,c9,c9,c14,c9,c9,c4,c6,c6,c6,c10,c6,c13,c13,c10,c15,c13,c6,c10],
+[c13,c13,c6,c6,c6,c6,c6,c6,c6,c6,c5,c3,c7,c7,c7,c7,c14,c9,c9,c14,c14,c9,c9,c15,c13,c6,c6,c10,c10,c10,c6,c6,c6,c12,c6,c10],
+[c6,c13,c6,c6,c6,c6,c6,c6,c6,c6,c6,c12,c14,c7,c7,c7,c7,c7,c7,c14,c14,c9,c3,c15,c13,c6,c12,c4,c4,c8,c13,c13,c13,c13,c13,c8],
+[c6,c6,c6,c6,c6,c6,c6,c6,c6,c6,c6,c13,c15,c9,c14,c7,c7,c7,c7,c14,c3,c4,c9,c10,c13,c6,c6,c12,c12,c13,c13,c6,c13,c13,c13,c6],
+[c6,c6,c6,c6,c6,c6,c6,c6,c6,c6,c6,c13,c10,c14,c3,c3,c9,c14,c9,c3,c4,c3,c9,c10,c11,c6,c6,c6,c6,c6,c6,c6,c6,c6,c6,c6],
+[c6,c6,c6,c6,c6,c6,c6,c6,c6,c6,c6,c13,c0,c7,c14,c9,c3,c4,c4,c4,c3,c9,c9,c4,c2,c1,c1,c6,c6,c6,c6,c6,c6,c6,c6,c13],
+[c8,c8,c12,c6,c6,c6,c6,c6,c6,c6,c6,c5,c6,c14,c7,c14,c14,c14,c9,c9,c9,c9,c9,c4,c2,c1,c1,c1,c0,c0,c6,c6,c13,c6,c6,c6],
+[c8,c8,c12,c6,c6,c6,c6,c6,c6,c6,c13,c13,c5,c9,c7,c14,c14,c7,c7,c14,c3,c9,c9,c3,c11,c1,c0,c1,c0,c0,c12,c0,c0,c0,c0,c6],
+[c6,c6,c6,c6,c6,c6,c6,c5,c13,c13,c13,c13,c5,c4,c7,c7,c14,c14,c14,c9,c3,c9,c9,c4,c11,c5,c1,c1,c1,c1,c0,c0,c0,c12,c12,c12],
+[c6,c6,c6,c6,c6,c6,c6,c5,c5,c13,c13,c13,c13,c6,c14,c7,c7,c14,c14,c9,c9,c9,c3,c10,c5,c5,c1,c1,c1,c1,c1,c1,c0,c0,c0,c0],
+[c6,c6,c6,c6,c6,c13,c13,c1,c2,c5,c13,c13,c13,c5,c3,c7,c7,c14,c14,c14,c14,c9,c4,c4,c5,c5,c1,c0,c1,c1,c5,c5,c1,c1,c1,c1],
+[c6,c6,c13,c13,c6,c6,c13,c13,c2,c5,c13,c13,c13,c5,c4,c14,c14,c7,c14,c14,c14,c9,c9,c10,c11,c5,c1,c0,c1,c1,c5,c5,c5,c5,c5,c1],
+[c6,c13,c6,c6,c6,c6,c5,c13,c2,c5,c13,c13,c13,c13,c1,c14,c7,c7,c14,c14,c7,c7,c7,c12,c11,c5,c1,c0,c1,c1,c5,c5,c5,c11,c11,c5],
+[c13,c6,c6,c6,c6,c6,c5,c13,c11,c5,c5,c13,c13,c13,c11,c3,c7,c7,c7,c7,c7,c7,c14,c5,c5,c1,c0,c0,c0,c1,c1,c5,c11,c11,c11,c11],
+[c12,c12,c0,c6,c6,c6,c13,c5,c11,c5,c5,c13,c13,c13,c5,c12,c7,c7,c7,c7,c7,c7,c3,c11,c5,c5,c11,c5,c1,c5,c5,c5,c11,c11,c11,c11],
+[c0,c12,c12,c13,c6,c6,c6,c5,c11,c5,c11,c5,c13,c13,c13,c11,c3,c7,c7,c7,c7,c7,c10,c5,c5,c2,c2,c2,c2,c11,c5,c11,c11,c11,c11,c11],
+[c13,c6,c12,c6,c13,c6,c6,c13,c11,c11,c11,c5,c13,c13,c13,c11,c12,c7,c7,c14,c14,c9,c13,c5,c11,c2,c2,c2,c11,c1,c5,c11,c11,c11,c11,c11],
+[c12,c13,c13,c6,c0,c6,c6,c13,c5,c2,c11,c11,c5,c5,c13,c5,c5,c9,c14,c14,c14,c4,c2,c2,c2,c2,c2,c2,c11,c5,c11,c11,c11,c11,c11,c11],
+[c12,c12,c6,c13,c13,c13,c5,c13,c13,c5,c11,c11,c11,c11,c11,c13,c11,c10,c14,c14,c14,c12,c2,c2,c2,c2,c2,c2,c5,c5,c2,c11,c11,c11,c11,c11],
+[c13,c6,c12,c12,c0,c13,c11,c11,c5,c5,c5,c5,c11,c11,c2,c11,c13,c5,c3,c7,c3,c2,c2,c2,c2,c2,c2,c11,c1,c2,c2,c11,c11,c11,c11,c2],
+[c13,c6,c12,c12,c12,c12,c13,c5,c11,c11,c11,c13,c5,c11,c11,c2,c11,c11,c1,c3,c3,c2,c2,c2,c2,c2,c11,c5,c5,c2,c11,c11,c11,c11,c11,c11],
+[c12,c12,c12,c12,c12,c12,c12,c5,c2,c2,c2,c11,c13,c5,c11,c2,c2,c2,c2,c11,c1,c2,c2,c2,c2,c2,c5,c5,c2,c2,c11,c11,c11,c11,c11,c2],
+[c12,c12,c12,c12,c12,c12,c0,c6,c5,c2,c2,c2,c11,c5,c5,c11,c2,c2,c2,c2,c5,c1,c2,c2,c2,c11,c1,c11,c2,c2,c11,c11,c11,c2,c11,c2],
+[c0,c6,c6,c12,c12,c0,c13,c11,c11,c11,c2,c2,c2,c11,c5,c5,c2,c2,c2,c2,c5,c1,c2,c2,c11,c5,c5,c2,c2,c2,c11,c11,c11,c11,c11,c2],
+];
+let T='erase',CC='',PS,hist=[];
+const cv=document.getElementById('c'),cx=cv.getContext('2d');
+function rn(){
+  PS=Math.max(3,Math.floor(Math.min(800/W,900/H)));
+  cv.width=W*PS;cv.height=H*PS;
+  cx.fillStyle='#232323';cx.fillRect(0,0,cv.width,cv.height);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    if(!G[y][x]){cx.fillStyle=(x+y)%2==0?'#2a2a2a':'#1e1e1e';cx.fillRect(x*PS,y*PS,PS,PS)}
+    else{cx.fillStyle=G[y][x];cx.fillRect(x*PS,y*PS,PS,PS)}
+  }
+  cx.strokeStyle='rgba(255,255,255,0.04)';cx.lineWidth=0.5;
+  for(let x=0;x<=W;x++){cx.beginPath();cx.moveTo(x*PS,0);cx.lineTo(x*PS,H*PS);cx.stroke()}
+  for(let y=0;y<=H;y++){cx.beginPath();cx.moveTo(0,y*PS);cx.lineTo(W*PS,y*PS);cx.stroke()}
+}
+function mkPal(){
+  const el=document.getElementById('pal');el.innerHTML='';
+  const e=document.createElement('div');e.className='swatch eraser'+(CC==''?' active':'');e.onclick=()=>{CC='';mkPal()};el.appendChild(e);
+  PAL.forEach(h=>{const s=document.createElement('div');s.className='swatch'+(CC==h?' active':'');s.style.background=h;s.onclick=()=>{CC=h;T='paint';upTools();mkPal()};el.appendChild(s)})
+}
+function upTools(){document.querySelectorAll('.tools button').forEach(b=>b.classList.remove('active'));const m={paint:'bPaint',erase:'bErase',pick:'bPick',fill:'bFill'};if(m[T])document.getElementById(m[T]).classList.add('active')}
+function sh(){hist.push(G.map(r=>[...r]));if(hist.length>50)hist.shift()}
+function undo(){if(!hist.length)return;G=hist.pop();rn();tsx()}
+function gc(e){const r=cv.getBoundingClientRect();return{x:Math.max(0,Math.min(W-1,Math.floor((e.clientX-r.left)/PS))),y:Math.max(0,Math.min(H-1,Math.floor((e.clientY-r.top)/PS)))}}
+function ap(x,y){
+  if(!G[y])return;
+  if(T=='paint')G[y][x]=CC;
+  else if(T=='erase')G[y][x]='';
+  else if(T=='pick'){if(G[y][x]){CC=G[y][x];T='paint';upTools();mkPal()}}
+  else if(T=='fill'){ff(x,y,G[y][x],CC)}
+  rn();
+}
+function ff(x,y,t,r){if(t==r)return;const s=[[x,y]],v=new Set();while(s.length){const[a,b]=s.pop();const k=a+','+b;if(v.has(k)||a<0||a>=W||b<0||b>=H)continue;if(G[b][a]!=t)continue;v.add(k);G[b][a]=r;s.push([a+1,b],[a-1,b],[a,b+1],[a,b-1])}}
+let dr=false;
+cv.onmousedown=e=>{dr=true;sh();const{x,y}=gc(e);ap(x,y);tsx()};
+cv.onmousemove=e=>{const{x,y}=gc(e);document.getElementById('info').textContent=`(${x},${y}) ${G[y]?.[x]||'transparent'}`;if(dr&&(T=='paint'||T=='erase')){ap(x,y);tsx()}};
+cv.onmouseup=()=>dr=false;cv.onmouseleave=()=>dr=false;
+function tsx(){
+  const cm=new Map();let i=0;
+  for(const r of G)for(const c of r)if(c&&!cm.has(c))cm.set(c,'c'+(i++));
+  let o="const _ = '' // transparent\n";
+  for(const[h,n]of cm)o+=`const ${n} = '${h}'\n`;
+  o+=`\nconst PIXELS: string[][] = [\n`;
+  for(const r of G)o+=`  [${r.map(c=>c?cm.get(c):'_').join(',')}],\n`;
+  o+=`]\n\nconst PIXEL_SIZE = 9\nconst WIDTH = ${W}\nconst HEIGHT = ${H}`;
+  document.getElementById('output').textContent=o;
+}
+function copyTSX(){navigator.clipboard.writeText(document.getElementById('output').textContent).then(()=>alert('Copied!'))}
+mkPal();rn();tsx();
+</script></body></html>

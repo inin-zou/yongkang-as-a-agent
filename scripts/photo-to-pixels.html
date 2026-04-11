@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Photo → Pixel Art Converter</title>
+  <style>
+    body { background: #1a1a1a; color: #eee; font-family: monospace; padding: 20px; }
+    canvas { border: 1px solid #333; margin: 10px; image-rendering: pixelated; }
+    #output { white-space: pre; font-size: 10px; max-height: 400px; overflow: auto; background: #111; padding: 10px; margin-top: 20px; }
+    button { padding: 10px 20px; background: #333; color: #eee; border: 1px solid #555; cursor: pointer; margin: 5px; }
+    label { display: block; margin: 10px 0; }
+    input[type=range] { width: 200px; }
+  </style>
+</head>
+<body>
+  <h2>Photo → Pixel Art → TSX Export</h2>
+  <p>Load your photo, adjust settings, copy the output.</p>
+
+  <input type="file" id="fileInput" accept="image/*" />
+
+  <div>
+    <label>Pixel grid width: <input type="range" id="gridWidth" min="16" max="64" value="32" /> <span id="gridWidthVal">32</span></label>
+    <label>Background threshold (remove bg): <input type="range" id="bgThreshold" min="0" max="100" value="30" /> <span id="bgThreshVal">30</span></label>
+    <label>Crop top %: <input type="range" id="cropTop" min="0" max="50" value="0" /> <span id="cropTopVal">0</span></label>
+    <label>Crop bottom %: <input type="range" id="cropBottom" min="0" max="50" value="0" /> <span id="cropBottomVal">0</span></label>
+  </div>
+
+  <button onclick="process()">Process</button>
+  <button onclick="copyOutput()">Copy TSX Output</button>
+
+  <div>
+    <canvas id="original" width="200" height="300"></canvas>
+    <canvas id="pixelated" width="200" height="300" style="width:200px;height:300px;"></canvas>
+    <canvas id="preview" width="400" height="600" style="width:400px;height:600px;"></canvas>
+  </div>
+
+  <div id="output"></div>
+
+<script>
+let img = null;
+
+document.getElementById('fileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    img = new Image();
+    img.onload = () => process();
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+// Update labels
+['gridWidth', 'bgThreshold', 'cropTop', 'cropBottom'].forEach(id => {
+  const el = document.getElementById(id);
+  const val = document.getElementById(id + 'Val') || document.getElementById(id.replace('grid','grid').replace('bg','bg') + 'Val');
+  el.addEventListener('input', () => {
+    document.getElementById(id + 'Val').textContent = el.value;
+    if (img) process();
+  });
+});
+
+function process() {
+  if (!img) return;
+
+  const gridW = parseInt(document.getElementById('gridWidth').value);
+  const cropTop = parseInt(document.getElementById('cropTop').value) / 100;
+  const cropBottom = parseInt(document.getElementById('cropBottom').value) / 100;
+  const bgThreshold = parseInt(document.getElementById('bgThreshold').value);
+
+  // Calculate grid height preserving aspect ratio
+  const srcY = Math.floor(img.height * cropTop);
+  const srcH = Math.floor(img.height * (1 - cropTop - cropBottom));
+  if (srcH <= 0) { alert('Crop range too large — no image left to process.'); return; }
+  const aspectRatio = srcH / img.width;
+  const gridH = Math.round(gridW * aspectRatio);
+  if (gridH <= 0) { alert('Grid too small — reduce crop or increase width.'); return; }
+
+  // Draw original (cropped) to small canvas
+  const pixCanvas = document.getElementById('pixelated');
+  pixCanvas.width = gridW;
+  pixCanvas.height = gridH;
+  const pctx = pixCanvas.getContext('2d');
+  pctx.imageSmoothingEnabled = false;
+  pctx.drawImage(img, 0, srcY, img.width, srcH, 0, 0, gridW, gridH);
+
+  // Read pixel data
+  const imageData = pctx.getImageData(0, 0, gridW, gridH);
+  const pixels = imageData.data;
+
+  // Build color grid + detect background
+  const grid = [];
+  for (let y = 0; y < gridH; y++) {
+    const row = [];
+    for (let x = 0; x < gridW; x++) {
+      const i = (y * gridW + x) * 4;
+      const r = pixels[i], g = pixels[i+1], b = pixels[i+2], a = pixels[i+3];
+
+      // Background removal: if pixel is too close to the dominant corner colors, make transparent
+      if (a < 128 || isBackground(r, g, b, bgThreshold)) {
+        row.push('');
+      } else {
+        row.push(rgbToHex(r, g, b));
+      }
+    }
+    grid.push(row);
+  }
+
+  // Draw preview (scaled up)
+  const prevCanvas = document.getElementById('preview');
+  const pixSize = 8;
+  prevCanvas.width = gridW * pixSize;
+  prevCanvas.height = gridH * pixSize;
+  prevCanvas.style.width = (gridW * pixSize) + 'px';
+  prevCanvas.style.height = (gridH * pixSize) + 'px';
+  const pvctx = prevCanvas.getContext('2d');
+  pvctx.fillStyle = '#232323';
+  pvctx.fillRect(0, 0, prevCanvas.width, prevCanvas.height);
+
+  for (let y = 0; y < gridH; y++) {
+    for (let x = 0; x < gridW; x++) {
+      if (grid[y][x]) {
+        pvctx.fillStyle = grid[y][x];
+        pvctx.fillRect(x * pixSize, y * pixSize, pixSize, pixSize);
+      }
+    }
+  }
+
+  // Generate TSX output
+  generateTSX(grid, gridW, gridH);
+}
+
+// Simple background detection — compare to corner pixels
+let bgColors = null;
+function isBackground(r, g, b, threshold) {
+  // Heuristic: if the color is very saturated blue/green (train seats, window) remove it
+  // Or if brightness is very high or very specific
+  const brightness = (r + g + b) / 3;
+  const saturation = Math.max(r, g, b) - Math.min(r, g, b);
+
+  // Remove if very blue/teal (train interior)
+  if (b > r + threshold && b > g) return true;
+  if (g > r + threshold && g > b + threshold) return true;
+
+  return false;
+}
+
+function rgbToHex(r, g, b) {
+  return '#' + [r, g, b].map(c => c.toString(16).padStart(2, '0')).join('');
+}
+
+function generateTSX(grid, w, h) {
+  // Collect unique colors
+  const colorSet = new Set();
+  grid.forEach(row => row.forEach(c => { if (c) colorSet.add(c); }));
+
+  // Map colors to short variable names
+  const colors = Array.from(colorSet);
+  const colorMap = {};
+  colors.forEach((c, i) => {
+    colorMap[c] = `c${i}`;
+  });
+
+  let output = `// Auto-generated pixel art: ${w}x${h}\n`;
+  output += `const _ = '' // transparent\n`;
+  colors.forEach((c, i) => {
+    output += `const c${i} = '${c}'\n`;
+  });
+  output += `\nconst PIXELS: string[][] = [\n`;
+  grid.forEach(row => {
+    const cells = row.map(c => c ? colorMap[c] : '_');
+    output += `  [${cells.join(',')}],\n`;
+  });
+  output += `]\n`;
+  output += `\nconst PIXEL_SIZE = 10\n`;
+  output += `const WIDTH = ${w}\n`;
+  output += `const HEIGHT = ${h}\n`;
+
+  document.getElementById('output').textContent = output;
+}
+
+function copyOutput() {
+  const text = document.getElementById('output').textContent;
+  navigator.clipboard.writeText(text);
+  alert('Copied!');
+}
+</script>
+</body>
+</html>
