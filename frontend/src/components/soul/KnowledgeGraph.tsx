@@ -104,6 +104,24 @@ const HACKATHON_TECHS: Record<string, string[]> = {
   'HackEurope': ['TypeScript', 'Next.js', 'React', 'Go', 'Redis', 'Tailwind', 'Vercel'],
 }
 
+/* ── company → tech stack + extra skill domains ───────────── */
+
+const COMPANY_TECHS: Record<string, string[]> = {
+  'Mozart AI': ['TypeScript', 'Python', 'React', 'Next.js', 'LangChain', 'OpenAI', 'Vercel'],
+  'Epiminds': ['TypeScript', 'Python', 'React', 'Next.js', 'LangGraph', 'Claude', 'Vercel', 'Supabase'],
+  'Misogi Labs': ['Python', 'LangGraph', 'LangChain'],
+  'Societe Generale': ['Python', 'Hadoop', 'Spark', 'Airflow'],
+  'CITIC Securities': ['Python', 'R', 'VBA'],
+  'Smart Gadget Home': ['Python', 'Tableau'],
+}
+
+const COMPANY_EXTRA_SKILLS: Record<string, string[]> = {
+  'Mozart AI': ['Agent Orchestration', 'AI Integration', 'Frontend'],
+  'Epiminds': ['Agent Orchestration', 'AI Integration', 'Frontend', 'Cloud & Deploy'],
+  'Misogi Labs': ['Agent Orchestration', 'AI Integration'],
+  'Societe Generale': ['Data & Visualization'],
+}
+
 /* ── build graph from API data ─────────────────────────────── */
 
 function buildGraph(
@@ -206,6 +224,19 @@ function buildGraph(
     for (const tech of techs) {
       addNode(`tech:${tech}`, tech, 'tech', 4)
       addEdge(`hack:${h.name}`, `tech:${tech}`)
+    }
+  }
+
+  // 9. Company → tech stack + extra skill domain edges
+  for (const e of experience) {
+    const techs = COMPANY_TECHS[e.company] ?? []
+    for (const tech of techs) {
+      addNode(`tech:${tech}`, tech, 'tech', 4)
+      addEdge(`company:${e.company}`, `tech:${tech}`)
+    }
+    const extraSkills = COMPANY_EXTRA_SKILLS[e.company] ?? []
+    for (const skillTitle of extraSkills) {
+      addEdge(`skill:${skillTitle}`, `company:${e.company}`)
     }
   }
 
