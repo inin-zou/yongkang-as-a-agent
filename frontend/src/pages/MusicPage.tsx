@@ -337,6 +337,18 @@ function ArtistOverview() {
           </div>
         )}
 
+        <img
+          src="/artist-photo.jpg"
+          alt="inhibitor artist photo"
+          style={{
+            width: '100%',
+            maxWidth: 320,
+            borderRadius: 'var(--radius-md)',
+            marginBottom: 'var(--space-md)',
+            opacity: 0.9,
+          }}
+        />
+
         {isEditing ? (
           <div className="admin-editor">
             {saveError && <div className="admin-error">{saveError}</div>}
