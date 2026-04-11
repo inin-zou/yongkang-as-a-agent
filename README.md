@@ -6,6 +6,8 @@ The concept is "super agent with many skills" — a file-system-based portfolio 
 
 **Live at [yongkang.dev](https://yongkang.dev)**
 
+![yongkang.dev preview](frontend/public/readme-preview.jpg)
+
 ## Stack
 
 - **Backend:** Go (chi router), serverless on Vercel (`api/index.go`)
