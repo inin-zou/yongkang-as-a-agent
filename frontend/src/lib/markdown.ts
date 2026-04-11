@@ -59,7 +59,7 @@ renderer.code = function ({ text, lang }: { text: string; lang?: string | null }
   if (lang === 'mermaid') {
     return `<pre class="mermaid">\n${text}\n</pre>`
   }
-  return originalCode({ text, lang })
+  return originalCode({ text, lang: lang ?? undefined })
 }
 marked.use({ renderer })
 
