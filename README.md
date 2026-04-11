@@ -77,9 +77,9 @@ frontend/
 - **Smart media placement** — Gemini analyzes uploaded images via File API, places inline (Type A) or under a `## Photos` heading (Type B)
 - **WeChat Moments gallery** — frontend auto-detects "Photos" headings and wraps images into grid. 1 image shows full, 2+ crop to square grid (2-col or 3-col based on count)
 - **Click-to-expand lightbox** — all blog images open fullscreen via portal overlay, Escape to close
-- **Mermaid diagrams** — `<pre class="mermaid">` blocks render as diagrams with dark theme
+- **Mermaid diagrams** — write as ` ```mermaid ` fenced blocks in the editor, rendered as diagrams with dark theme. Survives HTML↔MD round-trip.
 - **Persistent music player** — slim bar at bottom, continues playing across tab navigation, playlist with repeat modes
-- **Markdown editor** — content stored as HTML, edited as markdown (turndown + marked)
+- **Markdown editor** — content stored as HTML, edited as markdown (turndown + marked). Custom rules preserve mermaid, iframes, videos, and styled images through the round-trip.
 - **Media conversion** — HEIC-to-PNG (heic2any), WAV-to-MP3 (ffmpeg.wasm), all client-side
 - **Mobile responsive** — collapsible sidebar, full-screen layout, scrollable tabs on phones
 - **CDN caching** — 24h Vercel edge cache with timestamp-based cache busting
