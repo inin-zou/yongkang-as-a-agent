@@ -1,0 +1,279 @@
+<h2>Gradient Intensity Map</h2>
+<p class="subtitle">Cities glow brighter with more hackathons & wins. Paris burns hottest.</p>
+
+<div class="cards">
+  <!-- Option A: Heat Gradient (single color, intensity varies) -->
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #1a1a1a; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 320px;">
+      <svg viewBox="0 0 620 340" style="width:100%;height:auto;">
+        <rect width="620" height="340" fill="#1a1a1a"/>
+
+        <!-- Dotted continents - Europe focused view -->
+        <!-- Europe dots -->
+        <g fill="#2a2a2a">
+          <!-- Scandinavia -->
+          <circle cx="305" cy="45" r="1.2"/><circle cx="310" cy="42" r="1.2"/><circle cx="315" cy="40" r="1.2"/>
+          <circle cx="300" cy="50" r="1.2"/><circle cx="305" cy="52" r="1.2"/><circle cx="310" cy="48" r="1.2"/>
+          <circle cx="315" cy="46" r="1.2"/><circle cx="320" cy="44" r="1.2"/><circle cx="325" cy="42" r="1.2"/>
+          <circle cx="298" cy="55" r="1.2"/><circle cx="303" cy="58" r="1.2"/><circle cx="308" cy="55" r="1.2"/>
+          <!-- UK/Ireland -->
+          <circle cx="245" cy="72" r="1.2"/><circle cx="250" cy="68" r="1.2"/><circle cx="248" cy="76" r="1.2"/>
+          <circle cx="253" cy="73" r="1.2"/><circle cx="255" cy="78" r="1.2"/><circle cx="258" cy="75" r="1.2"/>
+          <circle cx="240" cy="70" r="1.2"/><circle cx="242" cy="75" r="1.2"/>
+          <!-- France -->
+          <circle cx="265" cy="90" r="1.2"/><circle cx="270" cy="88" r="1.2"/><circle cx="275" cy="92" r="1.2"/>
+          <circle cx="280" cy="95" r="1.2"/><circle cx="268" cy="96" r="1.2"/><circle cx="273" cy="100" r="1.2"/>
+          <circle cx="278" cy="102" r="1.2"/><circle cx="283" cy="98" r="1.2"/><circle cx="260" cy="95" r="1.2"/>
+          <circle cx="265" cy="100" r="1.2"/><circle cx="270" cy="105" r="1.2"/><circle cx="275" cy="108" r="1.2"/>
+          <circle cx="280" cy="110" r="1.2"/><circle cx="262" cy="102" r="1.2"/><circle cx="267" cy="108" r="1.2"/>
+          <!-- Germany/Central Europe -->
+          <circle cx="290" cy="78" r="1.2"/><circle cx="295" cy="75" r="1.2"/><circle cx="300" cy="78" r="1.2"/>
+          <circle cx="305" cy="80" r="1.2"/><circle cx="293" cy="82" r="1.2"/><circle cx="298" cy="85" r="1.2"/>
+          <circle cx="303" cy="82" r="1.2"/><circle cx="308" cy="78" r="1.2"/><circle cx="288" cy="85" r="1.2"/>
+          <circle cx="293" cy="88" r="1.2"/><circle cx="298" cy="90" r="1.2"/>
+          <!-- Iberia -->
+          <circle cx="245" cy="112" r="1.2"/><circle cx="250" cy="110" r="1.2"/><circle cx="255" cy="108" r="1.2"/>
+          <circle cx="248" cy="118" r="1.2"/><circle cx="253" cy="115" r="1.2"/><circle cx="258" cy="112" r="1.2"/>
+          <circle cx="240" cy="115" r="1.2"/>
+          <!-- Italy -->
+          <circle cx="290" cy="100" r="1.2"/><circle cx="293" cy="105" r="1.2"/><circle cx="296" cy="110" r="1.2"/>
+          <circle cx="295" cy="95" r="1.2"/><circle cx="298" cy="100" r="1.2"/>
+          <!-- Eastern Europe -->
+          <circle cx="310" cy="70" r="1.2"/><circle cx="315" cy="72" r="1.2"/><circle cx="320" cy="75" r="1.2"/>
+          <circle cx="325" cy="78" r="1.2"/><circle cx="330" cy="72" r="1.2"/><circle cx="335" cy="75" r="1.2"/>
+          <circle cx="340" cy="78" r="1.2"/><circle cx="315" cy="80" r="1.2"/><circle cx="320" cy="82" r="1.2"/>
+          <circle cx="325" cy="85" r="1.2"/><circle cx="330" cy="82" r="1.2"/>
+          <!-- Finland -->
+          <circle cx="320" cy="38" r="1.2"/><circle cx="325" cy="40" r="1.2"/><circle cx="330" cy="42" r="1.2"/>
+          <circle cx="322" cy="44" r="1.2"/><circle cx="327" cy="46" r="1.2"/>
+        </g>
+        <!-- North Africa dots -->
+        <g fill="#222222">
+          <circle cx="260" cy="128" r="1.2"/><circle cx="270" cy="130" r="1.2"/><circle cx="280" cy="128" r="1.2"/>
+          <circle cx="290" cy="125" r="1.2"/><circle cx="300" cy="128" r="1.2"/><circle cx="310" cy="130" r="1.2"/>
+        </g>
+        <!-- USA inset (small, bottom-left) -->
+        <g fill="#2a2a2a" transform="translate(40, 220)">
+          <circle cx="20" cy="10" r="1"/><circle cx="25" cy="8" r="1"/><circle cx="30" cy="10" r="1"/>
+          <circle cx="35" cy="12" r="1"/><circle cx="40" cy="10" r="1"/><circle cx="22" cy="15" r="1"/>
+          <circle cx="27" cy="14" r="1"/><circle cx="32" cy="16" r="1"/><circle cx="37" cy="18" r="1"/>
+          <circle cx="42" cy="15" r="1"/><circle cx="47" cy="12" r="1"/><circle cx="50" cy="14" r="1"/>
+          <circle cx="55" cy="10" r="1"/><circle cx="60" cy="12" r="1"/><circle cx="65" cy="14" r="1"/>
+        </g>
+
+        <!-- ===== PARIS (12 events, multiple wins) — MAXIMUM INTENSITY ===== -->
+        <!-- Outer halo - large, very soft -->
+        <circle cx="275" cy="92" r="40" fill="url(#parisGlow)" opacity="0.12"/>
+        <!-- Mid glow -->
+        <circle cx="275" cy="92" r="22" fill="#ff6b9d" opacity="0.15"/>
+        <!-- Inner glow -->
+        <circle cx="275" cy="92" r="12" fill="#ff6b9d" opacity="0.25"/>
+        <!-- Core -->
+        <circle cx="275" cy="92" r="5" fill="#ff6b9d" opacity="1"/>
+        <!-- Hot center -->
+        <circle cx="275" cy="92" r="2" fill="#ffffff" opacity="0.7"/>
+        <!-- Count label -->
+        <text x="275" y="72" fill="#ff6b9d" font-family="Space Mono, monospace" font-size="8" text-anchor="middle" opacity="0.8">PARIS</text>
+        <text x="275" y="62" fill="#ff6b9d" font-family="Space Mono, monospace" font-size="10" text-anchor="middle" font-weight="bold">12</text>
+
+        <!-- ===== LONDON (1 event, 1st place) — MEDIUM ===== -->
+        <circle cx="253" cy="73" r="10" fill="#ff6b9d" opacity="0.08"/>
+        <circle cx="253" cy="73" r="5" fill="#ff6b9d" opacity="0.2"/>
+        <circle cx="253" cy="73" r="2.5" fill="#ff6b9d" opacity="0.7"/>
+
+        <!-- ===== BERLIN (1 event) — LOW ===== -->
+        <circle cx="298" cy="78" r="8" fill="#ff6b9d" opacity="0.06"/>
+        <circle cx="298" cy="78" r="4" fill="#ff6b9d" opacity="0.15"/>
+        <circle cx="298" cy="78" r="2" fill="#ff6b9d" opacity="0.5"/>
+
+        <!-- ===== STOCKHOLM (1 event, 3rd) — LOW ===== -->
+        <circle cx="310" cy="48" r="8" fill="#ff6b9d" opacity="0.06"/>
+        <circle cx="310" cy="48" r="4" fill="#ff6b9d" opacity="0.15"/>
+        <circle cx="310" cy="48" r="2" fill="#ff6b9d" opacity="0.5"/>
+
+        <!-- ===== HELSINKI (1 event) — LOW ===== -->
+        <circle cx="325" cy="42" r="8" fill="#ff6b9d" opacity="0.06"/>
+        <circle cx="325" cy="42" r="4" fill="#ff6b9d" opacity="0.15"/>
+        <circle cx="325" cy="42" r="2" fill="#ff6b9d" opacity="0.5"/>
+
+        <!-- ===== VERSAILLES (1 event, 3rd) — LOW ===== -->
+        <circle cx="272" cy="96" r="8" fill="#ff6b9d" opacity="0.06"/>
+        <circle cx="272" cy="96" r="4" fill="#ff6b9d" opacity="0.15"/>
+        <circle cx="272" cy="96" r="2" fill="#ff6b9d" opacity="0.5"/>
+
+        <!-- ===== CAMBRIDGE/MIT (1 event, Finalist) — LOW, in inset ===== -->
+        <circle cx="105" cy="232" r="8" fill="#ff6b9d" opacity="0.08"/>
+        <circle cx="105" cy="232" r="4" fill="#ff6b9d" opacity="0.2"/>
+        <circle cx="105" cy="232" r="2" fill="#ff6b9d" opacity="0.6"/>
+        <text x="105" y="248" fill="#555" font-family="Space Mono, monospace" font-size="7" text-anchor="middle">MIT</text>
+
+        <!-- Gradient definition -->
+        <defs>
+          <radialGradient id="parisGlow">
+            <stop offset="0%" stop-color="#ff6b9d" stop-opacity="1"/>
+            <stop offset="40%" stop-color="#ff6b9d" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="#ff6b9d" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+
+        <!-- Stats bar at bottom -->
+        <text x="310" y="180" fill="#555" font-family="Space Mono, monospace" font-size="8" text-anchor="middle">hover a city to see hackathon details</text>
+
+        <!-- Intensity legend -->
+        <g transform="translate(420, 55)">
+          <text x="0" y="0" fill="#8a8a8a" font-family="Space Mono, monospace" font-size="7">INTENSITY</text>
+          <!-- Gradient bar -->
+          <rect x="0" y="8" width="120" height="6" rx="3" fill="url(#legendGrad)"/>
+          <text x="0" y="24" fill="#555" font-family="Space Mono, monospace" font-size="6">1 event</text>
+          <text x="90" y="24" fill="#ff6b9d" font-family="Space Mono, monospace" font-size="6">12 events</text>
+        </g>
+        <defs>
+          <linearGradient id="legendGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#ff6b9d" stop-opacity="0.15"/>
+            <stop offset="100%" stop-color="#ff6b9d" stop-opacity="1"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <div class="card-body">
+      <h3>A. Single Color Heat</h3>
+      <p>One color (pink), intensity = event count. Paris blazes white-hot at the center. Simple, elegant, data-driven. The map tells the story: "this person lives and breathes Paris hackathons."</p>
+    </div>
+  </div>
+
+  <!-- Option B: Prismatic Gradient (color shifts with wins) -->
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="background: #1a1a1a; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 320px;">
+      <svg viewBox="0 0 620 340" style="width:100%;height:auto;">
+        <rect width="620" height="340" fill="#1a1a1a"/>
+
+        <!-- Dotted continents - same Europe focus -->
+        <g fill="#2a2a2a">
+          <circle cx="305" cy="45" r="1.2"/><circle cx="310" cy="42" r="1.2"/><circle cx="315" cy="40" r="1.2"/>
+          <circle cx="300" cy="50" r="1.2"/><circle cx="305" cy="52" r="1.2"/><circle cx="310" cy="48" r="1.2"/>
+          <circle cx="315" cy="46" r="1.2"/><circle cx="320" cy="44" r="1.2"/><circle cx="325" cy="42" r="1.2"/>
+          <circle cx="298" cy="55" r="1.2"/><circle cx="303" cy="58" r="1.2"/><circle cx="308" cy="55" r="1.2"/>
+          <circle cx="245" cy="72" r="1.2"/><circle cx="250" cy="68" r="1.2"/><circle cx="248" cy="76" r="1.2"/>
+          <circle cx="253" cy="73" r="1.2"/><circle cx="255" cy="78" r="1.2"/><circle cx="258" cy="75" r="1.2"/>
+          <circle cx="240" cy="70" r="1.2"/><circle cx="242" cy="75" r="1.2"/>
+          <circle cx="265" cy="90" r="1.2"/><circle cx="270" cy="88" r="1.2"/><circle cx="275" cy="92" r="1.2"/>
+          <circle cx="280" cy="95" r="1.2"/><circle cx="268" cy="96" r="1.2"/><circle cx="273" cy="100" r="1.2"/>
+          <circle cx="278" cy="102" r="1.2"/><circle cx="283" cy="98" r="1.2"/><circle cx="260" cy="95" r="1.2"/>
+          <circle cx="265" cy="100" r="1.2"/><circle cx="270" cy="105" r="1.2"/><circle cx="275" cy="108" r="1.2"/>
+          <circle cx="280" cy="110" r="1.2"/><circle cx="262" cy="102" r="1.2"/><circle cx="267" cy="108" r="1.2"/>
+          <circle cx="290" cy="78" r="1.2"/><circle cx="295" cy="75" r="1.2"/><circle cx="300" cy="78" r="1.2"/>
+          <circle cx="305" cy="80" r="1.2"/><circle cx="293" cy="82" r="1.2"/><circle cx="298" cy="85" r="1.2"/>
+          <circle cx="303" cy="82" r="1.2"/><circle cx="308" cy="78" r="1.2"/><circle cx="288" cy="85" r="1.2"/>
+          <circle cx="245" cy="112" r="1.2"/><circle cx="250" cy="110" r="1.2"/><circle cx="255" cy="108" r="1.2"/>
+          <circle cx="290" cy="100" r="1.2"/><circle cx="293" cy="105" r="1.2"/><circle cx="296" cy="110" r="1.2"/>
+          <circle cx="310" cy="70" r="1.2"/><circle cx="315" cy="72" r="1.2"/><circle cx="320" cy="75" r="1.2"/>
+          <circle cx="325" cy="78" r="1.2"/><circle cx="330" cy="72" r="1.2"/>
+          <circle cx="320" cy="38" r="1.2"/><circle cx="325" cy="40" r="1.2"/><circle cx="330" cy="42" r="1.2"/>
+        </g>
+        <!-- North Africa -->
+        <g fill="#222222">
+          <circle cx="260" cy="128" r="1.2"/><circle cx="270" cy="130" r="1.2"/><circle cx="280" cy="128" r="1.2"/>
+          <circle cx="290" cy="125" r="1.2"/><circle cx="300" cy="128" r="1.2"/>
+        </g>
+        <!-- USA inset -->
+        <g fill="#2a2a2a" transform="translate(40, 220)">
+          <circle cx="20" cy="10" r="1"/><circle cx="25" cy="8" r="1"/><circle cx="30" cy="10" r="1"/>
+          <circle cx="35" cy="12" r="1"/><circle cx="40" cy="10" r="1"/><circle cx="22" cy="15" r="1"/>
+          <circle cx="27" cy="14" r="1"/><circle cx="32" cy="16" r="1"/><circle cx="37" cy="18" r="1"/>
+          <circle cx="50" cy="14" r="1"/><circle cx="55" cy="10" r="1"/><circle cx="60" cy="12" r="1"/>
+          <circle cx="65" cy="14" r="1"/>
+        </g>
+
+        <!-- ===== PARIS (12 events) — FULL PRISMATIC ===== -->
+        <!-- Prismatic outer halo -->
+        <circle cx="275" cy="92" r="38" fill="url(#prismGlow)" opacity="0.15"/>
+        <circle cx="275" cy="92" r="24" fill="url(#prismGlow2)" opacity="0.2"/>
+        <!-- Layered prismatic rings -->
+        <circle cx="275" cy="92" r="14" fill="none" stroke="#b388ff" stroke-width="0.5" opacity="0.3"/>
+        <circle cx="275" cy="92" r="10" fill="none" stroke="#4dd0e1" stroke-width="0.5" opacity="0.4"/>
+        <circle cx="275" cy="92" r="7" fill="none" stroke="#ff6b9d" stroke-width="0.8" opacity="0.5"/>
+        <!-- Core - prismatic gradient -->
+        <circle cx="275" cy="92" r="5" fill="url(#prismCore)"/>
+        <!-- White hot center -->
+        <circle cx="275" cy="92" r="1.5" fill="#fff" opacity="0.9"/>
+        <text x="275" y="72" fill="#E8E4DC" font-family="Space Mono, monospace" font-size="8" text-anchor="middle" opacity="0.9">PARIS</text>
+        <text x="275" y="62" fill="#E8E4DC" font-family="Space Mono, monospace" font-size="10" text-anchor="middle" font-weight="bold">12</text>
+
+        <!-- ===== LONDON (1 event, 1st place win) — teal accent ===== -->
+        <circle cx="253" cy="73" r="8" fill="#4dd0e1" opacity="0.06"/>
+        <circle cx="253" cy="73" r="4" fill="#4dd0e1" opacity="0.2"/>
+        <circle cx="253" cy="73" r="2" fill="#4dd0e1" opacity="0.7"/>
+
+        <!-- ===== BERLIN (1 event, no win) — faint ===== -->
+        <circle cx="298" cy="78" r="6" fill="#8a8a8a" opacity="0.05"/>
+        <circle cx="298" cy="78" r="3" fill="#8a8a8a" opacity="0.15"/>
+        <circle cx="298" cy="78" r="1.5" fill="#8a8a8a" opacity="0.4"/>
+
+        <!-- ===== STOCKHOLM (1 event, 3rd) — faint teal ===== -->
+        <circle cx="310" cy="48" r="7" fill="#4dd0e1" opacity="0.05"/>
+        <circle cx="310" cy="48" r="3" fill="#4dd0e1" opacity="0.15"/>
+        <circle cx="310" cy="48" r="1.5" fill="#4dd0e1" opacity="0.5"/>
+
+        <!-- ===== HELSINKI (1 event, no win) — faintest ===== -->
+        <circle cx="325" cy="42" r="5" fill="#8a8a8a" opacity="0.05"/>
+        <circle cx="325" cy="42" r="2.5" fill="#8a8a8a" opacity="0.12"/>
+        <circle cx="325" cy="42" r="1.2" fill="#8a8a8a" opacity="0.35"/>
+
+        <!-- ===== VERSAILLES (1 event, 3rd) — faint teal ===== -->
+        <circle cx="272" cy="96" r="7" fill="#4dd0e1" opacity="0.05"/>
+        <circle cx="272" cy="96" r="3" fill="#4dd0e1" opacity="0.15"/>
+        <circle cx="272" cy="96" r="1.5" fill="#4dd0e1" opacity="0.5"/>
+
+        <!-- ===== MIT (1 event, Finalist) — warm coral ===== -->
+        <circle cx="105" cy="232" r="7" fill="#ff8a65" opacity="0.06"/>
+        <circle cx="105" cy="232" r="3.5" fill="#ff8a65" opacity="0.2"/>
+        <circle cx="105" cy="232" r="1.8" fill="#ff8a65" opacity="0.6"/>
+        <text x="105" y="248" fill="#555" font-family="Space Mono, monospace" font-size="7" text-anchor="middle">MIT</text>
+
+        <!-- Gradient defs -->
+        <defs>
+          <radialGradient id="prismGlow">
+            <stop offset="0%" stop-color="#ff6b9d" stop-opacity="1"/>
+            <stop offset="50%" stop-color="#b388ff" stop-opacity="0.5"/>
+            <stop offset="100%" stop-color="#4dd0e1" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="prismGlow2">
+            <stop offset="0%" stop-color="#ff6b9d" stop-opacity="1"/>
+            <stop offset="60%" stop-color="#b388ff" stop-opacity="0.4"/>
+            <stop offset="100%" stop-color="#69f0ae" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="prismCore">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="30%" stop-color="#ff6b9d"/>
+            <stop offset="60%" stop-color="#b388ff"/>
+            <stop offset="100%" stop-color="#4dd0e1"/>
+          </radialGradient>
+        </defs>
+
+        <!-- Legend -->
+        <g transform="translate(420, 50)">
+          <text x="0" y="0" fill="#8a8a8a" font-family="Space Mono, monospace" font-size="7">COLOR = WINS</text>
+          <circle cx="8" cy="14" r="3" fill="#8a8a8a" opacity="0.4"/>
+          <text x="18" y="17" fill="#555" font-family="Space Mono, monospace" font-size="6">no win</text>
+          <circle cx="8" cy="28" r="3" fill="#4dd0e1" opacity="0.6"/>
+          <text x="18" y="31" fill="#555" font-family="Space Mono, monospace" font-size="6">placed</text>
+          <circle cx="8" cy="42" r="3" fill="#ff6b9d" opacity="0.8"/>
+          <text x="18" y="45" fill="#555" font-family="Space Mono, monospace" font-size="6">won / funded</text>
+          <circle cx="8" cy="56" r="4" fill="url(#prismCore)"/>
+          <text x="18" y="59" fill="#E8E4DC" font-family="Space Mono, monospace" font-size="6">prismatic (12+)</text>
+          <text x="0" y="80" fill="#8a8a8a" font-family="Space Mono, monospace" font-size="7">SIZE = COUNT</text>
+          <text x="0" y="92" fill="#555" font-family="Space Mono, monospace" font-size="6">more events → bigger glow</text>
+        </g>
+      </svg>
+    </div>
+    <div class="card-body">
+      <h3>B. Prismatic Gradient</h3>
+      <p>Two dimensions: SIZE = event count, COLOR = win level. Grey → teal → pink → full prismatic. Paris reaches prismatic mode with its 12 events and multiple wins. Fits your iridescent brand perfectly.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 16px; padding: 16px; background: rgba(255,255,255,0.03); border-radius: 6px;">
+  <h3 style="margin-top:0;">Interaction on hover</h3>
+  <p class="subtitle">Both options would show a tooltip on hover with: hackathon name, project name, result, and domain. For Paris (12 events), hovering cycles through or shows a stacked list.</p>
+</div>
