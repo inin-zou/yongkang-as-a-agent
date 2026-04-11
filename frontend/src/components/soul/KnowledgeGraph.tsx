@@ -120,7 +120,7 @@ const COMPANY_TECHS: Record<string, string[]> = {
     'Docker', 'GCP', 'Stripe', 'Playwright', 'n8n',
   ],
   'Misogi Labs': ['Python', 'LangGraph', 'LangChain'],
-  'Societe Generale': ['Python', 'Hadoop', 'Spark', 'Airflow', 'LangChain'],
+  'Societe Generale': ['Python', 'LangChain', 'ElasticSearch', 'Streamlit', 'Hadoop', 'Spark', 'Airflow', 'RabbitMQ', 'GitHub Actions', 'Docker'],
   'CITIC Securities': ['Python', 'R', 'VBA'],
   'Smart Gadget Home': ['Python', 'Tableau'],
 }
