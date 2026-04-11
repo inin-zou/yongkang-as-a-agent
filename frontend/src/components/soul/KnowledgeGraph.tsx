@@ -120,7 +120,7 @@ const COMPANY_TECHS: Record<string, string[]> = {
     'Docker', 'GCP', 'Stripe', 'Playwright', 'n8n',
   ],
   'Misogi Labs': ['Python', 'LangGraph', 'LangChain'],
-  'Societe Generale': ['Python', 'LangChain', 'ElasticSearch', 'Streamlit', 'Hadoop', 'Spark', 'Airflow', 'RabbitMQ', 'GitHub Actions', 'Docker'],
+  'Societe Generale (via Alenia)': ['Python', 'LangChain', 'ElasticSearch', 'Streamlit', 'Hadoop', 'Spark', 'Airflow', 'RabbitMQ', 'GitHub Actions', 'Docker'],
   'CITIC Securities': ['Python', 'R', 'VBA'],
   'Smart Gadget Home': ['Python', 'Tableau'],
 }
@@ -129,7 +129,7 @@ const COMPANY_EXTRA_SKILLS: Record<string, string[]> = {
   'Mozart AI': ['Agent Orchestration', 'AI Integration', 'Frontend', 'Cloud & Deploy', 'DevOps', 'ML Training'],
   'Epiminds': ['Agent Orchestration', 'AI Integration', 'Frontend', 'Cloud & Deploy', 'DevOps', 'Database & Storage'],
   'Misogi Labs': ['Agent Orchestration', 'AI Integration'],
-  'Societe Generale': ['Data & Visualization', 'Agent Orchestration', 'AI Integration', 'Cloud & Deploy', 'DevOps'],
+  'Societe Generale (via Alenia)': ['Data & Visualization', 'Agent Orchestration', 'AI Integration', 'Cloud & Deploy', 'DevOps'],
 }
 
 /* ── build graph from API data ─────────────────────────────── */
@@ -187,8 +187,13 @@ function buildGraph(
     const bt = (s as any).battle_tested as string[] | undefined
     const battleTested = bt ?? s.battleTested ?? []
     for (const companyName of battleTested) {
+      // Exact match first
       if (nodeIds.has(`company:${companyName}`)) {
         addEdge(`skill:${s.title}`, `company:${companyName}`)
+      } else {
+        // Fuzzy: battle_tested has "Societe Generale", node is "Societe Generale (via Alenia)"
+        const match = nodes.find(n => n.kind === 'company' && n.id.includes(companyName))
+        if (match) addEdge(`skill:${s.title}`, match.id)
       }
     }
   }
