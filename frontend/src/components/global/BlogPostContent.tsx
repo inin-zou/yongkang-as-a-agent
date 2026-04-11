@@ -27,72 +27,78 @@ export default function BlogPostContent({ html }: BlogPostContentProps) {
     return () => window.removeEventListener('keydown', handleKey)
   }, [lightboxSrc])
 
-  // Auto-group consecutive images into WeChat-style gallery
+  // Auto-group images after a "Photos" heading into WeChat-style gallery
   useEffect(() => {
     const el = contentRef.current
     if (!el) return
 
-    // Find all direct children that are image containers (p>img, figure>img, or img)
-    // but NOT already inside an .img-gallery
     const children = Array.from(el.children) as HTMLElement[]
-    let i = 0
-    while (i < children.length) {
-      const child = children[i]
-      // Skip if already in a gallery
-      if (child.classList.contains('img-gallery')) { i++; continue }
 
-      // Check if this element is an image container
-      const isImageEl = (node: HTMLElement): boolean => {
-        if (node.tagName === 'IMG') return true
-        if (node.tagName === 'FIGURE' && node.querySelector('img')) return true
-        if (node.tagName === 'P' && node.children.length === 1 && node.children[0].tagName === 'IMG') return true
-        return false
-      }
+    // Helper: is this element a "Photos" heading?
+    const isPhotosHeading = (node: HTMLElement): boolean => {
+      const tag = node.tagName
+      if (tag !== 'H2' && tag !== 'H3' && tag !== 'P') return false
+      const text = node.textContent?.trim().toLowerCase() ?? ''
+      return text === 'photos'
+    }
 
-      if (!isImageEl(child)) { i++; continue }
+    // Helper: is this element an image container?
+    const isImageEl = (node: HTMLElement): boolean => {
+      if (node.tagName === 'IMG') return true
+      if (node.tagName === 'FIGURE' && node.querySelector('img')) return true
+      if (node.tagName === 'P' && node.children.length === 1 && node.children[0].tagName === 'IMG') return true
+      return false
+    }
 
-      // Collect consecutive image elements
-      const group: HTMLElement[] = [child]
+    // Find each "Photos" heading and collect images that follow it
+    for (let i = 0; i < children.length; i++) {
+      if (!isPhotosHeading(children[i])) continue
+
+      // Collect consecutive image elements after the heading
+      const photos: HTMLElement[] = []
       let j = i + 1
       while (j < children.length && isImageEl(children[j]) && !children[j].classList.contains('img-gallery')) {
-        group.push(children[j])
+        photos.push(children[j])
         j++
       }
 
-      // Only auto-gallery if 2+ consecutive images
-      if (group.length >= 2) {
-        const gallery = document.createElement('div')
-        const count = Math.min(group.length, 4)
-        gallery.className = `img-gallery img-gallery--${count}`
+      if (photos.length === 0) continue
 
-        // Insert gallery before the first image in the group
-        child.parentNode!.insertBefore(gallery, child)
+      // Turn the heading into the gallery label
+      const heading = children[i]
+      const label = document.createElement('p')
+      label.className = 'img-gallery-label'
+      label.textContent = 'Photos'
+      heading.replaceWith(label)
 
-        // Move images into gallery, wrapping bare imgs in figures
-        for (const img of group) {
-          let figure: HTMLElement
-          if (img.tagName === 'FIGURE') {
-            figure = img
-          } else if (img.tagName === 'P' && img.children[0]?.tagName === 'IMG') {
-            figure = document.createElement('figure')
-            figure.appendChild(img.children[0])
-            img.remove()
-          } else {
-            figure = document.createElement('figure')
-            figure.appendChild(img)
-          }
-          gallery.appendChild(figure)
+      // Create gallery container
+      const gallery = document.createElement('div')
+      const count = Math.min(photos.length, 4)
+      gallery.className = `img-gallery img-gallery--${count}`
+
+      // Insert gallery after the label
+      label.after(gallery)
+
+      // Move images into gallery, wrapping bare imgs in figures
+      for (const img of photos) {
+        let figure: HTMLElement
+        if (img.tagName === 'FIGURE') {
+          figure = img
+        } else if (img.tagName === 'P' && img.children[0]?.tagName === 'IMG') {
+          figure = document.createElement('figure')
+          figure.appendChild(img.children[0])
+          img.remove()
+        } else {
+          figure = document.createElement('figure')
+          figure.appendChild(img)
         }
-
-        // Refresh children array since DOM changed
-        const newChildren = Array.from(el.children) as HTMLElement[]
-        children.length = 0
-        children.push(...newChildren)
-        // Don't increment i — the gallery is now at position i
-        i++
-      } else {
-        i++
+        gallery.appendChild(figure)
       }
+
+      // Refresh children array since DOM changed, restart scan
+      children.length = 0
+      children.push(...Array.from(el.children) as HTMLElement[])
+      i = -1 // restart (will increment to 0)
     }
   }, [html])
 
