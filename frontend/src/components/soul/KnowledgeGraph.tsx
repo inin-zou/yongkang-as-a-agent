@@ -5,7 +5,7 @@ import type { SkillDomain, Hackathon, Experience } from '../../types'
 
 /* ── types ─────────────────────────────────────────────────── */
 
-type NodeKind = 'skill' | 'company' | 'domain' | 'hackathon'
+type NodeKind = 'skill' | 'company' | 'domain' | 'hackathon' | 'tech'
 
 interface GraphNode {
   id: string
@@ -27,17 +27,19 @@ interface GraphEdge {
 /* ── colors per kind ───────────────────────────────────────── */
 
 const KIND_COLORS: Record<NodeKind, string> = {
-  skill: '#4ecdc4',     // teal
-  company: '#f4a261',   // amber
-  domain: '#a78bfa',    // purple
-  hackathon: '#6b7280', // grey
+  skill: '#4dd0e1',     // prism-teal
+  company: '#ff8a65',   // prism-coral
+  domain: '#b388ff',    // prism-lavender
+  hackathon: '#555555',  // muted grey
+  tech: '#69f0ae',      // prism-mint
 }
 
 const KIND_GLOW: Record<NodeKind, string> = {
-  skill: 'rgba(78, 205, 196, 0.3)',
-  company: 'rgba(244, 162, 97, 0.3)',
-  domain: 'rgba(167, 139, 250, 0.3)',
-  hackathon: 'rgba(107, 114, 128, 0.15)',
+  skill: 'rgba(77, 208, 225, 0.3)',
+  company: 'rgba(255, 138, 101, 0.3)',
+  domain: 'rgba(179, 136, 255, 0.3)',
+  hackathon: 'rgba(85, 85, 85, 0.1)',
+  tech: 'rgba(105, 240, 174, 0.25)',
 }
 
 /* ── domain → skill domain mapping ─────────────────────────── */
@@ -118,6 +120,35 @@ function buildGraph(
     const related = DOMAIN_SKILL_MAP[d] ?? []
     for (const skillTitle of related) {
       addEdge(`domain:${d}`, `skill:${skillTitle}`)
+    }
+  }
+
+  // 7. Tech stack nodes from individual skills within each domain
+  // Count how many domains each tech connects to (for sizing)
+  const techDomainCount = new Map<string, number>()
+  for (const s of skills) {
+    const allTechs = [...(s.skills ?? [])]
+    const subs = (s as any).subcategories ?? s.subcategories ?? [] // eslint-disable-line @typescript-eslint/no-explicit-any
+    for (const sub of subs) {
+      allTechs.push(...(sub.skills ?? []))
+    }
+    for (const tech of allTechs) {
+      techDomainCount.set(tech, (techDomainCount.get(tech) ?? 0) + 1)
+    }
+  }
+
+  for (const s of skills) {
+    const allTechs = [...(s.skills ?? [])]
+    const subs = (s as any).subcategories ?? s.subcategories ?? [] // eslint-disable-line @typescript-eslint/no-explicit-any
+    for (const sub of subs) {
+      allTechs.push(...(sub.skills ?? []))
+    }
+    for (const tech of allTechs) {
+      const count = techDomainCount.get(tech) ?? 1
+      // Scale radius: single-domain techs are tiny, multi-domain techs grow
+      const radius = count > 1 ? 5 + count * 2 : 4
+      addNode(`tech:${tech}`, tech, 'tech', radius)
+      addEdge(`tech:${tech}`, `skill:${s.title}`)
     }
   }
 
@@ -316,11 +347,12 @@ export default function KnowledgeGraph() {
       ctx.shadowBlur = 0
       ctx.globalAlpha = 1
 
-      // Labels (skip small hackathon nodes unless hovered/connected)
-      if (n.kind === 'hackathon' && !isHovered && !isConnected) continue
+      // Labels: skip small nodes unless hovered/connected
+      const isSmallNode = n.kind === 'hackathon' || (n.kind === 'tech' && n.radius <= 5)
+      if (isSmallNode && !isHovered && !isConnected) continue
 
       ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.85)'
-      ctx.font = n.kind === 'hackathon' ? '8px system-ui' : '10px system-ui'
+      ctx.font = (n.kind === 'hackathon' || n.kind === 'tech') ? '8px system-ui' : '10px system-ui'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'top'
       ctx.fillText(n.label, n.x, n.y + n.radius + 4)
@@ -333,6 +365,7 @@ export default function KnowledgeGraph() {
     ctx.font = '10px system-ui'
     const kinds: { kind: NodeKind; label: string }[] = [
       { kind: 'skill', label: 'Skill Domain' },
+      { kind: 'tech', label: 'Tech Stack' },
       { kind: 'company', label: 'Company' },
       { kind: 'domain', label: 'Hackathon Domain' },
       { kind: 'hackathon', label: 'Hackathon' },
