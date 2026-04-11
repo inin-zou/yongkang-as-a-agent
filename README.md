@@ -1,6 +1,6 @@
 # yongkang.dev
 
-Personal portfolio for Yongkang ZOU — AI Engineer in Stockholm.
+Personal portfolio for Yongkang ZOU — AI Engineer in Paris.
 
 The concept is "super agent with many skills" — a file-system-based portfolio where visitors browse `.md` files in a Note App-style interface.
 
@@ -20,7 +20,7 @@ The concept is "super agent with many skills" — a file-system-based portfolio 
 
 | Tab | Description |
 |---|---|
-| **SOUL.md** | Bio, stats, projects status board |
+| **SOUL.md** | Bio, stats, projects status board, knowledge graph |
 | **SKILL.md** | Skills, resume, hackathons (dotted map + timeline) |
 | **MEMORY.md** | Blog with three categories, likes, comments, guestbook |
 | **CONTACT.md** | Direct channels (GitHub, LinkedIn, Hugging Face) + contact form |
@@ -63,6 +63,7 @@ frontend/
   src/components/
     admin/                AdminBar, EditableItem, PostEditor, MediaUploadBar
     global/               Layout, FileSystemLayout, MusicPlayerBar, BlogPostContent
+    soul/                 ProjectsView, KnowledgeGraph
     skill/                HackathonMap, SkillsView, ResumeView
     navigation/           Sidebar, TabNavigation, Breadcrumb
   src/hooks/              useAdminEdit, useBlogMediaUpload, useReducedMotion
@@ -83,7 +84,12 @@ frontend/
 - **Media conversion** — HEIC-to-PNG (heic2any), WAV-to-MP3 (ffmpeg.wasm), all client-side
 - **Mobile responsive** — collapsible sidebar, full-screen layout, scrollable tabs on phones
 - **CDN caching** — 24h Vercel edge cache with timestamp-based cache busting
+- **Knowledge graph** — force-directed graph at `/files/soul/graph` auto-generated from Supabase data (skills, hackathons, companies, tech stacks). Holographic rendering with prismatic glow. Nodes sized by connection count.
+- **Error boundary** — catches rendering crashes with styled fallback UI + reload button
+- **Social sharing** — OG image + Twitter card meta tags for link previews on LinkedIn, Twitter, WeChat
+- **Lazy FFmpeg** — 5-10MB wasm bundle only loaded when admin uploads media, not on page load
 - **Primary/fallback data** — Supabase first, embedded JSON fallback if unavailable
+- **Accessibility** — `:focus-visible` keyboard outlines, `aria-expanded` sidebar, `aria-live` form status
 
 ## Env Vars
 
