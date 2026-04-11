@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Personal portfolio website for Yongkang ZOU — an AI Engineer in Stockholm. Concept: "super agent with many skills" — a file-system-based portfolio where visitors browse `.md` files in a Note App-style interface. Live at **https://yongkang.dev**.
+Personal portfolio website for Yongkang ZOU — an AI Engineer in Paris. Concept: "super agent with many skills" — a file-system-based portfolio where visitors browse `.md` files in a Note App-style interface. Live at **https://yongkang.dev**. Public repo at **https://github.com/inin-zou/yongkang-as-a-agent**.
 
 ## Commands
 
@@ -65,8 +65,12 @@ git push origin main
 - **Music player:** `MusicPlayerContext` owns a global `<audio>` element that persists across navigation. `MusicPlayerBar` at bottom of `FileSystemLayout`. `AudioPlayer` in MusicPage reads from the same context.
 - **AI endpoints:** `POST /api/admin/generate-draft` (rough idea → HTML) and `POST /api/admin/refine-draft` (existing content → markdown). Both upload images to Gemini File API for visual analysis. Videos and GIFs skip File API (text-only URL context). Refine returns markdown directly; generate returns HTML.
 - **Media upload:** `useBlogMediaUpload` hook + `MediaUploadBar` shared component. Uploads to Supabase Storage `blog-media` bucket. Auto-converts HEIC→PNG (heic2any). Videos >50MB show error with compression recommendation. Status text shown during processing.
-- **Media conversion:** `mediaConvert.ts` — WAV/FLAC/AIFF→MP3 via ffmpeg.wasm (audio), shared `getFFmpeg()` singleton.
+- **Media conversion:** `mediaConvert.ts` — WAV/FLAC/AIFF→MP3 via ffmpeg.wasm (audio). FFmpeg lazy-loaded via dynamic import (only when admin uploads media).
+- **Knowledge graph:** `KnowledgeGraph.tsx` at `/files/soul/graph`. Canvas-based force-directed graph auto-generated from Supabase data. Nodes: skill domains, tech stack, companies, hackathon domains, hackathons. Sized by connection count. Holographic rendering (prismatic glow + translucent fill). Tech connections mapped from GitHub repo analysis.
+- **Error boundary:** `ErrorBoundary.tsx` wraps `RouterProvider` — catches rendering crashes with styled fallback + reload button.
+- **OG image:** `og:image` + `twitter:image` meta tags in `index.html` for social sharing cards. Image at `public/og-image.png`.
 - **Mobile responsive:** `@media (max-width: 768px)` — full-screen app window, collapsible sidebar toggle, scrollable tab bar, tighter padding. Desktop layout untouched.
+- **Accessibility:** `:focus-visible` outlines for keyboard nav, `aria-expanded` on mobile sidebar, `aria-live` on contact form status.
 
 ## Supabase
 
