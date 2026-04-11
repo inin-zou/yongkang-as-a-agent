@@ -336,6 +336,8 @@ export default function KnowledgeGraph() {
   const rafRef = useRef(0)
   const [hovered, setHovered] = useState<GraphNode | null>(null)
   const [dragging, setDragging] = useState<GraphNode | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchMiss, setSearchMiss] = useState(false)
   const panRef = useRef({ x: 0, y: 0 })
   const scaleRef = useRef(1)
 
@@ -568,14 +570,89 @@ export default function KnowledgeGraph() {
     scaleRef.current = Math.min(3, Math.max(0.3, scaleRef.current * delta))
   }
 
+  function handleSearch(query: string) {
+    setSearchQuery(query)
+    setSearchMiss(false)
+    if (!query.trim()) {
+      setHovered(null)
+      return
+    }
+    const q = query.trim().toLowerCase()
+    const { nodes } = graphRef.current
+    // Exact match first, then prefix, then substring
+    const match = nodes.find(n => n.label.toLowerCase() === q)
+      ?? nodes.find(n => n.label.toLowerCase().startsWith(q))
+      ?? nodes.find(n => n.label.toLowerCase().includes(q))
+    if (match) {
+      setHovered(match)
+      // Pan to center on the matched node
+      panRef.current = { x: -match.x * scaleRef.current, y: -match.y * scaleRef.current }
+    } else {
+      setHovered(null)
+      setSearchMiss(true)
+    }
+  }
+
   const isLoading = !skills || !hackathons || !experience
 
   return (
     <div className="editor-page" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div className="editor-meta">Knowledge Graph — auto-generated from Supabase data</div>
+      <div className="editor-meta" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
+        <span>Knowledge Graph</span>
+        <div style={{ position: 'relative', marginLeft: 'auto' }}>
+          <input
+            type="text"
+            placeholder="Search tech, project, company..."
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            style={{
+              background: 'var(--color-surface-0)',
+              border: '1px solid var(--color-ink-faint)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '4px 10px',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.75rem',
+              color: 'var(--color-ink)',
+              outline: 'none',
+              width: 220,
+            }}
+          />
+          {searchMiss && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              right: 0,
+              marginTop: 6,
+              background: 'var(--color-surface-1)',
+              border: '1px solid var(--color-ink-faint)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '8px 12px',
+              fontFamily: 'var(--font-mono)',
+              fontSize: '0.7rem',
+              color: 'var(--color-ink-muted)',
+              width: 260,
+              zIndex: 10,
+              lineHeight: 1.5,
+            }}>
+              <div>Not found in the graph.</div>
+              <div style={{ marginTop: 4 }}>
+                Maybe I've used it but haven't recorded it yet.{' '}
+                <a
+                  href="/files/contact/message"
+                  style={{ color: 'var(--color-prism-teal)', textDecoration: 'none' }}
+                >
+                  Leave me a note
+                </a>
+                {' '}and I'll add it!
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
       <div
         ref={containerRef}
         style={{ flex: 1, minHeight: 400, position: 'relative' }}
+        onClick={() => setSearchMiss(false)}
       >
         {isLoading && (
           <div style={{
