@@ -103,7 +103,8 @@ function buildGraph(
 
   // 5. Edges: skill domain → company (via battle_tested)
   for (const s of skills) {
-    const bt = (s as Record<string, unknown>).battle_tested as string[] | undefined
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const bt = (s as any).battle_tested as string[] | undefined
     const battleTested = bt ?? s.battleTested ?? []
     for (const companyName of battleTested) {
       if (nodeIds.has(`company:${companyName}`)) {
