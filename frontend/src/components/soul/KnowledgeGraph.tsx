@@ -117,7 +117,7 @@ const COMPANY_TECHS: Record<string, string[]> = {
     'TypeScript', 'React', 'Vite', 'Tailwind', 'shadcn', 'Zustand', 'TanStack',
     'Framer Motion', 'Vercel AI SDK', 'Express', 'OpenAI', 'Claude', 'Gemini',
     'LangChain', 'LangGraph', 'MCP', 'Supabase', 'PostgreSQL', 'Redis', 'Prisma',
-    'Docker', 'GCP', 'Stripe', 'Playwright', 'n8n',
+    'Docker', 'GCP', 'Digital Ocean', 'Stripe', 'Playwright',
   ],
   'Misogi Labs': ['Python', 'LangGraph', 'LangChain'],
   'Societe Generale': ['Python', 'LangChain', 'ElasticSearch', 'Streamlit', 'Hadoop', 'Spark', 'Airflow', 'RabbitMQ', 'GitHub Actions', 'Docker'],
