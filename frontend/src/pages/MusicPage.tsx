@@ -337,18 +337,6 @@ function ArtistOverview() {
           </div>
         )}
 
-        <img
-          src="/artist-photo.jpg"
-          alt="inhibitor artist photo"
-          style={{
-            width: '100%',
-            maxWidth: 320,
-            borderRadius: 'var(--radius-md)',
-            marginBottom: 'var(--space-md)',
-            opacity: 0.9,
-          }}
-        />
-
         {isEditing ? (
           <div className="admin-editor">
             {saveError && <div className="admin-error">{saveError}</div>}
@@ -411,9 +399,21 @@ function ArtistOverview() {
           </div>
         ) : (
           <>
+            <img
+              src="/artist-photo.jpg"
+              alt="inhibitor"
+              style={{
+                float: 'right',
+                width: 140,
+                borderRadius: 'var(--radius-sm)',
+                marginLeft: 'var(--space-md)',
+                marginBottom: 'var(--space-sm)',
+                opacity: 0.85,
+              }}
+            />
             <p style={{ whiteSpace: 'pre-line' }}>{bio}</p>
 
-            <div className="editor-divider" />
+            <div className="editor-divider" style={{ clear: 'both' }} />
 
             <p className="editor-label">Status</p>
             <p>{status}</p>
