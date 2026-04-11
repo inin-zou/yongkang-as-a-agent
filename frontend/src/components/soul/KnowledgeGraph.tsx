@@ -110,7 +110,7 @@ const COMPANY_TECHS: Record<string, string[]> = {
   'Mozart AI': ['TypeScript', 'Python', 'React', 'Next.js', 'LangChain', 'OpenAI', 'Vercel'],
   'Epiminds': ['TypeScript', 'Python', 'React', 'Next.js', 'LangGraph', 'Claude', 'Vercel', 'Supabase'],
   'Misogi Labs': ['Python', 'LangGraph', 'LangChain'],
-  'Societe Generale': ['Python', 'Hadoop', 'Spark', 'Airflow'],
+  'Societe Generale': ['Python', 'Hadoop', 'Spark', 'Airflow', 'LangChain'],
   'CITIC Securities': ['Python', 'R', 'VBA'],
   'Smart Gadget Home': ['Python', 'Tableau'],
 }
@@ -119,7 +119,7 @@ const COMPANY_EXTRA_SKILLS: Record<string, string[]> = {
   'Mozart AI': ['Agent Orchestration', 'AI Integration', 'Frontend'],
   'Epiminds': ['Agent Orchestration', 'AI Integration', 'Frontend', 'Cloud & Deploy'],
   'Misogi Labs': ['Agent Orchestration', 'AI Integration'],
-  'Societe Generale': ['Data & Visualization'],
+  'Societe Generale': ['Data & Visualization', 'Agent Orchestration', 'AI Integration', 'Cloud & Deploy', 'DevOps'],
 }
 
 /* ── build graph from API data ─────────────────────────────── */
