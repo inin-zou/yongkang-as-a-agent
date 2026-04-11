@@ -1,6 +1,6 @@
 # yongkang.dev
 
-Personal portfolio for Yongkang ZOU — AI Engineer in Paris.
+Personal portfolio for Yongkang ZOU — AI Engineer in Stockholm.
 
 The concept is "super agent with many skills" — a file-system-based portfolio where visitors browse `.md` files in a Note App-style interface.
 
@@ -13,6 +13,7 @@ The concept is "super agent with many skills" — a file-system-based portfolio 
 - **Database:** Supabase (PostgreSQL) — all content admin-editable via inline CMS
 - **AI:** Gemini API for blog post generation & refinement with image analysis (File API)
 - **Audio:** Persistent music player with playlist, client-side WAV-to-MP3 via ffmpeg.wasm
+- **Media:** HEIC-to-PNG conversion (heic2any), mermaid.js diagram rendering
 - **Deploy:** Vercel (Git integration auto-deploy) + Cloudflare DNS
 
 ## Pages
@@ -65,7 +66,7 @@ frontend/
     skill/                HackathonMap, SkillsView, ResumeView
     navigation/           Sidebar, TabNavigation, Breadcrumb
   src/hooks/              useAdminEdit, useBlogMediaUpload, useReducedMotion
-  src/lib/                API client, auth, markdown, audio conversion, MusicPlayerContext
+  src/lib/                API client, auth, markdown, mediaConvert, MusicPlayerContext
   src/styles/             CSS (theme, file-system, admin, memory, player, etc.)
 ```
 
@@ -73,11 +74,14 @@ frontend/
 
 - **Inline admin editing** — admin sees EDIT button on every page, edits in place
 - **AI blog drafting** — generate posts from rough ideas, or refine existing posts with REFINE WITH AI
-- **Smart media placement** — Gemini analyzes uploaded images via File API, places them as inline illustrations or gallery grids (Twitter/Instagram-style)
-- **Click-to-expand lightbox** — all blog images open fullscreen via portal overlay
+- **Smart media placement** — Gemini analyzes uploaded images via File API, places inline (Type A) or in WeChat-style gallery grids (Type B)
+- **WeChat Moments gallery** — 1 image shows full, 2+ images crop to square grid (2-col or 3-col based on count)
+- **Click-to-expand lightbox** — all blog images open fullscreen via portal overlay, Escape to close
+- **Mermaid diagrams** — `<pre class="mermaid">` blocks render as diagrams with dark theme
 - **Persistent music player** — slim bar at bottom, continues playing across tab navigation, playlist with repeat modes
 - **Markdown editor** — content stored as HTML, edited as markdown (turndown + marked)
-- **WAV-to-MP3 conversion** — client-side via ffmpeg.wasm before Supabase upload
+- **Media conversion** — HEIC-to-PNG (heic2any), WAV-to-MP3 (ffmpeg.wasm), all client-side
+- **Mobile responsive** — collapsible sidebar, full-screen layout, scrollable tabs on phones
 - **CDN caching** — 24h Vercel edge cache with timestamp-based cache busting
 - **Primary/fallback data** — Supabase first, embedded JSON fallback if unavailable
 
