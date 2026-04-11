@@ -1,68 +1,232 @@
 [
   {
-    "title": "Model Fine-Tuning",
-    "slug": "yongkang:model-finetune",
-    "skills": ["LoRA", "QLoRA", "DPO", "SFT", "RAFT", "PEFT", "Weights & Biases"],
-    "battleTested": ["Ethos Studio (Voxtral LoRA)", "Societe Generale"]
-  },
-  {
-    "title": "Agent Orchestration",
-    "slug": "yongkang:agent-orchestration",
-    "skills": ["LangChain", "LangGraph", "LlamaIndex", "AutoGen", "Dify", "n8n", "MCP Protocol"],
-    "battleTested": ["BuzzLab", "OnTrack", "Le Scribe Royal", "Deep Search API", "Musixtral"]
-  },
-  {
-    "title": "AI Integration",
-    "slug": "yongkang:ai-integration",
-    "skills": ["OpenAI", "Anthropic Claude", "Google Gemini", "Mistral", "ElevenLabs", "HuggingFace", "vLLM", "Groq"],
-    "battleTested": ["Dianoia", "SherlockOS", "VideoStack", "Deep Search API"]
-  },
-  {
-    "title": "Data & Visualization",
-    "slug": "yongkang:data-viz",
-    "skills": ["Tableau", "Power BI", "Matplotlib", "Seaborn", "Streamlit", "Hadoop", "Kafka", "Spark", "Airflow"],
-    "battleTested": ["CITIC Securities", "Smart Gadget Home", "HealthOdyssey"]
-  },
-  {
-    "title": "ML Training",
-    "slug": "yongkang:ml-training",
-    "skills": ["PyTorch", "TensorFlow", "scikit-learn", "ONNX", "Modal GPU", "Transformers", "Diffusion Models"],
-    "battleTested": ["ZenQ", "EmoHunter", "Genome Classification", "Ethos Studio"]
-  },
-  {
-    "title": "Database & Storage",
-    "slug": "yongkang:database-storage",
-    "skills": ["Supabase", "PostgreSQL", "MongoDB", "Qdrant", "Weaviate", "ElasticSearch", "Redis", "SQLite"],
-    "battleTested": ["Societe Generale", "Wiggly", "GitBeat", "Dianoia", "SherlockOS"]
-  },
-  {
-    "title": "Cloud & Deploy",
-    "slug": "yongkang:cloud-deploy",
-    "skills": ["AWS (EC2, S3, Lambda)", "GCP (Vertex AI, Cloud Run)", "Modal", "Vercel", "Fly.io", "Replicate"],
-    "battleTested": ["OnTrack", "Societe Generale", "Rewind", "EmoHunter"]
-  },
-  {
-    "title": "DevOps",
-    "slug": "yongkang:devops",
-    "skills": ["Docker", "Kubernetes", "GitHub Actions", "CI/CD"],
-    "battleTested": ["Misogi Labs", "Mozart AI", "Musixtral"]
-  },
-  {
-    "title": "Backend",
+    "id": "1e8bedc7-9cf7-4210-a134-7a997c57950f",
     "slug": "yongkang:backend",
-    "skills": ["Python", "Go", "TypeScript", "Node.js", "FastAPI", "Chi Router", "Express"],
-    "battleTested": ["CITIC Securities", "Societe Generale", "Misogi Labs", "Mozart AI", "Epiminds", "Dianoia"]
+    "title": "Backend",
+    "skills": [
+      "Python",
+      "Go",
+      "TypeScript",
+      "Javascript",
+      "Node.js / Bun",
+      "C++",
+      "Rust"
+    ],
+    "battle_tested": [
+      "CITIC Securities",
+      "Societe Generale",
+      "Misogi Labs",
+      "Mozart AI",
+      "Epiminds"
+    ],
+    "sort_order": 6,
+    "created_at": "2026-04-07T17:08:56.012339+00:00"
   },
   {
-    "title": "Frontend",
+    "id": "372b18df-d554-409a-9dda-855255e7e4c1",
+    "slug": "yongkang:ai-integration",
+    "title": "AI Integration",
+    "skills": [
+      "OpenAI",
+      "Anthropic SDK",
+      "ElevenLabs",
+      "HuggingFace",
+      "Vercel AI SDK",
+      "vLLM",
+      "Groq"
+    ],
+    "battle_tested": [
+      "Dianoia",
+      "SherlockOS",
+      "VideoStack"
+    ],
+    "sort_order": 3,
+    "created_at": "2026-04-07T17:08:56.012339+00:00"
+  },
+  {
+    "id": "4034d429-7a35-47fc-b8c5-e783c640ad47",
     "slug": "yongkang:frontend",
-    "skills": ["React", "Next.js", "Vue.js", "Three.js", "TailwindCSS", "Framer Motion", "GSAP"],
-    "battleTested": ["Wiggly", "GitBeat", "BuzzLab", "YourPath", "Portfolio"]
+    "title": "Frontend",
+    "skills": [
+      "React",
+      "Next.js",
+      "Vue.js",
+      "Three.js",
+      "TailwindCSS",
+      "Framer Motion",
+      "GSAP"
+    ],
+    "battle_tested": [
+      "Wiggly",
+      "GitBeat",
+      "BuzzLab",
+      "YourPath",
+      "Portfolio"
+    ],
+    "sort_order": 5,
+    "created_at": "2026-04-07T17:08:56.012339+00:00"
   },
   {
-    "title": "Product Design",
+    "id": "40984d55-7340-496b-b568-df46884ee951",
+    "slug": "yongkang:ml-training",
+    "title": "ML Training",
+    "skills": [
+      "PyTorch",
+      "TensorFlow",
+      "scikit-learn",
+      "ONNX",
+      "Modal GPU",
+      "Transformers",
+      "Diffusion Models"
+    ],
+    "battle_tested": [
+      "ZenQ",
+      "EmoHunter",
+      "Genome Classification",
+      "Ethos Studio"
+    ],
+    "sort_order": 1,
+    "created_at": "2026-04-07T17:08:56.012339+00:00"
+  },
+  {
+    "id": "5025f1ed-1127-4e61-91ef-4644754c2cd9",
+    "slug": "yongkang:cloud-deploy",
+    "title": "Cloud & Deploy",
+    "skills": [
+      "AWS",
+      "GCP",
+      "Modal",
+      "Vercel",
+      "Digital Ocean",
+      "Nebuis"
+    ],
+    "battle_tested": [
+      "OnTrack",
+      "Rewind",
+      "EmoHunter",
+      "MozartAI"
+    ],
+    "sort_order": 4,
+    "created_at": "2026-04-07T17:08:56.012339+00:00"
+  },
+  {
+    "id": "57b26387-d558-462d-9f94-80afeeaba9df",
+    "slug": "yongkang:data-engineering",
+    "title": "Data & Visualization",
+    "skills": [
+      "Tableau",
+      "Power BI",
+      "R",
+      "VBA",
+      "Hadoop",
+      "Kafka",
+      "Spark",
+      "Airflow"
+    ],
+    "battle_tested": [
+      "CITIC Securities",
+      "Smart Gadget Home",
+      "HealthOdyssey"
+    ],
+    "sort_order": 9,
+    "created_at": "2026-04-07T17:08:56.012339+00:00"
+  },
+  {
+    "id": "765be524-befa-47b0-8219-4c62c67d24d9",
+    "slug": "yongkang:model-finetune",
+    "title": "Model Fine-Tuning",
+    "skills": [
+      "LoRA",
+      "QLoRA",
+      "DPO",
+      "GRPO",
+      "Weights & Biases"
+    ],
+    "battle_tested": [
+      "Ethos Studio (Voxtral LoRA & RL)"
+    ],
+    "sort_order": 1,
+    "created_at": "2026-04-07T17:08:56.012339+00:00"
+  },
+  {
+    "id": "8c32989f-3d50-4e89-9704-6e4040d37c18",
+    "slug": "yongkang:agent-orchestration",
+    "title": "Agent Orchestration",
+    "skills": [
+      "LangChain",
+      "LangGraph",
+      "LlamaIndex",
+      "Dify",
+      "n8n",
+      "MCP"
+    ],
+    "battle_tested": [
+      "BuzzLab",
+      "OnTrack",
+      "Le Scribe Royal",
+      "Musixtral"
+    ],
+    "sort_order": 0,
+    "created_at": "2026-04-07T17:08:56.012339+00:00"
+  },
+  {
+    "id": "be126719-fad1-4b9b-a8a4-973365aefe14",
+    "slug": "yongkang:database-storage",
+    "title": "Database & Storage",
+    "skills": [
+      "PostgreSQL",
+      "MongoDB",
+      "Supabase",
+      "Qdrant",
+      "Weaviate",
+      "ElasticSearch",
+      "Redis"
+    ],
+    "battle_tested": [
+      "Societe Generale",
+      "Wiggly",
+      "GitBeat",
+      "Dianoia",
+      "SherlockOS"
+    ],
+    "sort_order": 8,
+    "created_at": "2026-04-07T17:08:56.012339+00:00"
+  },
+  {
+    "id": "c6b4237a-dc4b-48a6-ab90-1331ea1a0cc1",
     "slug": "yongkang:product-design",
-    "skills": ["Figma", "UI/UX Design", "Prototyping", "Design Systems", "User Research"],
-    "battleTested": ["Dianoia", "EmoHunter", "BuzzLab", "Portfolio"]
+    "title": "Product Design",
+    "skills": [
+      "Figma",
+      "UI/UX Design",
+      "Prototyping",
+      "Design Systems",
+      "User Research"
+    ],
+    "battle_tested": [
+      "Dianoia",
+      "EmoHunter",
+      "Portfolio"
+    ],
+    "sort_order": 10,
+    "created_at": "2026-04-07T17:08:56.012339+00:00"
+  },
+  {
+    "id": "de9626e5-30e0-49a2-a8d5-133c6e8e9280",
+    "slug": "yongkang:devops",
+    "title": "DevOps",
+    "skills": [
+      "Docker",
+      "Kubernetes",
+      "GitHub Actions",
+      "CI/CD"
+    ],
+    "battle_tested": [
+      "Epiminds",
+      "Mozart AI",
+      "Musixtral"
+    ],
+    "sort_order": 7,
+    "created_at": "2026-04-07T17:08:56.012339+00:00"
   }
 ]
