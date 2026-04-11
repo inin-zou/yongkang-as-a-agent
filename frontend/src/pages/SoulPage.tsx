@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchPage, updatePage } from '../lib/api'
@@ -6,6 +6,8 @@ import { useAdminEdit } from '../hooks/useAdminEdit'
 import AdminBar from '../components/admin/AdminBar'
 import ProjectsView from '../components/soul/ProjectsView'
 import '../styles/skill.css'
+
+const KnowledgeGraph = lazy(() => import('../components/soul/KnowledgeGraph'))
 
 const ASCII_NAME = `███████╗ ██████╗ ██╗   ██╗
 ╚══███╔╝██╔═══██╗██║   ██║
@@ -43,6 +45,10 @@ export default function SoulPage() {
 
   if (item === 'projects') {
     return <ProjectsView />
+  }
+
+  if (item === 'graph') {
+    return <Suspense fallback={null}><KnowledgeGraph /></Suspense>
   }
 
   return <SoulReadme />
