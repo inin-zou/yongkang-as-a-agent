@@ -10,7 +10,7 @@ The concept is "super agent with many skills" — a file-system-based portfolio 
 
 - **Backend:** Go (chi router), serverless on Vercel (`api/index.go`)
 - **Frontend:** React 19 + Vite + TanStack Query + Three.js + GSAP + Tailwind CSS v4
-- **Database:** Supabase (PostgreSQL) — all content admin-editable via inline CMS
+- **Database:** Supabase (PostgreSQL + Storage) — all content admin-editable via inline CMS
 - **AI:** Gemini API for blog post generation & refinement with image analysis (File API)
 - **Audio:** Persistent music player with playlist, client-side WAV-to-MP3 via ffmpeg.wasm
 - **Media:** HEIC-to-PNG conversion (heic2any), mermaid.js diagram rendering
@@ -74,8 +74,8 @@ frontend/
 
 - **Inline admin editing** — admin sees EDIT button on every page, edits in place
 - **AI blog drafting** — generate posts from rough ideas, or refine existing posts with REFINE WITH AI
-- **Smart media placement** — Gemini analyzes uploaded images via File API, places inline (Type A) or in WeChat-style gallery grids (Type B)
-- **WeChat Moments gallery** — 1 image shows full, 2+ images crop to square grid (2-col or 3-col based on count)
+- **Smart media placement** — Gemini analyzes uploaded images via File API, places inline (Type A) or under a `## Photos` heading (Type B)
+- **WeChat Moments gallery** — frontend auto-detects "Photos" headings and wraps images into grid. 1 image shows full, 2+ crop to square grid (2-col or 3-col based on count)
 - **Click-to-expand lightbox** — all blog images open fullscreen via portal overlay, Escape to close
 - **Mermaid diagrams** — `<pre class="mermaid">` blocks render as diagrams with dark theme
 - **Persistent music player** — slim bar at bottom, continues playing across tab navigation, playlist with repeat modes

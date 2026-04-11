@@ -68,13 +68,16 @@ git push origin main
 - **Media conversion:** `mediaConvert.ts` — WAV/FLAC/AIFF→MP3 via ffmpeg.wasm (audio), shared `getFFmpeg()` singleton.
 - **Mobile responsive:** `@media (max-width: 768px)` — full-screen app window, collapsible sidebar toggle, scrollable tab bar, tighter padding. Desktop layout untouched.
 
-## Supabase Tables
+## Supabase
 
+**Tables:**
 ```
 pages, projects_status, skills, hackathons, experience, blog_posts,
 music_tracks, post_likes, post_comments, feedback, contact_submissions,
 guestbook, page_views, admin_notifications
 ```
+
+**Storage:** `blog-media` bucket (public read, authenticated upload, owner-scoped delete via `auth.uid() = owner_id`). Migrations in `supabase/migrations/`.
 
 ## Env Vars (Vercel)
 
@@ -90,7 +93,7 @@ guestbook, page_views, admin_notifications
 - **Inline editing:** Admin edits content in place — no separate CMS UI
 - **CLI aesthetic:** `$ agent --command` terminal blocks throughout
 - **MEMORY.md sidebar:** Two-level drill-down with CSS slide animation (categories → posts)
-- **Blog gallery:** WeChat Moments pattern — 1 image full, 2+ square crop grid. Lightbox via `createPortal` to `document.body`.
+- **Blog gallery:** Triggered by `## Photos` heading — frontend auto-wraps following images into WeChat Moments grid. 1 image full, 2+ square crop grid. Lightbox via `createPortal` to `document.body`.
 - **Blog media:** Portrait images/videos capped at 60vh height, centered. Tables styled with mono headers. `<hr>` + following `<p>` styled as footnote with left border.
 - **Music:** Persistent player bar at bottom of app-window, Spotify-style queue (play from here), repeat modes (off/all/one)
 - **Mobile:** Sidebar collapses to tap-to-expand toggle showing tab label. Desktop uses `display: contents` passthrough.
