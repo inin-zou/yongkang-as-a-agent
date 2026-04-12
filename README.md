@@ -73,6 +73,32 @@ frontend/
   src/styles/             CSS (theme, file-system, admin, memory, player, etc.)
 ```
 
+### Backend Architecture
+
+```
+Request → chi router → middleware (CORS, Logger, RateLimit, AdminOnly)
+                            ↓
+                        handler/
+                     (HTTP handlers)
+                            ↓
+                        service/
+                  (business logic layer)
+                     ↓              ↓
+             SupabaseRepository  EmbeddedRepository
+              (PostgreSQL)        (go:embed JSON)
+                primary              fallback
+```
+
+Three-layer design with no controller abstraction — handlers serve as both route handlers and controllers:
+
+- **handler/** — parses requests, calls service, writes responses. `api.go` (~70 routes), `gemini.go` (AI draft generation via Gemini File API)
+- **middleware/** — CORS, request logging, IP-based rate limiting, admin JWT validation (`AdminOnly` checks Supabase JWT + `ADMIN_EMAIL`)
+- **service/** — `PortfolioService` tries primary repo (Supabase) first, falls back to embedded JSON if unavailable or empty
+- **repository/** — `DataRepository` interface with two implementations. `SupabaseRepository` for read/write via `lib/pq`. `EmbeddedRepository` for read-only fallback from `go:embed` compiled JSON
+- **model/** — shared Go structs with JSON tags, used across all layers
+
+The Vercel serverless entrypoint (`api/index.go`, package `handler`) initializes the same chi router with `sync.Once` — identical code path in dev and production.
+
 ## Key Features
 
 - **Inline admin editing** — admin sees EDIT button on every page, edits in place
