@@ -658,6 +658,10 @@ function NotificationsTab() {
           </div>
           <div className="admin-notification-body">
             <span className="admin-notification-message">{item.message}</span>
+            {item.postId && posts && (() => {
+              const post = posts.find(p => p.id === item.postId)
+              return post ? <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--color-prism-teal)', display: 'block', marginTop: 2 }}>on "{post.title}"</span> : null
+            })()}
             <span className="admin-notification-time">{formatTimeAgo(item.createdAt)}</span>
           </div>
         </div>
