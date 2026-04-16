@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import '../styles/memory.css'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../lib/AuthContext'
@@ -587,6 +587,7 @@ function formatTimeAgo(dateStr: string): string {
 function NotificationsTab() {
   const { session } = useAuth()
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
   const token = session?.access_token ?? ''
 
   const { data: notifications, isLoading } = useQuery({
@@ -595,11 +596,29 @@ function NotificationsTab() {
     enabled: !!token,
   })
 
-  async function handleMarkRead(item: AdminNotification) {
-    if (item.isRead) return
-    await markNotificationRead(token, item.id)
-    queryClient.invalidateQueries({ queryKey: ['admin-notifications'] })
-    queryClient.invalidateQueries({ queryKey: ['admin-unread'] })
+  const { data: posts } = useQuery({
+    queryKey: ['posts'],
+    queryFn: fetchBlogPosts,
+  })
+
+  async function handleClickNotification(item: AdminNotification) {
+    if (!item.isRead) {
+      await markNotificationRead(token, item.id)
+      queryClient.invalidateQueries({ queryKey: ['admin-notifications'] })
+      queryClient.invalidateQueries({ queryKey: ['admin-unread'] })
+    }
+    // Navigate to the post if postId exists
+    if (item.postId && posts) {
+      const post = posts.find((p) => p.id === item.postId)
+      if (post) {
+        navigate(`/files/memory/${post.category}/${post.slug}`)
+        return
+      }
+    }
+    // Guestbook notifications → go to guestbook
+    if (item.type === 'guestbook') {
+      navigate('/files/memory/guestbook')
+    }
   }
 
   async function handleMarkAllRead() {
@@ -628,10 +647,11 @@ function NotificationsTab() {
         <div
           key={item.id}
           className={`admin-notification-item ${!item.isRead ? 'admin-notification-unread' : ''}`}
-          onClick={() => handleMarkRead(item)}
+          onClick={() => handleClickNotification(item)}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => { if (e.key === 'Enter') handleMarkRead(item) }}
+          onKeyDown={(e) => { if (e.key === 'Enter') handleClickNotification(item) }}
+          style={{ cursor: item.postId || item.type === 'guestbook' ? 'pointer' : 'default' }}
         >
           <div className="admin-notification-icon">
             <NotificationIcon type={item.type} />
