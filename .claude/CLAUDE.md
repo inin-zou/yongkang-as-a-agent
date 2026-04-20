@@ -67,6 +67,7 @@ git push origin main
 - **Media upload:** `useBlogMediaUpload` hook + `MediaUploadBar` shared component. Uploads to Supabase Storage `blog-media` bucket. Auto-converts HEIC→PNG (heic2any). Videos >50MB show error with compression recommendation. Status text shown during processing.
 - **Media conversion:** `mediaConvert.ts` — WAV/FLAC/AIFF→MP3 via ffmpeg.wasm (audio). FFmpeg lazy-loaded via dynamic import (only when admin uploads media).
 - **Knowledge graph:** `KnowledgeGraph.tsx` at `/files/soul/graph`. Canvas-based force-directed graph auto-generated from Supabase data. Nodes: skill domains, tech stack, companies, hackathon domains, hackathons. Sized by connection count. Holographic rendering (prismatic glow + translucent fill). Tech connections mapped from GitHub repo analysis.
+- **Admin notifications:** Clicking a notification navigates to the post (resolves `postId` → slug + category). Post title shown in notification body. Guestbook notifications go to `/files/memory/guestbook`.
 - **Error boundary:** `ErrorBoundary.tsx` wraps `RouterProvider` — catches rendering crashes with styled fallback + reload button.
 - **OG image:** `og:image` + `twitter:image` meta tags in `index.html` for social sharing cards. Image at `public/og-image.png`.
 - **Mobile responsive:** `@media (max-width: 768px)` — full-screen app window, collapsible sidebar toggle, scrollable tab bar, tighter padding. Desktop layout untouched.
