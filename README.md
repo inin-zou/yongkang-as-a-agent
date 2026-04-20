@@ -71,6 +71,7 @@ frontend/
   src/hooks/              useAdminEdit, useBlogMediaUpload, useReducedMotion
   src/lib/                API client, auth, markdown, mediaConvert, MusicPlayerContext
   src/styles/             CSS (theme, file-system, admin, memory, player, etc.)
+scripts/                  Dev tools (og-crop, pixel-editor, photo-to-pixels)
 ```
 
 ### Backend Architecture
@@ -112,7 +113,8 @@ The Vercel serverless entrypoint (`api/index.go`, package `handler`) initializes
 - **Media conversion** — HEIC-to-PNG (heic2any), WAV-to-MP3 (ffmpeg.wasm), all client-side
 - **Mobile responsive** — collapsible sidebar, full-screen layout, scrollable tabs on phones
 - **CDN caching** — 24h Vercel edge cache with timestamp-based cache busting
-- **Knowledge graph** — force-directed graph at `/files/soul/graph` auto-generated from Supabase data (skills, hackathons, companies, tech stacks). Holographic rendering with prismatic glow. Nodes sized by connection count.
+- **Knowledge graph** — force-directed graph at `/files/soul/graph` auto-generated from Supabase data (skills, hackathons, companies, tech stacks). Holographic rendering with prismatic glow. Nodes sized by connection count. Search with not-found feedback link.
+- **Admin notifications** — clickable notifications navigate to the liked/commented post, with post title shown inline
 - **Error boundary** — catches rendering crashes with styled fallback UI + reload button
 - **Social sharing** — OG image + Twitter card meta tags for link previews on LinkedIn, Twitter, WeChat
 - **Lazy FFmpeg** — 5-10MB wasm bundle only loaded when admin uploads media, not on page load
