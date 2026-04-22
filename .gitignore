@@ -26,6 +26,9 @@ backend/bin/
 # Music files (stored in Supabase Storage)
 backend/data/music/
 
+# Blog drafts (content stored in Supabase)
+blog-draft-*.md
+
 # Playwright MCP (temp snapshots/logs)
 .playwright-mcp/
 frontend/test-results/
