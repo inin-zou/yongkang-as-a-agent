@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchSkills, fetchHackathons, fetchExperience } from '../../lib/api'
 import type { SkillDomain, Hackathon, Experience } from '../../types'
+import AsciiTitle from '../global/AsciiTitle'
 
 /* ── types ─────────────────────────────────────────────────── */
 
@@ -619,8 +620,10 @@ export default function KnowledgeGraph() {
 
   return (
     <div className="editor-page" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <div className="editor-meta" style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
-        <span>Knowledge Graph</span>
+      <div className="editor-meta">auto-generated from Supabase data</div>
+      <AsciiTitle name="graph" />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', flexWrap: 'wrap', marginBottom: 'var(--space-sm)' }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--color-ink-muted)' }}>Knowledge Graph</span>
         <div style={{ position: 'relative', marginLeft: 'auto' }}>
           <input
             type="text"
