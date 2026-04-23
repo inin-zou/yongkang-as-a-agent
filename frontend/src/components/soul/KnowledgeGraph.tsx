@@ -515,8 +515,8 @@ export default function KnowledgeGraph() {
       { kind: 'skill', label: 'Skill Domain' },
       { kind: 'tech', label: 'Tech Stack' },
       { kind: 'company', label: 'Company' },
-      { kind: 'domain', label: 'Hackathon Domain' },
-      { kind: 'hackathon', label: 'Hackathon' },
+      { kind: 'domain', label: 'Domain' },
+      { kind: 'hackathon', label: 'Project' },
     ]
     kinds.forEach(({ kind, label }, i) => {
       const y = legendY + i * 18
