@@ -18,6 +18,12 @@ import (
 // githubUsername is the GitHub account for the contribution graph.
 const githubUsername = "inin-zou"
 
+// In-memory cache for GitHub contributions (avoid repeated API calls)
+var (
+	ghContribCache     []byte
+	ghContribCacheTime time.Time
+)
+
 // APIHandler holds handlers for all API endpoints.
 type APIHandler struct {
 	svc *service.PortfolioService
@@ -991,52 +997,75 @@ func (h *APIHandler) HandleDeleteExperience(w http.ResponseWriter, r *http.Reque
 	writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
 }
 
-// HandleGetGitHubContributions fetches the contribution calendar from the GitHub GraphQL API.
-func (h *APIHandler) HandleGetGitHubContributions(w http.ResponseWriter, r *http.Request) {
-	query := `{"query":"{ user(login: \"` + githubUsername + `\") { contributionsCollection { contributionCalendar { totalContributions weeks { contributionDays { date contributionCount } } } } } }"}`
+// HandleGetGitHubContributions returns the contribution calendar, cached in-memory for 1 hour.
+func (h *APIHandler) HandleGetGitHubContributions(githubToken string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Serve from cache if fresh (1 hour)
+		if ghContribCache != nil && time.Since(ghContribCacheTime) < time.Hour {
+			w.Header().Set("Content-Type", "application/json")
+			cdnVal := "public, s-maxage=3600, stale-while-revalidate=600"
+			w.Header().Set("Vercel-CDN-Cache-Control", cdnVal)
+			w.Header().Set("CDN-Cache-Control", cdnVal)
+			w.Header().Set("Cache-Control", "public, max-age=300")
+			w.WriteHeader(http.StatusOK)
+			w.Write(ghContribCache)
+			return
+		}
 
-	client := &http.Client{Timeout: 10 * time.Second}
-	ghReq, err := http.NewRequest(http.MethodPost, "https://api.github.com/graphql", bytes.NewBufferString(query))
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, "failed to build GitHub request")
-		return
-	}
-	ghReq.Header.Set("Content-Type", "application/json")
-	ghReq.Header.Set("User-Agent", "yongkang-portfolio")
+		if githubToken == "" {
+			writeError(w, http.StatusServiceUnavailable, "GitHub token not configured")
+			return
+		}
 
-	resp, err := client.Do(ghReq)
-	if err != nil {
-		writeError(w, http.StatusBadGateway, "GitHub API error")
-		return
-	}
-	defer resp.Body.Close()
+		query := `{"query":"{ user(login: \"` + githubUsername + `\") { contributionsCollection { contributionCalendar { totalContributions weeks { contributionDays { date contributionCount } } } } } }"}`
 
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		writeError(w, http.StatusBadGateway, "failed to read GitHub response")
-		return
-	}
+		client := &http.Client{Timeout: 10 * time.Second}
+		ghReq, err := http.NewRequest(http.MethodPost, "https://api.github.com/graphql", bytes.NewBufferString(query))
+		if err != nil {
+			writeError(w, http.StatusInternalServerError, "failed to build GitHub request")
+			return
+		}
+		ghReq.Header.Set("Content-Type", "application/json")
+		ghReq.Header.Set("Authorization", "Bearer "+githubToken)
+		ghReq.Header.Set("User-Agent", "yongkang-portfolio")
 
-	// Parse and extract just the calendar data
-	var ghResp struct {
-		Data struct {
-			User struct {
-				ContributionsCollection struct {
-					ContributionCalendar json.RawMessage `json:"contributionCalendar"`
-				} `json:"contributionsCollection"`
-			} `json:"user"`
-		} `json:"data"`
-	}
-	if err := json.Unmarshal(body, &ghResp); err != nil || ghResp.Data.User.ContributionsCollection.ContributionCalendar == nil {
-		writeError(w, http.StatusBadGateway, "failed to parse GitHub response")
-		return
-	}
+		resp, err := client.Do(ghReq)
+		if err != nil {
+			writeError(w, http.StatusBadGateway, "GitHub API error")
+			return
+		}
+		defer resp.Body.Close()
 
-	w.Header().Set("Content-Type", "application/json")
-	cdnVal := "public, s-maxage=3600, stale-while-revalidate=150"
-	w.Header().Set("Vercel-CDN-Cache-Control", cdnVal)
-	w.Header().Set("CDN-Cache-Control", cdnVal)
-	w.Header().Set("Cache-Control", "public, max-age=60")
-	w.WriteHeader(http.StatusOK)
-	w.Write(ghResp.Data.User.ContributionsCollection.ContributionCalendar)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			writeError(w, http.StatusBadGateway, "failed to read GitHub response")
+			return
+		}
+
+		var ghResp struct {
+			Data struct {
+				User struct {
+					ContributionsCollection struct {
+						ContributionCalendar json.RawMessage `json:"contributionCalendar"`
+					} `json:"contributionsCollection"`
+				} `json:"user"`
+			} `json:"data"`
+		}
+		if err := json.Unmarshal(body, &ghResp); err != nil || ghResp.Data.User.ContributionsCollection.ContributionCalendar == nil {
+			writeError(w, http.StatusBadGateway, "failed to parse GitHub response")
+			return
+		}
+
+		// Update cache
+		ghContribCache = ghResp.Data.User.ContributionsCollection.ContributionCalendar
+		ghContribCacheTime = time.Now()
+
+		w.Header().Set("Content-Type", "application/json")
+		cdnVal := "public, s-maxage=3600, stale-while-revalidate=600"
+		w.Header().Set("Vercel-CDN-Cache-Control", cdnVal)
+		w.Header().Set("CDN-Cache-Control", cdnVal)
+		w.Header().Set("Cache-Control", "public, max-age=300")
+		w.WriteHeader(http.StatusOK)
+		w.Write(ghContribCache)
+	}
 }

@@ -34,6 +34,7 @@ func initRouter() {
 	supabaseURL := os.Getenv("SUPABASE_URL")
 	anonKey := os.Getenv("SUPABASE_ANON_KEY")
 	geminiKey := os.Getenv("GEMINI_API_KEY")
+	githubToken := os.Getenv("GITHUB_TOKEN")
 
 	embedded := repository.NewEmbeddedRepository(backend.DataFS)
 
@@ -78,7 +79,7 @@ func initRouter() {
 		r.Get("/pages/{id}", h.HandleGetPage)
 		r.Get("/music-tracks", h.HandleGetMusicTracks)
 		r.Get("/project-statuses", h.HandleGetProjectStatuses)
-		r.Get("/github-contributions", h.HandleGetGitHubContributions)
+		r.Get("/github-contributions", h.HandleGetGitHubContributions(githubToken))
 
 		r.Route("/admin", func(r chi.Router) {
 			r.Use(middleware.AdminOnly(supabaseURL, anonKey, adminEmail))
