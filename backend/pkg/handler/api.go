@@ -1013,9 +1013,11 @@ func (h *APIHandler) HandleGetGitHubContributions(githubToken string) http.Handl
 		}
 
 		if githubToken == "" {
+			log.Printf("GITHUB_TOKEN is empty — check Vercel env vars")
 			writeError(w, http.StatusServiceUnavailable, "GitHub token not configured")
 			return
 		}
+		log.Printf("GitHub contributions: token present (%d chars), fetching from API", len(githubToken))
 
 		query := `{"query":"{ user(login: \"` + githubUsername + `\") { contributionsCollection { contributionCalendar { totalContributions weeks { contributionDays { date contributionCount } } } } } }"}`
 
@@ -1031,7 +1033,8 @@ func (h *APIHandler) HandleGetGitHubContributions(githubToken string) http.Handl
 
 		resp, err := client.Do(ghReq)
 		if err != nil {
-			writeError(w, http.StatusBadGateway, "GitHub API error")
+			log.Printf("GitHub API request failed: %v", err)
+			writeError(w, http.StatusBadGateway, fmt.Sprintf("GitHub API error: %v", err))
 			return
 		}
 		defer resp.Body.Close()
@@ -1039,6 +1042,12 @@ func (h *APIHandler) HandleGetGitHubContributions(githubToken string) http.Handl
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			writeError(w, http.StatusBadGateway, "failed to read GitHub response")
+			return
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			log.Printf("GitHub API returned %d: %s", resp.StatusCode, string(body[:min(len(body), 200)]))
+			writeError(w, http.StatusBadGateway, fmt.Sprintf("GitHub API returned %d", resp.StatusCode))
 			return
 		}
 
