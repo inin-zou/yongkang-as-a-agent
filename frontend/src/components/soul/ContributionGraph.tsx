@@ -2,6 +2,7 @@ import { useRef, useEffect, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchGitHubContributions } from '../../lib/api'
 import type { ContributionDay } from '../../lib/api'
+import AsciiTitle from '../global/AsciiTitle'
 
 const CELL = 11
 const GAP = 2
@@ -186,7 +187,13 @@ export default function ContributionGraph() {
 
   return (
     <div className="editor-page">
-      <div className="editor-meta">GitHub Contributions — {calendar?.totalContributions ?? '...'} in the last year</div>
+      <div className="editor-meta">
+        <a href="https://github.com/inin-zou" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none' }}>
+          github.com/inin-zou
+        </a>
+        {' '}— {calendar?.totalContributions ?? '...'} contributions in the last year
+      </div>
+      <AsciiTitle name="commits" />
       <div className="editor-content">
         <div className="cli-block" style={{ marginBottom: 'var(--space-md)' }}>
           <div className="cli-prompt">$ git log --author="inin-zou" --oneline | wc -l</div>
@@ -194,6 +201,12 @@ export default function ContributionGraph() {
             <span><strong style={{ color: 'var(--color-ink)' }}>{calendar?.totalContributions ?? '...'}</strong> contributions</span>
             <span>|</span>
             <span><strong style={{ color: 'var(--color-ink)' }}>{finalStreak}</strong> day streak</span>
+            <span>|</span>
+            <span>
+              <a href="https://github.com/inin-zou" target="_blank" rel="noopener noreferrer" data-interactive style={{ color: 'var(--color-prism-teal)', textDecoration: 'none', fontFamily: 'var(--font-mono)' }}>
+                github.com/inin-zou
+              </a>
+            </span>
           </div>
         </div>
 
