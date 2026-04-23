@@ -487,6 +487,22 @@ export async function deleteProjectStatus(token: string, id: string): Promise<vo
   if (!res.ok) throw new Error(`API error: ${res.status}`);
 }
 
+/* ─── GitHub contributions ─── */
+
+export interface ContributionDay {
+  date: string;
+  contributionCount: number;
+}
+
+export interface ContributionCalendar {
+  totalContributions: number;
+  weeks: { contributionDays: ContributionDay[] }[];
+}
+
+export function fetchGitHubContributions(): Promise<ContributionCalendar> {
+  return fetchJSON<ContributionCalendar>('/github-contributions');
+}
+
 /* ─── Music tracks CRUD ─── */
 
 export function fetchMusicTracks(): Promise<MusicTrack[]> {

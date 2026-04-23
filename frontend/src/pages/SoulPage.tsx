@@ -8,6 +8,7 @@ import ProjectsView from '../components/soul/ProjectsView'
 import '../styles/skill.css'
 
 const KnowledgeGraph = lazy(() => import('../components/soul/KnowledgeGraph'))
+const ContributionGraph = lazy(() => import('../components/soul/ContributionGraph'))
 
 const ASCII_NAME = `███████╗ ██████╗ ██╗   ██╗
 ╚══███╔╝██╔═══██╗██║   ██║
@@ -49,6 +50,10 @@ export default function SoulPage() {
 
   if (item === 'graph') {
     return <Suspense fallback={null}><KnowledgeGraph /></Suspense>
+  }
+
+  if (item === 'commits') {
+    return <Suspense fallback={null}><ContributionGraph /></Suspense>
   }
 
   return <SoulReadme />

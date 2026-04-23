@@ -1,17 +1,22 @@
 package handler
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/inin-zou/yongkang-as-a-agent/backend/pkg/model"
 	"github.com/inin-zou/yongkang-as-a-agent/backend/pkg/service"
 )
+
+// githubUsername is the GitHub account for the contribution graph.
+const githubUsername = "inin-zou"
 
 // APIHandler holds handlers for all API endpoints.
 type APIHandler struct {
@@ -984,4 +989,54 @@ func (h *APIHandler) HandleDeleteExperience(w http.ResponseWriter, r *http.Reque
 	}
 
 	writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
+}
+
+// HandleGetGitHubContributions fetches the contribution calendar from the GitHub GraphQL API.
+func (h *APIHandler) HandleGetGitHubContributions(w http.ResponseWriter, r *http.Request) {
+	query := `{"query":"{ user(login: \"` + githubUsername + `\") { contributionsCollection { contributionCalendar { totalContributions weeks { contributionDays { date contributionCount } } } } } }"}`
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	ghReq, err := http.NewRequest(http.MethodPost, "https://api.github.com/graphql", bytes.NewBufferString(query))
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "failed to build GitHub request")
+		return
+	}
+	ghReq.Header.Set("Content-Type", "application/json")
+	ghReq.Header.Set("User-Agent", "yongkang-portfolio")
+
+	resp, err := client.Do(ghReq)
+	if err != nil {
+		writeError(w, http.StatusBadGateway, "GitHub API error")
+		return
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		writeError(w, http.StatusBadGateway, "failed to read GitHub response")
+		return
+	}
+
+	// Parse and extract just the calendar data
+	var ghResp struct {
+		Data struct {
+			User struct {
+				ContributionsCollection struct {
+					ContributionCalendar json.RawMessage `json:"contributionCalendar"`
+				} `json:"contributionsCollection"`
+			} `json:"user"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(body, &ghResp); err != nil || ghResp.Data.User.ContributionsCollection.ContributionCalendar == nil {
+		writeError(w, http.StatusBadGateway, "failed to parse GitHub response")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	cdnVal := "public, s-maxage=3600, stale-while-revalidate=150"
+	w.Header().Set("Vercel-CDN-Cache-Control", cdnVal)
+	w.Header().Set("CDN-Cache-Control", cdnVal)
+	w.Header().Set("Cache-Control", "public, max-age=60")
+	w.WriteHeader(http.StatusOK)
+	w.Write(ghResp.Data.User.ContributionsCollection.ContributionCalendar)
 }

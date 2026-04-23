@@ -87,6 +87,7 @@ func main() {
 		r.Get("/pages/{id}", h.HandleGetPage)
 		r.Get("/music-tracks", h.HandleGetMusicTracks)
 		r.Get("/project-statuses", h.HandleGetProjectStatuses)
+		r.Get("/github-contributions", h.HandleGetGitHubContributions)
 
 		r.Route("/admin", func(r chi.Router) {
 			r.Use(middleware.AdminOnly(supabaseURL, anonKey, adminEmail))
