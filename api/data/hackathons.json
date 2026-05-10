@@ -1,5 +1,29 @@
 [
   {
+    "date": "2026.05",
+    "name": "GOSIM KernelGen",
+    "city": "Paris",
+    "country": "France",
+    "coordinates": [48.86, 2.35],
+    "projectName": "Triton Kernels",
+    "projectUrl": "https://github.com/inin-zou/kernelgen-challenge",
+    "result": "1st (Sparse Attn) + 2nd (DeepSeek mHC)",
+    "solo": true,
+    "domain": "LLM Infrastructure"
+  },
+  {
+    "date": "2026.04",
+    "name": "Big Berlin",
+    "city": "Berlin",
+    "country": "Germany",
+    "coordinates": [52.52, 13.41],
+    "projectName": "Clio",
+    "projectUrl": "https://github.com/inin-zou/Clio",
+    "result": "Inca Track Winner",
+    "solo": true,
+    "domain": "Music & Audio AI"
+  },
+  {
     "date": "2026.03",
     "name": "TechEurope Stockholm",
     "city": "Stockholm",

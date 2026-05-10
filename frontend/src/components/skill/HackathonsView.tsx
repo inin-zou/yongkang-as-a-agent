@@ -173,7 +173,7 @@ export default function HackathonsView() {
 
   return (
     <div className="editor-page">
-      <div className="editor-meta">24 missions. 9 wins. Always shipping.</div>
+      <div className="editor-meta">26 missions. 11 wins. Always shipping.</div>
       <AsciiTitle name="hackathons" />
 
       {isAdmin && (
