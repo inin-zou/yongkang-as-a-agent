@@ -41,7 +41,7 @@ export const FILE_TABS: TabConfig[] = [
     sidebarItems: [
       { id: 'skills', label: 'SKILLS', preview: 'Agent skill manifest — 10 domains', routeSegment: '' },
       { id: 'resume', label: 'RESUME', preview: 'Experience + education', routeSegment: 'resume' },
-      { id: 'hackathons', label: 'HACKATHONS', preview: '24 missions · 9 wins', routeSegment: 'hackathons' },
+      { id: 'hackathons', label: 'HACKATHONS', preview: '26 missions · 11 wins', routeSegment: 'hackathons' },
     ],
     defaultItem: 'skills',
   },
