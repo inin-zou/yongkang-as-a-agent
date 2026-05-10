@@ -12,7 +12,7 @@ import '../../styles/skill.css'
 
 /* ===== CLI Stats Block ===== */
 function CliStats({ hackathons }: { hackathons: Hackathon[] }) {
-  const wins = hackathons.filter(h => h.result).length
+  const wins = hackathons.filter(h => h.result && !/finalist/i.test(h.result)).length
   const solo = hackathons.filter(h => h.solo).length
   const funded = hackathons.filter(h => h.result?.toLowerCase().includes('funding') || h.result?.toLowerCase().includes('eur')).length
   const countries = new Set(hackathons.filter(h => !h.isRemote && h.country).map(h => h.country)).size
