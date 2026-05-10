@@ -72,6 +72,14 @@ git push origin main
 - **OG image:** `og:image` + `twitter:image` meta tags in `index.html` for social sharing cards. Image at `public/og-image.png`.
 - **Mobile responsive:** `@media (max-width: 768px)` — full-screen app window, collapsible sidebar toggle, scrollable tab bar, tighter padding. Desktop layout untouched.
 - **Accessibility:** `:focus-visible` outlines for keyboard nav, `aria-expanded` on mobile sidebar, `aria-live` on contact form status.
+- **Hardcoded hackathon counts (UPDATE WHEN ADDING HACKATHONS):** Mission/win totals are hand-curated in 6 places — they don't auto-derive from the data. When you add a hackathon, update **all** of them in lockstep:
+  1. `frontend/src/components/skill/HackathonsView.tsx` — `editor-meta` line ("N missions. N wins.")
+  2. `frontend/src/components/skill/SkillsView.tsx` — `editor-meta` line, `DEFAULT_NARRATIVE` fallback string, "See Also" nav-card stat
+  3. `frontend/src/components/navigation/sidebarConfig.ts` — HACKATHONS sidebar tile preview
+  4. `frontend/src/components/landing/TicketPass.tsx` — landing ticket "WINS > N / N HACKATHONS"
+  5. **Supabase `pages.skill.content.narrative`** — live page narrative overrides `DEFAULT_NARRATIVE`; update via SQL: `UPDATE pages SET content = jsonb_set(content, '{narrative}', to_jsonb(replace(content->>'narrative', 'OLD', 'NEW'))) WHERE id = 'skill';`
+  
+  "Wins" excludes Finalist results — `HackathonsView.CliStats` filters with `!/finalist/i.test(h.result)`. Keep the manual count consistent with that rule.
 
 ## Supabase
 
