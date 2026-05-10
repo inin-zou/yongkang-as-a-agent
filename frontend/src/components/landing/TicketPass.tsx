@@ -73,7 +73,7 @@ export default function TicketPass({ onAccessClick, ticketRef, reducedMotion }: 
 
           <dt className="col-label">WINS</dt>
           <dd className="col-sep">&gt;</dd>
-          <dd className="col-value">9 / 24 HACKATHONS</dd>
+          <dd className="col-value">11 / 26 HACKATHONS</dd>
 
           <dt className="col-label">SPEED</dt>
           <dd className="col-sep">&gt;</dd>
