@@ -38,6 +38,7 @@ const MemoryPage = lazy(() => retryImport(() => import('./pages/MemoryPage')))
 const ContactPage = lazy(() => retryImport(() => import('./pages/ContactPage')))
 const MusicPage = lazy(() => retryImport(() => import('./pages/MusicPage')))
 const AdminPage = lazy(() => retryImport(() => import('./pages/AdminPage')))
+const IntroLab = lazy(() => retryImport(() => import('./components/intro/IntroLab')))
 
 function PageLoader() {
   return (
@@ -108,6 +109,11 @@ const router = createBrowserRouter([
   {
     path: '/admin',
     element: <Navigate to="/files/admin" replace />,
+  },
+  {
+    // Redesign experiment: 03→04→05 intro sample (see docs/superpowers/specs)
+    path: '/lab/intro',
+    element: <Suspense fallback={<PageLoader />}><IntroLab /></Suspense>,
   },
 ])
 

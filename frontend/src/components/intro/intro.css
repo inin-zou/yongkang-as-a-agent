@@ -1,0 +1,165 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&display=swap');
+
+/* Scope the page surround to this lab; restore the portfolio on navigation.
+   This also covers the viewport below the stage during resize/overscroll. */
+body:has(.intro-root) { background: #F2EFE7; }
+/* The pinned stage swaps position while scrolling; Chrome's scroll anchoring
+   would otherwise keep re-adjusting scrollY and drift the timeline. */
+html:has(.intro-root), body:has(.intro-root), .intro-root { overflow-anchor: none; }
+
+.intro-root {
+  --paper: #F2EFE7;
+  --ink: #242421;
+  --muted: #68675F;
+  --accent: #2348C4;
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Inter', system-ui, sans-serif;
+  cursor: auto;
+  isolation: isolate;
+}
+
+.intro-stage {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--paper);
+}
+
+/* Cover by cropping the shared 16:9 surface, not its individual layers.
+   Canvas texture coordinates and SVG scene coordinates stay registered:
+   SLICE_U remains 36% of the art surface, including on portrait screens. */
+.intro-art {
+  position: absolute;
+  z-index: 0;
+  isolation: isolate;
+  width: max(100%, 177.777778vh);
+  aspect-ratio: 16 / 9;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  overflow: hidden;
+}
+
+.intro-scene, .intro-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.intro-canvas { opacity: 0; }
+.intro-mode-scroll .intro-scene:not(.intro-shot01):not(.intro-backdrop),
+.intro-mode-play .intro-scene:not(.intro-shot01):not(.intro-backdrop) { visibility: hidden; }
+
+/* Opaque paper keeps the small ink legible over every scene colour. */
+.intro-caption-unit { margin-right: auto; min-width: 0; }
+.intro-caption-chip {
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 7px 10px 8px;
+  background: var(--paper);
+  background-image: repeating-linear-gradient(0deg, transparent 0 2px, rgb(36 36 33 / 2%) 2px 3px);
+  border: 1px solid rgb(36 36 33 / 18%);
+  border-radius: 2px;
+}
+.intro-hud-shot {
+  display: block;
+  color: var(--muted);
+  font: 12px/1.4 'Space Mono', monospace;
+}
+.intro-cap {
+  margin: 2px 0 7px;
+  color: var(--ink);
+  font: 16px/1.35 'Inter', system-ui, sans-serif;
+  letter-spacing: -0.015em;
+  overflow-wrap: anywhere;
+}
+.intro-caption-progress {
+  display: block;
+  height: 2px;
+  background: var(--paper);
+  outline: 1px solid var(--muted);
+  outline-offset: 0;
+}
+.intro-caption-progress i { display: block; height: 100%; background: var(--accent); }
+
+.intro-end {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  --accent: #244CB3;
+  visibility: hidden;
+}
+.intro-identity { text-align: center; padding: 28px; }
+.intro-identity h1 { margin: 0; font-size: clamp(32px, 5vw, 52px); font-weight: 500; letter-spacing: -0.045em; }
+.intro-identity p { margin: 12px 0 24px; color: var(--muted); line-height: 1.6; }
+.intro-root a { color: var(--accent); text-underline-offset: 4px; }
+
+.intro-hud, .intro-static-nav {
+  position: absolute;
+  z-index: 3;
+  top: 20px;
+  left: 32px;
+  right: 32px;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  font: 12px 'Space Mono', monospace;
+}
+.intro-hud { top: auto; bottom: 11.2px; background: transparent; padding: 0; gap: 22.4px; font-size: 14px; align-items: flex-end; }
+.intro-hud button { color: var(--ink); border: 1px solid var(--muted); padding: 2.8px 8.4px; background: rgb(242 239 231 / 75%); font: inherit; cursor: pointer; }
+.intro-hud :is(button, a) { min-height: 32px; display: inline-flex; align-items: center; white-space: nowrap; }
+.intro-root :is(a, button):focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; }
+
+.intro-static { min-height: 100vh; padding: 24px clamp(16px, 5vw, 80px) 64px; }
+.intro-static-nav { position: static; justify-content: space-between; margin-bottom: 36px; }
+.intro-static figure { margin: 0 auto 48px; max-width: 1120px; }
+.intro-keyframe { position: relative; aspect-ratio: 16 / 9; overflow: hidden; }
+.intro-static .intro-scene { visibility: visible; }
+.intro-static figcaption { padding-top: 16px; font-size: 14px; }
+.intro-static figcaption span { font-family: 'Space Mono', monospace; color: var(--muted); }
+.intro-static figcaption p { margin: 8px 0 0; }
+
+@media (max-width: 600px) {
+  .intro-hud { left: 16px; right: 16px; top: auto; bottom: 7.2px; gap: 14.4px; font-size: 12px; }
+  .intro-hud { flex-wrap: wrap; justify-content: flex-end; row-gap: 8px; }
+  .intro-caption-unit { flex-basis: 100%; }
+  .intro-hud button { padding: 2.4px 7.2px; }
+}
+
+@media (max-width: 420px) {
+  .intro-caption-chip { padding: 6px 9px 7px; }
+  .intro-cap { font-size: 15px; }
+}
+
+.intro-mode-scroll :is(.intro-camera03, .intro-contact03, .intro-hand03, .intro-hand04-left, .intro-hand04-right, .intro-camera05, .intro-hand05, .intro-tower05, .intro-arch05),
+.intro-mode-play :is(.intro-camera03, .intro-contact03, .intro-hand03, .intro-hand04-left, .intro-hand04-right, .intro-camera05, .intro-hand05, .intro-tower05, .intro-arch05) { will-change: transform; }
+.intro-root:not(.intro-static) [data-pose], .intro-root:not(.intro-static) .intro-wall03 { will-change: opacity; }
+.intro-loading { position: absolute; top: 45%; width: 100%; text-align: center; color: var(--muted); }
+.intro-hud button:disabled { opacity: 0.5; cursor: wait; }
+
+/* All typography is SVG ink registered to the corresponding paper surface. */
+.intro-ink { fill: #2b2b28; font-family: Inter, Arial, sans-serif; }
+.intro-ink path, .intro-ink rect { fill: none; stroke: #2b2b28; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.intro-ink .intro-pareto-trace { stroke: #2348c4; stroke-width: 4; }
+.intro-ink .intro-blue-ink { fill: #2348c4; }
+.intro-ink path.intro-blue-ink { fill: none; stroke: #2348c4; }
+.intro-book-title { font-family: Georgia, 'Times New Roman', serif; }
+.intro-handwriting { font-family: 'Caveat', 'Segoe Print', cursive; }
+.intro-continue-text { fill: #242421; letter-spacing: .015em; }
+
+/* The final paper belongs to the body visual system; scene/HUD colours stay authored. */
+.intro-now-surface, .intro-now-canvas, .intro-now-rules { position: absolute; inset: 0; width: 100%; height: 100%; }
+.intro-now-surface, .intro-static-now { background: #FAF9F6; }
+.intro-now-surface { visibility: hidden; }
+.intro-now-rule { stroke: #DEDDD6; stroke-width: 1; }
+.intro-static-now { position: relative; aspect-ratio: 16 / 9; display: grid; place-items: center; --accent: #244CB3; }
+.intro-static-now .intro-identity { position: relative; }
+.intro-now-rules { pointer-events: none; }
