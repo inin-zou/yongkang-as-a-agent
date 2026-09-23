@@ -1,37 +1,28 @@
 package handler
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/inin-zou/yongkang-as-a-agent/backend/pkg/model"
 	"github.com/inin-zou/yongkang-as-a-agent/backend/pkg/service"
 )
 
-// githubUsername is the GitHub account for the contribution graph.
-const githubUsername = "inin-zou"
-
-// In-memory cache for GitHub contributions (avoid repeated API calls)
-var (
-	ghContribCache     []byte
-	ghContribCacheTime time.Time
-)
-
 // APIHandler holds handlers for all API endpoints.
 type APIHandler struct {
-	svc *service.PortfolioService
+	svc    *service.PortfolioService
+	github GitHubContributions
+	drafts DraftService
 }
 
 // NewAPIHandler creates a new APIHandler backed by the given service.
-func NewAPIHandler(svc *service.PortfolioService) *APIHandler {
-	return &APIHandler{svc: svc}
+func NewAPIHandler(svc *service.PortfolioService, github GitHubContributions, drafts DraftService) *APIHandler {
+	return &APIHandler{svc: svc, github: github, drafts: drafts}
 }
 
 // writeJSON encodes data as JSON and writes it to the response with the given status code.
@@ -1019,84 +1010,18 @@ func (h *APIHandler) HandleDeleteExperience(w http.ResponseWriter, r *http.Reque
 	writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
 }
 
-// HandleGetGitHubContributions returns the contribution calendar, cached in-memory for 1 hour.
-func (h *APIHandler) HandleGetGitHubContributions(githubToken string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// Serve from cache if fresh (1 hour)
-		if ghContribCache != nil && time.Since(ghContribCacheTime) < time.Hour {
-			w.Header().Set("Content-Type", "application/json")
-			cdnVal := "public, s-maxage=3600, stale-while-revalidate=600"
-			w.Header().Set("Vercel-CDN-Cache-Control", cdnVal)
-			w.Header().Set("CDN-Cache-Control", cdnVal)
-			w.Header().Set("Cache-Control", "public, max-age=300")
-			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write(ghContribCache) // client disconnects are not actionable
-			return
-		}
-
-		if githubToken == "" {
-			log.Printf("GITHUB_TOKEN is empty — check Vercel env vars")
-			writeError(w, http.StatusServiceUnavailable, "GitHub token not configured")
-			return
-		}
-		log.Printf("GitHub contributions: token present (%d chars), fetching from API", len(githubToken))
-
-		query := `{"query":"{ user(login: \"` + githubUsername + `\") { contributionsCollection { contributionCalendar { totalContributions weeks { contributionDays { date contributionCount } } } } } }"}`
-
-		client := &http.Client{Timeout: 10 * time.Second}
-		ghReq, err := http.NewRequest(http.MethodPost, "https://api.github.com/graphql", bytes.NewBufferString(query))
-		if err != nil {
-			writeError(w, http.StatusInternalServerError, "failed to build GitHub request")
-			return
-		}
-		ghReq.Header.Set("Content-Type", "application/json")
-		ghReq.Header.Set("Authorization", "Bearer "+githubToken)
-		ghReq.Header.Set("User-Agent", "yongkang-portfolio")
-
-		resp, err := client.Do(ghReq)
-		if err != nil {
-			log.Printf("GitHub API request failed: %v", err)
-			writeError(w, http.StatusBadGateway, fmt.Sprintf("GitHub API error: %v", err))
-			return
-		}
-		defer resp.Body.Close()
-
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			writeError(w, http.StatusBadGateway, "failed to read GitHub response")
-			return
-		}
-
-		if resp.StatusCode != http.StatusOK {
-			log.Printf("GitHub API returned %d: %s", resp.StatusCode, string(body[:min(len(body), 200)]))
-			writeError(w, http.StatusBadGateway, fmt.Sprintf("GitHub API returned %d", resp.StatusCode))
-			return
-		}
-
-		var ghResp struct {
-			Data struct {
-				User struct {
-					ContributionsCollection struct {
-						ContributionCalendar json.RawMessage `json:"contributionCalendar"`
-					} `json:"contributionsCollection"`
-				} `json:"user"`
-			} `json:"data"`
-		}
-		if err := json.Unmarshal(body, &ghResp); err != nil || ghResp.Data.User.ContributionsCollection.ContributionCalendar == nil {
-			writeError(w, http.StatusBadGateway, "failed to parse GitHub response")
-			return
-		}
-
-		// Update cache
-		ghContribCache = ghResp.Data.User.ContributionsCollection.ContributionCalendar
-		ghContribCacheTime = time.Now()
-
-		w.Header().Set("Content-Type", "application/json")
-		cdnVal := "public, s-maxage=3600, stale-while-revalidate=600"
-		w.Header().Set("Vercel-CDN-Cache-Control", cdnVal)
-		w.Header().Set("CDN-Cache-Control", cdnVal)
-		w.Header().Set("Cache-Control", "public, max-age=300")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write(ghContribCache)
+// HandleGetGitHubContributions returns the contribution calendar, cached for one hour.
+func (h *APIHandler) HandleGetGitHubContributions(w http.ResponseWriter, r *http.Request) {
+	calendar, err := h.github.Contributions()
+	if err != nil {
+		writeExternalError(w, err)
+		return
 	}
+	w.Header().Set("Content-Type", "application/json")
+	cdnVal := "public, s-maxage=3600, stale-while-revalidate=600"
+	w.Header().Set("Vercel-CDN-Cache-Control", cdnVal)
+	w.Header().Set("CDN-Cache-Control", cdnVal)
+	w.Header().Set("Cache-Control", "public, max-age=300")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(calendar)
 }
