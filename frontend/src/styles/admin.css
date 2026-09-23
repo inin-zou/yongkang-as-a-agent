@@ -1,31 +1,3 @@
-/* ===== ADMIN TAB LINK (gear icon next to auth button) ===== */
-
-.admin-tab-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-sm);
-  color: var(--color-ink-faint);
-  transition: color 0.15s ease, background 0.15s ease;
-  flex-shrink: 0;
-}
-
-.admin-tab-link:hover {
-  color: var(--color-ink-muted);
-  background: var(--glass-highlight);
-}
-
-.admin-tab-link-active {
-  color: var(--color-prism-pink);
-}
-
-.admin-tab-link-active:hover {
-  color: var(--color-prism-pink);
-  background: rgba(255, 107, 157, 0.08);
-}
-
 /* ===== INLINE ADMIN EDITING ===== */
 
 /* Admin bar — floats at top of editable section */
@@ -231,40 +203,6 @@
   color: #ff6b6b;
 }
 
-/* ===== ADMIN PANEL ===== */
-
-/* Tab navigation */
-.admin-tabs {
-  display: flex;
-  gap: var(--space-xs);
-  margin-bottom: var(--space-lg);
-}
-
-.admin-tab {
-  padding: 8px 20px;
-  background: transparent;
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-ink-muted);
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-}
-
-.admin-tab:hover {
-  background: var(--glass-highlight);
-  color: var(--color-ink);
-}
-
-.admin-tab-active {
-  background: rgba(255, 107, 157, 0.08);
-  border-color: rgba(255, 107, 157, 0.3);
-  color: var(--color-ink);
-}
-
 /* Post list item */
 .admin-post-item {
   display: flex;
@@ -418,16 +356,6 @@
   color: var(--color-ink-muted);
   line-height: 1.5;
   margin-bottom: var(--space-xs);
-}
-
-/* Login form */
-.admin-login {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
-  max-width: 360px;
-  margin: 0 auto;
-  padding-top: var(--space-xl);
 }
 
 .admin-error {
