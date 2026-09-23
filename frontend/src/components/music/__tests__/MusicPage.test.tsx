@@ -93,5 +93,7 @@ it('keeps track detail playback, waveform requests, real stats and track editing
   fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Edited song' } })
   fireEvent.click(screen.getByRole('button', { name: 'UPDATE' }))
   await waitFor(() => expect(saved).toEqual({ slug: 'song', name: 'Edited song', genre: 'R&B', original: 'original', notes: 'Production notes', fileUrl: '/song.mp3', sortOrder: 0 }))
-  expect(await screen.findByText('Production notes')).toBeInTheDocument()
+  // The editor closes only after the track list refetch settles.
+  await waitFor(() => expect(screen.queryByRole('button', { name: 'UPDATE' })).toBeNull(), { timeout: 5000 })
+  expect(screen.getByText('Production notes')).toBeInTheDocument()
 })

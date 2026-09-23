@@ -6,6 +6,7 @@ import { fetchPage, updatePage } from '../lib/api'
 import { useAdminEdit } from '../hooks/useAdminEdit'
 import AdminBar from '../components/admin/AdminBar'
 import SoulReadmeContent from '../components/soul/SoulReadmeContent'
+import { DEFAULT_TITLE, pageTitle, usePageMeta } from '../lib/seo'
 import '../styles/skill.css'
 
 const KnowledgeGraph = lazy(() => import('../components/soul/KnowledgeGraph'))
@@ -30,6 +31,11 @@ const DEFAULT_STATS = { hackathons: 24, wins: 9, domains: '8+', languages: 3 }
 
 export default function SoulPage() {
   const { item } = useParams<{ item?: string }>()
+  usePageMeta(
+    item === 'graph' ? { title: pageTitle('KnowledgeGraph'), description: "A force-directed map of the skills, tools, companies and hackathons behind Yongkang Zou's work.", path: '/files/soul/graph' }
+    : item === 'commits' ? { title: pageTitle('Commits'), description: "Yongkang Zou's GitHub contribution activity.", path: '/files/soul/commits' }
+    : { title: DEFAULT_TITLE, path: '/files/soul' },
+  )
 
   if (item === 'projects') return <Navigate to="/files/soul#work" replace />
   if (item === 'in-progress' || item === 'journey') return <Navigate to="/files/soul" replace />

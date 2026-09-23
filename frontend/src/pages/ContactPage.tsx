@@ -6,9 +6,13 @@ import { fetchPage, updatePage } from '../lib/api'
 import { useAdminEdit } from '../hooks/useAdminEdit'
 import AdminBar from '../components/admin/AdminBar'
 import ContactForm from '../components/contact/ContactForm'
+import { pageTitle, usePageMeta } from '../lib/seo'
 
 export default function ContactPage() {
   const { item } = useParams<{ item?: string }>()
+  usePageMeta(item === 'message'
+    ? { title: pageTitle('Leave a message'), description: 'Send Yongkang Zou a message.', path: '/files/contact/message' }
+    : { title: pageTitle('Contact'), description: 'Email, GitHub and LinkedIn, or leave a message.', path: '/files/contact' })
   const { isAdmin, token } = useAdminEdit()
   const [isEditing, setIsEditing] = useState(false)
   const queryClient = useQueryClient()

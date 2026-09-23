@@ -85,6 +85,14 @@ git push origin main
 
   "Wins" excludes Finalist results (`HackathonsView` filters `!/finalist/i.test(h.result)`).
 
+## SEO and share previews
+
+- **Page heads are server-rendered.** `vercel.json` sends every non-API page URL to the Go function (static files still win). `handler/seo.go` + `service/seo.go` resolve the path like the SPA router does — 200 for real pages, 301 for the SPA's legacy redirects, 404 (noindex) for unknown paths, posts and tracks — and replace the block between `<!-- seo:start -->` and `<!-- seo:end -->` in the built `frontend/dist/index.html` (bundled via `functions.includeFiles`; falls back to fetching `https://yongkang.dev/index.html`, then to a loader shell) with that page's title, description, canonical, Open Graph, Twitter and, for posts, BlogPosting JSON-LD. Social crawlers don't run JS, so this is what LinkedIn/X/WeChat previews show.
+- **In-app navigation** updates the same tags with `usePageMeta` from `frontend/src/lib/seo.ts`. Titles and descriptions exist in both places — change them together.
+- `GET /sitemap.xml` is generated from Supabase (non-archived posts with lastmod, categories, tracks, fixed pages; no admin). `frontend/public/robots.txt` points to it.
+- Person JSON-LD (name, jobTitle, sameAs links) is static in `frontend/index.html`, outside the seo markers.
+- The share card is `frontend/og/og-card.html`, rendered to `frontend/public/og-image.png` (1200×630) with Playwright — see `frontend/og/README.md`.
+
 ## Supabase
 
 Localhost uses the **production** database: admin actions and SQL on localhost change live data.

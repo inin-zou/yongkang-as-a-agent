@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /files/admin
+Disallow: /api/
+
+Sitemap: https://yongkang.dev/sitemap.xml

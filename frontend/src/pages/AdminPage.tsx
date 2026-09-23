@@ -7,12 +7,14 @@ import PostsManager from '../components/admin/tabs/PostsManager'
 import MusicManager from '../components/admin/tabs/MusicManager'
 import FeedbackTab from '../components/admin/tabs/FeedbackTab'
 import NotificationsTab from '../components/admin/tabs/NotificationsTab'
+import { usePageMeta } from '../lib/seo'
 
 /* ─── Main admin page ─── */
 
 export default function AdminPage() {
   const { user, loading } = useAuth()
   const { item } = useParams<{ item?: string }>()
+  usePageMeta({ title: 'Admin — yongkang.dev', path: item ? `/files/admin/${item}` : '/files/admin', noindex: true })
 
   if (loading) {
     return (

@@ -52,9 +52,17 @@ func New(cfg Config) (http.Handler, func()) {
 	svc := service.NewPortfolioService(repository.WithFallback(primary, fallback), stores)
 	h := handler.NewAPIHandler(svc, service.NewGitHubService(cfg.GitHubToken), service.NewGeminiService(cfg.GeminiAPIKey))
 
+	seo := handler.NewSEOHandler(service.NewSEOService(svc), handler.NewPageTemplate(cfg.IndexHTMLFiles, cfg.IndexHTMLURL))
+
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.CORS(cfg.FrontendURL))
+
+	// Every non-API path is a page of the SPA: served with its own head, or a
+	// real 301/404 (vercel.json sends page URLs here; static files win first).
+	r.Get("/sitemap.xml", seo.HandleSitemap)
+	r.Get("/*", seo.HandlePage)
+	r.Head("/*", seo.HandlePage)
 
 	r.Route("/api", func(r chi.Router) {
 		r.Get("/projects", h.HandleGetProjects)

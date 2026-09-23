@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { fetchMusicTracks } from '../lib/api'
 import ArtistOverview from '../components/music/ArtistOverview'
 import TrackView from '../components/music/TrackView'
+import { usePageMeta } from '../lib/seo'
 import '../styles/music.css'
 import '../styles/memory.css'
 
@@ -16,9 +17,12 @@ export default function MusicPage() {
     queryFn: fetchMusicTracks,
   })
 
-  if (!item) return <ArtistOverview tracks={tracks ?? []} />
+  const currentTrack = item ? tracks?.find(t => t.slug === item) : undefined
+  usePageMeta(currentTrack
+    ? { title: `${currentTrack.name} — inhibitor`, description: `${currentTrack.genre ? `${currentTrack.genre}. ` : ''}A track by inhibitor (Yongkang Zou).`, path: `/files/music/${currentTrack.slug}` }
+    : { title: 'Music — inhibitor', description: 'inhibitor: alternative RnB and lo-fi, written and sung by Yongkang Zou.', path: '/files/music' })
 
-  const currentTrack = tracks?.find(t => t.slug === item)
+  if (!item) return <ArtistOverview tracks={tracks ?? []} />
 
   if (currentTrack) return <TrackView track={currentTrack} allTracks={tracks ?? []} />
 

@@ -7,6 +7,7 @@ import { sceneImages, loadSceneImages } from './sceneTextures'
 import { createStretchRenderer, rasterize, NOW_RULE_ROWS, sampleCollapseBand, splitEdges } from './pixelStretch'
 import { EconomicsInk, TransformerInk, DeskInk, ContinueInk } from './StudyInk'
 import { DEPART_END, DEPART_SPLIT, composeDepartTransition } from './departTransition'
+import { DEFAULT_TITLE, usePageMeta } from '../../lib/seo'
 import './intro.css'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
@@ -463,6 +464,7 @@ function AnimatedIntro() {
 }
 
 export default function IntroLab() {
+  usePageMeta({ title: DEFAULT_TITLE, path: '/' })
   // Default to static content until the client-side media setup runs. React
   // state changes only with the preference; per-frame updates stay in refs.
   const [reduced, setReduced] = useState(true)

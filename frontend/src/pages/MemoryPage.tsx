@@ -19,6 +19,7 @@ import PostArchiveToggle from '../components/admin/PostArchiveToggle'
 import PostEditor from '../components/admin/PostEditor'
 import BlogPostContent from '../components/global/BlogPostContent'
 import PostInteractions from '../components/global/PostInteractions'
+import { pageTitle, usePageMeta } from '../lib/seo'
 import type { GuestbookEntry } from '../types/index'
 import '../styles/memory.css'
 
@@ -37,6 +38,11 @@ function BlogPostView({ slug }: { slug: string }) {
     queryKey: queryKeys.post(slug),
     queryFn: () => fetchBlogPost(slug),
   })
+  usePageMeta(post ? {
+    title: pageTitle(post.title),
+    description: post.preview,
+    path: `/files/memory/${post.category}/${post.slug}`,
+  } : null)
 
   if (isLoading) {
     return (
@@ -320,6 +326,14 @@ function MemoryLanding({ category }: { category?: string }) {
 export default function MemoryPage() {
   const { item, sub } = useParams<{ item?: string; sub?: string }>()
   const { data: posts, isLoading } = useQuery({ queryKey: queryKeys.posts(), queryFn: fetchBlogPosts, enabled: !!item && !sub && item !== 'guestbook' && item !== 'feedback' })
+  // Posts set their own head in BlogPostView (child effects run first, so the
+  // page must stay out of the way there).
+  usePageMeta(
+    !item ? { title: pageTitle('Writing'), description: 'Notes on agents, research and hackathons by Yongkang Zou.', path: '/files/memory' }
+    : item === 'guestbook' || item === 'feedback' ? { title: pageTitle('Guestbook'), description: 'Notes left by visitors, signed with GitHub.', path: '/files/memory/guestbook' }
+    : !sub && ((CATEGORIES as readonly string[]).includes(item) || posts?.some(post => post.category === item)) ? { title: pageTitle(`${item[0].toUpperCase()}${item.slice(1)} writing`), path: `/files/memory/${item}` }
+    : null,
+  )
   if (!item) return <MemoryLanding />
   if (item === 'guestbook' || item === 'feedback') return <GuestbookView />
   if (sub) return <BlogPostView slug={sub} />
