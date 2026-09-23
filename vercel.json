@@ -15,10 +15,5 @@
       "source": "/(.*)",
       "destination": "/api"
     }
-  ],
-  "functions": {
-    "api/index.go": {
-      "includeFiles": "frontend/dist/index.html"
-    }
-  }
+  ]
 }

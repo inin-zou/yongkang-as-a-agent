@@ -21,10 +21,11 @@ type Config struct {
 	SupabaseAnonKey string
 	GeminiAPIKey    string
 	GitHubToken     string
-	// Where the built SPA shell (frontend/dist/index.html) is read from for
-	// server-rendered page heads: bundled files first, then IndexHTMLURL.
+	// Where the built SPA shell (frontend/dist/index.html) comes from for
+	// server-rendered page heads: local files first, then /index.html on the
+	// request's host when it matches ShellHosts (path.Match patterns).
 	IndexHTMLFiles []string
-	IndexHTMLURL   string
+	ShellHosts     []string
 }
 
 // LoadConfig reads environment variables in one place while preserving each
@@ -41,9 +42,7 @@ func LoadConfig(mode Mode) Config {
 	}
 	if mode == Vercel {
 		cfg.FrontendURL = envOrDefault("FRONTEND_URL", "*")
-		// vercel.json bundles frontend/dist/index.html with the function.
-		cfg.IndexHTMLFiles = []string{"frontend/dist/index.html", "/var/task/frontend/dist/index.html"}
-		cfg.IndexHTMLURL = envOrDefault("INDEX_HTML_URL", "https://yongkang.dev/index.html")
+		cfg.ShellHosts = []string{"yongkang.dev", "www.yongkang.dev", "yongkang-as-a-agent-*.vercel.app"}
 	} else {
 		cfg.IndexHTMLFiles = []string{"../frontend/dist/index.html", "frontend/dist/index.html"}
 		cfg.FrontendURL = envOrDefault("FRONTEND_URL", "http://localhost:5173")

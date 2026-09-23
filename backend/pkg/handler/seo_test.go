@@ -124,45 +124,69 @@ func TestPageTemplateSources(t *testing.T) {
 		t.Fatal(err)
 	}
 	fetches := 0
+	var gotCookie, gotBypass, gotPath string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fetches++
+		gotCookie, gotBypass, gotPath = r.Header.Get("Cookie"), r.Header.Get("X-Vercel-Protection-Bypass"), r.URL.Path
 		_, _ = w.Write([]byte(strings.Replace(shell, "index-abc", "index-remote", 1)))
 	}))
 	defer srv.Close()
-
-	// A bundled file wins and never hits the network.
-	got, err := NewPageTemplate([]string{filepath.Join(dir, "missing.html"), file}, srv.URL).Load()
-	if err != nil || !strings.Contains(got, "index-abc") || fetches != 0 {
-		t.Fatalf("bundled: err=%v fetches=%d", err, fetches)
+	host := strings.TrimPrefix(srv.URL, "http://")
+	req := func() *http.Request {
+		r := httptest.NewRequest(http.MethodGet, "/files/soul", nil)
+		r.Host = host
+		r.Header.Set("Cookie", "_vercel_jwt=abc")
+		r.Header.Set("X-Vercel-Protection-Bypass", "secret")
+		return r
 	}
 
-	// Without a file the URL is fetched, cached, and refreshed after the TTL.
-	tpl := NewPageTemplate([]string{filepath.Join(dir, "missing.html")}, srv.URL)
+	// A local file wins and never hits the network.
+	got, err := NewPageTemplate([]string{filepath.Join(dir, "missing.html"), file}, []string{"*"}).Load(req())
+	if err != nil || !strings.Contains(got, "index-abc") || fetches != 0 {
+		t.Fatalf("file: err=%v fetches=%d", err, fetches)
+	}
+
+	// Otherwise the request host's /index.html, with the visitor's access forwarded.
+	tpl := NewPageTemplate(nil, []string{"127.0.0.1:*"})
+	tpl.scheme = "http"
 	for i := 0; i < 3; i++ {
-		if got, err = tpl.Load(); err != nil || !strings.Contains(got, "index-remote") {
-			t.Fatalf("remote: %v", err)
+		if got, err = tpl.Load(req()); err != nil || !strings.Contains(got, "index-remote") {
+			t.Fatalf("host fetch: %v", err)
 		}
 	}
-	if fetches != 1 {
-		t.Fatalf("fetches = %d, want 1 within the TTL", fetches)
+	if fetches != 1 || gotPath != "/index.html" || gotCookie != "_vercel_jwt=abc" || gotBypass != "secret" {
+		t.Fatalf("fetches=%d path=%q cookie=%q bypass=%q", fetches, gotPath, gotCookie, gotBypass)
 	}
-	tpl.fetchedAt = time.Now().Add(-2 * time.Minute)
-	if _, err = tpl.Load(); err != nil || fetches != 2 {
-		t.Fatalf("refresh: err=%v fetches=%d", err, fetches)
+	entry := tpl.byHost[host]
+	entry.fetchedAt = time.Now().Add(-2 * time.Minute)
+	tpl.byHost[host] = entry
+	if _, err = tpl.Load(req()); err != nil || fetches != 2 {
+		t.Fatalf("refresh after TTL: err=%v fetches=%d", err, fetches)
 	}
 
-	// A failing URL keeps serving the last good copy.
+	// A failing host keeps serving the last good copy.
 	srv.Close()
-	tpl.fetchedAt = time.Now().Add(-2 * time.Minute)
-	if got, err = tpl.Load(); err != nil || !strings.Contains(got, "index-remote") {
+	entry = tpl.byHost[host]
+	entry.fetchedAt = time.Now().Add(-2 * time.Minute)
+	tpl.byHost[host] = entry
+	if got, err = tpl.Load(req()); err != nil || !strings.Contains(got, "index-remote") {
 		t.Fatalf("stale fallback: %v", err)
+	}
+
+	// Hosts outside the allow-list are never fetched.
+	evil := httptest.NewRequest(http.MethodGet, "/files/soul", nil)
+	evil.Host = "attacker.example"
+	if _, err := NewPageTemplate(nil, []string{"yongkang.dev", "yongkang-as-a-agent-*.vercel.app"}).Load(evil); err == nil {
+		t.Fatal("non-allow-listed host must not be fetched")
 	}
 }
 
 func TestHandlePageLoaderShellWhenNoTemplate(t *testing.T) {
-	h := seoServer(NewPageTemplate(nil, "http://127.0.0.1:1/index.html"))
+	h := seoServer(NewPageTemplate(nil, []string{"yongkang.dev"}))
 	w := httptest.NewRecorder()
-	h.HandlePage(w, httptest.NewRequest(http.MethodGet, "/files/soul", nil))
+	r := httptest.NewRequest(http.MethodGet, "/files/soul", nil)
+	r.Host = "localhost:1"
+	h.HandlePage(w, r)
 	body := w.Body.String()
 	if w.Code != 200 || w.Header().Get("Cache-Control") != "no-store" ||
 		!strings.Contains(body, "fetch('/index.html'") || !strings.Contains(body, "<title>Yongkang Zou — AI Engineer</title>") {

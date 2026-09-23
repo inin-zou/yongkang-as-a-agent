@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 	"sync"
 	"time"
@@ -62,7 +63,7 @@ func (h *SEOHandler) HandlePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tpl, err := h.template.Load()
+	tpl, err := h.template.Load(r)
 	var body string
 	if err != nil {
 		// Last resort: a working page without the prebuilt shell. Never cached,
@@ -157,97 +158,111 @@ func loaderShell(meta service.PageMeta) string {
 		"  </head>\n  <body>\n    <script>fetch('/index.html',{cache:'no-store'}).then(function(r){return r.text()}).then(function(t){document.open();document.write(t);document.close()})</script>\n  </body>\n</html>\n"
 }
 
-// PageTemplate loads the built SPA shell (frontend/dist/index.html). Bundled
-// files win and are cached for the life of the instance; the URL fallback is
-// re-fetched every minute so it can't outlive a deployment's asset hashes.
+// PageTemplate loads the built SPA shell (frontend/dist/index.html).
+//
+// On Vercel the Go function is built separately from the frontend, so the shell
+// can't be bundled with it. Instead it is fetched from the host the visitor
+// used: that host's /index.html is a static file of the very deployment
+// serving this function, so the asset hashes always match, even right after a
+// deploy. Preview deployments are protected, so the visitor's Vercel auth
+// cookie / bypass header is forwarded. Only allow-listed hosts are fetched.
+// Local files (dev) win when present.
 type PageTemplate struct {
 	files  []string
-	url    string
+	hosts  []string // path.Match patterns, e.g. "yongkang-as-a-agent-*.vercel.app"
+	scheme string
 	client *http.Client
 	ttl    time.Duration
 
-	mu        sync.Mutex
-	cached    string
-	permanent bool
-	fetchedAt time.Time
-	logged    bool
+	mu     sync.Mutex
+	file   string
+	byHost map[string]cachedShell
 }
 
-// NewPageTemplate tries files in order, then url (may be empty).
-func NewPageTemplate(files []string, url string) *PageTemplate {
-	return &PageTemplate{files: files, url: url, client: &http.Client{Timeout: 3 * time.Second}, ttl: time.Minute}
+type cachedShell struct {
+	body      string
+	fetchedAt time.Time
+}
+
+// NewPageTemplate tries files in order, then the request host if it matches hosts.
+func NewPageTemplate(files, hosts []string) *PageTemplate {
+	return &PageTemplate{files: files, hosts: hosts, scheme: "https", client: &http.Client{Timeout: 3 * time.Second},
+		ttl: time.Minute, byHost: map[string]cachedShell{}}
 }
 
 // NewStaticPageTemplate serves a fixed shell (tests).
 func NewStaticPageTemplate(tpl string) *PageTemplate {
-	return &PageTemplate{cached: tpl, permanent: true}
+	return &PageTemplate{file: tpl}
 }
 
-// Load returns the SPA shell.
-func (t *PageTemplate) Load() (string, error) {
+// Load returns the SPA shell for this request.
+func (t *PageTemplate) Load(r *http.Request) (string, error) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	if t.permanent {
-		return t.cached, nil
+	if t.file != "" {
+		return t.file, nil
 	}
 	for _, f := range t.files {
-		data, err := os.ReadFile(f)
-		if err == nil && isShell(string(data)) {
-			t.cached, t.permanent = string(data), true
-			log.Printf("page template: bundled file %s", f)
-			return t.cached, nil
+		if data, err := os.ReadFile(f); err == nil && isShell(string(data)) {
+			t.file = string(data)
+			log.Printf("page template: file %s", f)
+			return t.file, nil
 		}
 	}
-	if !t.logged {
-		// TEMP diagnostics: where does the function run and what was bundled?
-		wd, _ := os.Getwd()
-		for _, dir := range []string{wd, "frontend", "frontend/dist", "/var/task", "/var/task/frontend"} {
-			entries, err := os.ReadDir(dir)
-			names := []string{}
-			for i, e := range entries {
-				if i < 25 {
-					names = append(names, e.Name())
-				}
-			}
-			log.Printf("page template diag: wd=%s dir=%s err=%v entries=%v", wd, dir, err, names)
-		}
+
+	host := r.Host
+	if !t.allowed(host) {
+		return "", fmt.Errorf("no shell file and host %q is not allow-listed", host)
 	}
-	if t.cached != "" && time.Since(t.fetchedAt) < t.ttl {
-		return t.cached, nil
+	cached, ok := t.byHost[host]
+	if ok && time.Since(cached.fetchedAt) < t.ttl {
+		return cached.body, nil
 	}
-	if t.url == "" {
-		return "", errors.New("no bundled index.html and no fallback URL")
-	}
-	body, err := t.fetch()
+	body, err := t.fetch(host, r)
 	if err != nil {
-		if t.cached != "" {
-			return t.cached, nil // stale beats nothing
+		if ok {
+			return cached.body, nil // stale beats nothing
 		}
 		return "", err
 	}
-	t.cached, t.fetchedAt = body, time.Now()
-	if !t.logged {
-		log.Printf("page template: fetched %s", t.url)
-		t.logged = true
-	}
+	t.byHost[host] = cachedShell{body: body, fetchedAt: time.Now()}
 	return body, nil
 }
 
-func (t *PageTemplate) fetch() (string, error) {
-	resp, err := t.client.Get(t.url)
+func (t *PageTemplate) allowed(host string) bool {
+	for _, pattern := range t.hosts {
+		if ok, _ := path.Match(pattern, host); ok {
+			return true
+		}
+	}
+	return false
+}
+
+func (t *PageTemplate) fetch(host string, r *http.Request) (string, error) {
+	req, err := http.NewRequest(http.MethodGet, t.scheme+"://"+host+"/index.html", nil)
 	if err != nil {
-		return "", fmt.Errorf("fetch index.html: %w", err)
+		return "", err
+	}
+	// Protected preview deployments: pass the visitor's own access through.
+	for _, h := range []string{"Cookie", "X-Vercel-Protection-Bypass"} {
+		if v := r.Header.Get(h); v != "" {
+			req.Header.Set(h, v)
+		}
+	}
+	resp, err := t.client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("fetch shell: %w", err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("fetch index.html: status %d", resp.StatusCode)
+		return "", fmt.Errorf("fetch shell: status %d", resp.StatusCode)
 	}
 	data, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 	if err != nil {
-		return "", fmt.Errorf("fetch index.html: %w", err)
+		return "", fmt.Errorf("fetch shell: %w", err)
 	}
 	if !isShell(string(data)) {
-		return "", errors.New("fetch index.html: not the SPA shell")
+		return "", errors.New("fetch shell: not the SPA shell")
 	}
 	return string(data), nil
 }

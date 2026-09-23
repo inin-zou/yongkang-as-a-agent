@@ -52,7 +52,7 @@ func New(cfg Config) (http.Handler, func()) {
 	svc := service.NewPortfolioService(repository.WithFallback(primary, fallback), stores)
 	h := handler.NewAPIHandler(svc, service.NewGitHubService(cfg.GitHubToken), service.NewGeminiService(cfg.GeminiAPIKey))
 
-	seo := handler.NewSEOHandler(service.NewSEOService(svc), handler.NewPageTemplate(cfg.IndexHTMLFiles, cfg.IndexHTMLURL))
+	seo := handler.NewSEOHandler(service.NewSEOService(svc), handler.NewPageTemplate(cfg.IndexHTMLFiles, cfg.ShellHosts))
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
