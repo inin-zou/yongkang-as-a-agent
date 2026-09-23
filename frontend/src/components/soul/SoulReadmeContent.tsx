@@ -38,10 +38,7 @@ export default function SoulReadmeContent({ bio, currently }: { bio: string[]; c
 
   return <>
     <SoulReveal><header id="hero" className="soul-hero soul-readme-hero">
-      <h1>Yongkang Zou <svg className="soul-walker" width="20" height="28" viewBox="0 0 20 28" aria-hidden="true">
-        <ellipse cx="11" cy="3" rx="2.5" ry="3" fill="#171717" />
-        <path d="m9 7 4 0 3 9-3 1-2-5-1 7 7 7-3 2-6-8-3 8-4-1 5-12 1-6z" fill="var(--soul-accent)" />
-      </svg></h1>
+      <h1>Yongkang Zou</h1>
       {bio.map((paragraph, index) => <p className={index === 0 ? 'soul-lead' : 'soul-bio-secondary'} key={index}>{paragraph}</p>)}
       <p className="soul-previously">Previously at <a href="https://epiminds.com/" target="_blank" rel="noreferrer">Epiminds</a> and <a href="https://mozartai.com/" target="_blank" rel="noreferrer">Mozart AI</a>. I also make music as <strong>inhibitor</strong>.</p>
       <p className="document-muted soul-currently">{currently}</p>

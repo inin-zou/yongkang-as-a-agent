@@ -31,7 +31,7 @@
 .document-layout .soul-mono { font-family: var(--font-mono); font-size: 12px; font-weight: 400; }
 .document-layout .soul-topbar { min-height: 80px; display: flex; align-items: center; justify-content: space-between; gap: 24px; border-bottom: 1px solid var(--soul-line); }
 .document-layout .soul-brand { display: flex; align-items: center; gap: 16px; font-size: 22px; font-weight: 500; letter-spacing: -.6px; color: var(--color-ink); }
-.document-layout .soul-brand svg { color: var(--color-ink); width: 16px; height: 24px; flex-shrink: 0; }
+.document-layout .soul-brand svg { width: 17px; height: 24px; flex-shrink: 0; }
 .document-layout .soul-topbar nav { font-size: 14px; display: flex; gap: 24px; align-items: center; }
 .document-layout .soul-topbar nav a { color: var(--color-ink-muted); }
 .document-layout .soul-topbar nav a:last-child { color: var(--soul-accent); }
@@ -278,7 +278,6 @@
 
 /* SOUL one-page document. */
 .document-layout .soul-readme .soul-section { border-top: 0; padding: 28px 0; scroll-margin-top: 24px; }
-.document-layout .soul-walker { display: inline-block; vertical-align: baseline; margin-left: 4px; }
 .document-layout .soul-previously { margin: 16px 0 0; }
 .document-layout .soul-currently { margin: 16px 0 20px; }
 .document-layout .soul-readme a, .document-layout .soul-footer a { text-decoration: underline; text-underline-offset: 3px; }

@@ -66,7 +66,7 @@ export default function DocumentLayout() {
     <a className="soul-skip" href="#document-main">Skip to content</a>
     <div className="soul-frame">
       <header className="soul-topbar">
-        <Link to="/files/soul" className="soul-brand"><svg width="25" height="32" viewBox="0 0 25 32" aria-hidden="true"><path d="M19 0 25 25 0 32Z" fill="currentColor" /></svg>yongkang.dev</Link>
+        <Link to="/files/soul" className="soul-brand"><svg width="20" height="28" viewBox="0 0 20 28" aria-hidden="true"><ellipse cx="11" cy="3" rx="2.5" ry="3" fill="#171717" /><path d="m9 7 4 0 3 9-3 1-2-5-1 7 7 7-3 2-6-8-3 8-4-1 5-12 1-6z" fill="var(--soul-accent)" /></svg>yongkang.dev</Link>
         <nav aria-label="Main navigation">
           <Link to="/files/soul#work">work</Link><Link to="/files/memory">writing</Link><Link to="/files/music">music</Link><Link to="/files/soul#background">about</Link><a href="https://github.com/inin-zou" target="_blank" rel="noreferrer">github ↗</a>
         </nav>
