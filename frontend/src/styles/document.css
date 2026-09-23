@@ -286,19 +286,11 @@
 .document-layout .soul-section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
 .document-layout .soul-section-heading h2 { margin: 0; }
 .document-layout .soul-section-heading > a { font-size: 14px; white-space: nowrap; }
-.document-layout .soul-readme .soul-project-row { display: grid; grid-template-columns: minmax(0, 1fr) 152px; gap: 24px; margin-bottom: 32px; align-items: start; }
+.document-layout .soul-readme .soul-project-row { margin-bottom: 32px; }
 .document-layout .soul-project-row h3 a { color: var(--color-ink); text-decoration: none; }
 .document-layout .soul-project-row p { display: block; overflow: visible; margin: 4px 0; }
 .document-layout .soul-project-meta { font-size: 11px; }
 .document-layout .soul-project-row > div > a { font-size: 14px; }
-.document-layout .soul-work-thumbnail { padding: 10px; background: var(--color-surface-0); font: 9px/1.6 var(--font-sans); min-height: 90px; }
-.document-layout .soul-work-thumbnail > span { display: block; margin-bottom: 6px; }
-.document-layout .soul-activity-row { display: flex; gap: 6px; align-items: center; margin-top: 3px; }
-.document-layout .soul-activity-row i { width: 6px; height: 6px; border: 1px solid var(--color-ink-muted); border-radius: 50%; }
-.document-layout .soul-activity-row:last-child i { background: var(--color-ink); }
-.document-layout .soul-work-thumbnail time { margin-left: auto; color: var(--color-ink-muted); }
-.document-layout .soul-waveform svg { width: 100%; margin: 4px 0 8px; }
-.document-layout .soul-waveform > span { display: flex; margin: 0; color: var(--color-ink-muted); }
 .document-layout .soul-readme .soul-post-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 16px; }
 .document-layout .soul-post-row p { grid-column: 1 / -1; margin: 2px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .document-layout .soul-background-row { display: grid; grid-template-columns: 110px minmax(0, 1fr) auto; gap: 12px; margin-bottom: 8px; }
@@ -320,7 +312,6 @@
 .document-layout .soul-footer-right p { margin-top: 4px; }
 .document-layout .soul-footer nav a:last-child { color: var(--soul-accent); }
 @media (max-width: 900px) {
-  .document-layout .soul-work-thumbnail { display: none; }
   .document-layout .soul-readme .soul-project-row { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 540px) {
