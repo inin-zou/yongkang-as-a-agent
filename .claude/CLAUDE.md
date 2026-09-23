@@ -4,84 +4,90 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Personal portfolio website for Yongkang ZOU — an AI Engineer in Paris. Concept: "super agent with many skills" — a file-system-based portfolio where visitors browse `.md` files in a Note App-style interface. Live at **https://yongkang.dev**. Public repo at **https://github.com/inin-zou/yongkang-as-a-agent**.
+Personal site of Yongkang ZOU, an AI Engineer in Paris. A scroll-driven journey intro (`/`) leads into a quiet paper "open document": a file-tree index on the left (SOUL.md, MEMORY.md, MUSIC.md, MORE / ARCHIVE, ADMIN.md) and plain editorial pages on the right. Live at **https://yongkang.dev**. Public repo at **https://github.com/inin-zou/yongkang-as-a-agent**. The previous dark "note app" design is preserved on the `archive-design` branch.
 
 ## Commands
 
 ```bash
 # Development
-make dev                              # Backend (:8080) + Frontend (:5173) concurrently
-cd backend && go run cmd/server/main.go  # Backend only
+make dev                                 # Backend (:8080) + Frontend (:5173)
+cd backend && go run cmd/server/main.go  # Backend only (load the root .env first for Supabase)
 cd frontend && npm run dev               # Frontend only (proxies /api to :8080)
 
 # Build
-make build                            # Both
-cd frontend && npm run build          # Frontend only (tsc + vite)
+make build
+cd frontend && npm run build             # tsc + vite
 cd backend && go build -o bin/server cmd/server/main.go
 
-# Test
-cd frontend && npm test               # All unit tests (vitest)
-cd frontend && npx vitest run src/components/admin/__tests__/AdminBar.test.tsx  # Single test file
-cd frontend && npm run test:e2e       # Playwright e2e
+# Test (run frontend commands from frontend/)
+cd frontend && npm test                  # Unit tests (vitest); *.live.test.* are excluded
+cd frontend && npm run test:live         # Checks against https://yongkang.dev
+cd frontend && npm run test:e2e          # Playwright e2e
+go test -race ./...                      # Backend (root go.mod)
 
 # Lint
-cd frontend && npm run lint           # ESLint
+cd frontend && npm run lint              # ESLint
+gofmt -l backend api                     # must print nothing
+go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.2 run ./...
 
-# Deploy (auto-deploys on git push via Vercel Git integration)
+# CV PDFs from cv/<lang>/resume.tex
+make cv
+
+# Deploy: Vercel builds and ships every push to main
 git push origin main
 ```
 
+**CI** (`.github/workflows/ci.yml`) runs on every push and PR: frontend (eslint, tsc, vitest, vite build) and backend (gofmt, go vet, go build, go test -race, golangci-lint per `.golangci.yml`). Keep it green.
+
 ## Architecture
 
-**Go backend** (`backend/`) serves a REST API via chi v5 router. Go 1.23, module `github.com/inin-zou/yongkang-as-a-agent`. There is no `backend/go.mod` — only the root `go.mod`. The only dependencies are `go-chi/chi/v5` and `lib/pq`.
+**Go backend** (`backend/`), chi v5, module `github.com/inin-zou/yongkang-as-a-agent` (root `go.mod` only, no `backend/go.mod`). Dependencies: `go-chi/chi/v5`, `lib/pq`.
 
-**Vercel serverless:** `api/index.go` (package `handler`, not `main`) is a thin wrapper that initializes the same chi router with `sync.Once`. `vercel.json` rewrites all `/api/*` to this single function, and all non-API paths to `/index.html` (SPA fallback).
+- **Composition root:** `backend/pkg/app`. `LoadConfig(app.Local | app.Vercel)` reads every env var; `app.New(cfg)` builds repositories, services, middleware and the full route table. `api/index.go` (Vercel, package `handler`, `sync.Once`) and `backend/cmd/server/main.go` (dev) are thin wrappers around it. Add routes only in `app.go`; `app_test.go` pins the (method, path) table.
+- **Layers:** handler → service → repository.
+  - `handler/`: decode, call the service, encode. `writeCachedJSON` for GETs, `writeJSON` for mutations, `writeError` for errors.
+  - `service/`: `PortfolioService` depends on consumer-side interfaces in `service/stores.go` (`PostStore`, `EngagementStore`, `GuestbookStore`, `AdminStore`, `PageStore`, `MusicStore`, `SkillStore`, …), never on `*SupabaseRepository`. External APIs live here too: `github.go` (contributions, cached) and `gemini.go` (File API upload/poll, draft generate/refine).
+  - `repository/`: `SupabaseRepository` split per area (`supabase_posts.go`, `supabase_skills.go`, …); `EmbeddedRepository` (`embed.FS` from `backend/data/*.json`); `JSONRepository` (dev, `DATA_DIR`). `WithFallback(primary, fallback)` is the single "Supabase first, embedded JSON on error / empty / nil" rule; it logs primary failures by operation only. Reads Supabase doesn't serve return `ErrNotSupported` and fall back silently.
+- **Vercel:** `vercel.json` rewrites `/api/*` to `api/index.go` and everything else to `/index.html` (SPA fallback).
 
-**React frontend** (`frontend/`) uses React 19 + Vite + TanStack Query + Three.js + GSAP. Tailwind CSS v4 via `@tailwindcss/vite` plugin (no separate tailwind config). Vite proxies `/api` to the Go backend in dev.
+**React frontend** (`frontend/`): React 19, Vite, TanStack Query, react-router 7, GSAP (intro), Tailwind v4 via `@tailwindcss/vite`. Vite proxies `/api` to the backend in dev.
 
-**Frontend routing:** `createBrowserRouter` with `/files/:tab/:item/:sub` pattern. Tab names (`soul`, `skill`, `memory`, `contact`, `music`, `admin`) map to lazy-loaded `{Name}Page.tsx`. `retryImport` wrapper catches stale chunk errors after deploys and reloads the page once. Landing page (`/`) uses a separate layout without the file-system chrome.
+- **Routing** (`App.tsx`): `/` is the journey intro (`components/intro/IntroLab`). `/files/:tab/:item/:sub` renders `components/doc/DocumentLayout` (top bar, directory, breadcrumb, footer, player bar) around lazy `{Name}Page.tsx` (`soul`, `skill`, `memory`, `contact`, `music`, `admin`). `retryImport` reloads once on stale chunks. Old URLs redirect (`/files/soul/journey`, `/files/soul/projects`, `/files/skill/resume`, …).
+- **API layer:** `lib/api/request.ts` is the only `fetch` wrapper: `/api` base, `?_t=timestamp` on every request (CDN cache busting, required), JSON/FormData bodies, `Authorization: Bearer`, `ApiError` with status. Endpoints are grouped in `lib/api/*.ts` and re-exported from `lib/api/index.ts`.
+- **Query keys:** always from `lib/queryKeys.ts` (same tuples everywhere, so invalidation works).
+- **Contexts:** providers in `lib/AuthContext.tsx` / `lib/MusicPlayerContext.tsx`; the context objects and hooks in `lib/auth.ts` (`useAuth`) / `lib/musicPlayer.ts` (`useMusicPlayer`), so provider files export only components (react-refresh).
 
-**Data flow:** `api/index.go` → `handler.APIHandler` → `service.PortfolioService` → `repository.DataRepository` (interface). Two implementations: `SupabaseRepository` (primary, PostgreSQL via `lib/pq`) and `EmbeddedRepository` (fallback, `embed.FS` from `backend/data/*.json`). The service tries primary first, falls back to embedded if primary is nil or returns empty results.
+**Auth:** GitHub OAuth via Supabase. `/api/admin/*` is gated by `middleware.AdminOnly` (Supabase JWT + `ADMIN_EMAIL`). Supabase Auth → Redirect URLs must include `http://localhost:5173/**` and `https://yongkang.dev/**`.
 
-**Frontend data:** All API calls go through `frontend/src/lib/api.ts` which exports `fetchJSON` (public) and `fetchAuthJSON` (admin). Both append `?_t=timestamp` for CDN cache busting — this is required on all fetches.
+**Caching:** GET handlers set `Vercel-CDN-Cache-Control` (edge) with a short browser `max-age`; the client's `?_t=` makes fresh data show right after admin edits.
 
-**Auth:** GitHub OAuth via Supabase. Admin routes (`/api/admin/*`) gated by `middleware.AdminOnly` which validates the Supabase JWT and checks email against `ADMIN_EMAIL` env var.
-
-**Caching:** GET handlers use `writeCachedJSON` which sets `Vercel-CDN-Cache-Control: s-maxage=86400` for edge caching. Browser sees `max-age=10`. Client-side `?_t=timestamp` busts CDN cache after mutations.
-
-**Rate limiting:** IP-based middleware on sensitive endpoints (contact, feedback, likes, comments, guestbook). Configured per-route with different limits.
+**Rate limiting:** IP-based per route (contact, feedback, likes, comments, guestbook), configured in `app.go`.
 
 ## Key Patterns
 
-- **Pages:** `{Name}Page.tsx` in `pages/`, content components in `components/{section}/`
-- **Admin editing:** `useAdminEdit()` hook returns `{ isAdmin, token }`. Admin UI in `components/admin/` — `AdminBar`, `EditableItem`, `PostEditor`, `MediaUploadBar`, `*Editor` forms
-- **Sidebar:** Static tab config in `sidebarConfig.ts`, dynamic sidebar (e.g. MEMORY.md drill-down) built in `FileSystemLayout.tsx`. Mobile: collapsible via `MobileSidebarWrapper` (tap to expand/collapse).
-- **Go handlers:** Use `writeCachedJSON` for GET endpoints, `writeJSON` for mutations, `writeError` for errors
-- **Go admin CRUD:** Full CRUD on `SupabaseRepository` for all Supabase tables; admin routes use the JWT-validated supabase connection
-- **CSS:** Custom properties in `theme.css`. Class prefixes: `.editor-*` (pages), `.cli-*` (terminal blocks), `.admin-*` / `.editable-item-*` (admin UI), `.music-player-*` (player bar), `.blog-post-content` (rendered blog posts), `.media-upload-*` (upload chips)
-- **Blog content:** Stored as HTML in Supabase. Edited as markdown (turndown HTML→MD, marked MD→HTML). Custom turndown/marked rules preserve mermaid blocks, iframes, videos, and styled images through the round-trip. `BlogPostContent` component renders with `dangerouslySetInnerHTML` + lightbox portal + mermaid.js diagram rendering.
-- **Blog images:** Two-type strategy in Gemini prompts — inline `<figure>` with `<figcaption>` (Type A) for illustrations, plain `<figure><img>` tags under a `## Photos` heading (Type B) for event/gallery photos. `BlogPostContent` auto-detects "Photos" headings and wraps following images into `.img-gallery` containers. Gallery uses WeChat Moments layout: 1 image shows full (no crop), 2+ images crop to squares in adaptive grid (2-col for 2/4, 3-col for 3/5-9). Click any image for fullscreen lightbox via `createPortal`. Old posts with explicit `.img-gallery` HTML classes still render correctly.
-- **Blog diagrams:** Write as ` ```mermaid ` fenced code blocks in markdown. Converted to `<pre class="mermaid">` on save, rendered by mermaid.js (dynamically imported, dark monochrome theme). Survives HTML→MD→HTML editing round-trip. Avoid colons and slashes in mermaid node labels.
-- **Music player:** `MusicPlayerContext` owns a global `<audio>` element that persists across navigation. `MusicPlayerBar` at bottom of `FileSystemLayout`. `AudioPlayer` in MusicPage reads from the same context.
-- **AI endpoints:** `POST /api/admin/generate-draft` (rough idea → HTML) and `POST /api/admin/refine-draft` (existing content → markdown). Both upload images to Gemini File API for visual analysis. Videos and GIFs skip File API (text-only URL context). Refine returns markdown directly; generate returns HTML.
-- **Media upload:** `useBlogMediaUpload` hook + `MediaUploadBar` shared component. Uploads to Supabase Storage `blog-media` bucket. Auto-converts HEIC→PNG (heic2any). Videos >50MB show error with compression recommendation. Status text shown during processing.
-- **Media conversion:** `mediaConvert.ts` — WAV/FLAC/AIFF→MP3 via ffmpeg.wasm (audio). FFmpeg lazy-loaded via dynamic import (only when admin uploads media).
-- **Knowledge graph:** `KnowledgeGraph.tsx` at `/files/soul/graph`. Canvas-based force-directed graph auto-generated from Supabase data. Nodes: skill domains, tech stack, companies, hackathon domains, hackathons. Sized by connection count. Holographic rendering (prismatic glow + translucent fill). Tech connections mapped from GitHub repo analysis.
-- **Admin notifications:** Clicking a notification navigates to the post (resolves `postId` → slug + category). Post title shown in notification body. Guestbook notifications go to `/files/memory/guestbook`.
-- **Error boundary:** `ErrorBoundary.tsx` wraps `RouterProvider` — catches rendering crashes with styled fallback + reload button.
-- **OG image:** `og:image` + `twitter:image` meta tags in `index.html` for social sharing cards. Image at `public/og-image.png`.
-- **Mobile responsive:** `@media (max-width: 768px)` — full-screen app window, collapsible sidebar toggle, scrollable tab bar, tighter padding. Desktop layout untouched.
-- **Accessibility:** `:focus-visible` outlines for keyboard nav, `aria-expanded` on mobile sidebar, `aria-live` on contact form status.
-- **Hardcoded hackathon counts (UPDATE WHEN ADDING HACKATHONS):** Mission/win totals are hand-curated in 6 places — they don't auto-derive from the data. When you add a hackathon, update **all** of them in lockstep:
-  1. `frontend/src/components/skill/HackathonsView.tsx` — `editor-meta` line ("N missions. N wins.")
-  2. `frontend/src/components/skill/SkillsView.tsx` — `editor-meta` line, `DEFAULT_NARRATIVE` fallback string, "See Also" nav-card stat
-  3. `frontend/src/components/navigation/sidebarConfig.ts` — HACKATHONS sidebar tile preview
-  4. `frontend/src/components/landing/TicketPass.tsx` — landing ticket "WINS > N / N HACKATHONS"
-  5. **Supabase `pages.skill.content.narrative`** — live page narrative overrides `DEFAULT_NARRATIVE`; update via SQL: `UPDATE pages SET content = jsonb_set(content, '{narrative}', to_jsonb(replace(content->>'narrative', 'OLD', 'NEW'))) WHERE id = 'skill';`
-  
-  "Wins" excludes Finalist results — `HackathonsView.CliStats` filters with `!/finalist/i.test(h.result)`. Keep the manual count consistent with that rule.
+- **Pages:** `pages/{Name}Page.tsx` stay small (routing, data, gating); content in `components/{doc,soul,skill,music,admin,intro,global,contact}/`. Admin tabs live in `components/admin/tabs/*`; music views in `components/music/*`.
+- **Design system:** the paper look is `styles/document.css`, scoped under `.document-layout` (tokens, directory `.dir-*`, `.soul-*` sections, `.document-*`). Minimal, small muted mono for meta lines, blue accent links with ↗ for external.
+- **Admin editing:** `useAdminEdit()` → `{ isAdmin, token }`. Inline editing in place (`AdminBar`, `EditableItem`, `PostEditor`, `MediaUploadBar`, `*Editor` forms). ADMIN.md: posts, music, feedback, notifications.
+- **Writing archive:** `blog_posts.archived`. Archived posts leave SOUL.md Writing and MEMORY.md lists, appear in MEMORY.md's collapsed ARCHIVE group, and keep working by URL. Toggle via `PUT /api/admin/posts/{id}/archive` (writes only the flag).
+- **Blog content:** HTML in Supabase, edited as markdown (turndown / marked with rules that preserve mermaid, iframes, videos, styled images). `BlogPostContent` renders it with a lightbox portal and mermaid.js.
+- **Blog images:** Gemini prompts use inline `<figure>` + `<figcaption>` for illustrations and plain `<figure><img>` under a `## Photos` heading for event photos; `BlogPostContent` turns "Photos" sections into a WeChat-Moments grid (1 image full, 2+ square crops).
+- **Blog diagrams:** ` ```mermaid ` blocks → `<pre class="mermaid">`; avoid colons and slashes in node labels.
+- **Music player:** `MusicPlayerProvider` owns one `<audio>` that persists across navigation; `MusicPlayerBar` sits in `DocumentLayout`.
+- **AI endpoints:** `POST /api/admin/generate-draft` (idea → HTML) and `POST /api/admin/refine-draft` (content → markdown); images go through the Gemini File API, videos/GIFs are text-only context.
+- **Media upload:** `useBlogMediaUpload` + `MediaUploadBar` → Supabase Storage `blog-media`; HEIC→PNG; audio WAV/FLAC/AIFF→MP3 via lazy ffmpeg.wasm (`mediaConvert.ts`).
+- **Journey intro:** `components/intro/` — GSAP ScrollTrigger scrubs one pinned timeline; bitmap WebP layers (`public/intro/shots/`) + SVG ink for all legible text; `pixelStretch.ts` (WebGL + Canvas 2D fallback) does the horizontal pixel split (01→02 off-centre, 04 centre, 07→08 collapse into rules). Reduced motion gets static keyframes.
+- **CV:** `cv/<lang>/resume.tex` (en: pdfLaTeX, zh: XeLaTeX + `resume.cls`) → `make cv` → `frontend/public/cv/`. `/files/skill/cv` shows the PDF, a download and a "View source (.tex)" view. Never publish phone numbers.
+- **Knowledge graph:** `/files/soul/graph` (KnowledgeGraph), canvas force-directed graph built from Supabase data.
+- **Hardcoded hackathon counts (UPDATE WHEN ADDING HACKATHONS):** totals are hand-written; update all in lockstep:
+  1. `frontend/src/components/skill/HackathonsView.tsx` — `editor-meta` ("N missions. N wins.")
+  2. `frontend/src/components/skill/SkillsView.tsx` — `editor-meta`, `DEFAULT_NARRATIVE`, and the "See Also" nav-card stat
+  3. **Supabase `pages.skill.content.narrative`** (overrides `DEFAULT_NARRATIVE`): `UPDATE pages SET content = jsonb_set(content, '{narrative}', to_jsonb(replace(content->>'narrative', 'OLD', 'NEW'))) WHERE id = 'skill';`
+
+  "Wins" excludes Finalist results (`HackathonsView` filters `!/finalist/i.test(h.result)`).
 
 ## Supabase
+
+Localhost uses the **production** database: admin actions and SQL on localhost change live data.
 
 **Tables:**
 ```
@@ -90,23 +96,18 @@ music_tracks, post_likes, post_comments, feedback, contact_submissions,
 guestbook, page_views, admin_notifications
 ```
 
-**Storage:** `blog-media` bucket (public read, authenticated upload, owner-scoped delete via `auth.uid() = owner_id`). Migrations in `supabase/migrations/`.
+`skills.sort_order` is kept 0..n-1 by the backend (create/update/delete renumber in one transaction). **Storage:** `blog-media` bucket (public read, authenticated upload, owner-scoped delete). Migrations in `supabase/migrations/`.
 
 ## Env Vars (Vercel)
 
 - `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `DATABASE_URL` — Supabase connection
-- `ADMIN_EMAIL` — admin gate (must match exactly, no trailing whitespace)
+- `ADMIN_EMAIL` — admin gate (must match the GitHub account's email exactly)
 - `FRONTEND_URL` — CORS origin
-- `GEMINI_API_KEY` — AI draft generation and refinement
+- `GEMINI_API_KEY` — AI drafting and refinement
+- `GITHUB_TOKEN` — GitHub contributions graph
 
-## Design Decisions
+## Branches
 
-- **Theme:** Dark palette with prismatic iridescent accents (holographic minimalism)
-- **Layout:** Note App floating window with `.md` tabs
-- **Inline editing:** Admin edits content in place — no separate CMS UI
-- **CLI aesthetic:** `$ agent --command` terminal blocks throughout
-- **MEMORY.md sidebar:** Two-level drill-down with CSS slide animation (categories → posts)
-- **Blog gallery:** Triggered by `## Photos` heading — frontend auto-wraps following images into WeChat Moments grid. 1 image full, 2+ square crop grid. Lightbox via `createPortal` to `document.body`.
-- **Blog media:** Portrait images/videos capped at 60vh height, centered. Tables styled with mono headers. `<hr>` + following `<p>` styled as footnote with left border.
-- **Music:** Persistent player bar at bottom of app-window, Spotify-style queue (play from here), repeat modes (off/all/one)
-- **Mobile:** Sidebar collapses to tap-to-expand toggle showing tab label. Desktop uses `display: contents` passthrough.
+- `main` — the live site (Vercel production). Fast-forward only.
+- `refactor/integration` (+ `refactor/backend`, `refactor/frontend`) — refactor work, merged to `main` when green.
+- `archive-design` — the previous dark file-system design.
