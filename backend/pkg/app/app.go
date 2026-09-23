@@ -41,8 +41,16 @@ func New(cfg Config) (http.Handler, func()) {
 		log.Println("DATABASE_URL not set — running without Supabase")
 	}
 
-	svc := service.NewPortfolioService(primary, fallback, supabase)
-	h := handler.NewAPIHandler(svc)
+	var stores service.PortfolioStores
+	if supabase != nil {
+		stores = service.PortfolioStores{
+			Posts: supabase, Engagement: supabase, Guestbook: supabase,
+			Admin: supabase, Views: supabase, Pages: supabase, Music: supabase,
+			ProjectStatuses: supabase, Skills: supabase, Hackathons: supabase, Experience: supabase,
+		}
+	}
+	svc := service.NewPortfolioService(repository.WithFallback(primary, fallback), stores)
+	h := handler.NewAPIHandler(svc, service.NewGitHubService(cfg.GitHubToken), service.NewGeminiService(cfg.GeminiAPIKey))
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -70,7 +78,7 @@ func New(cfg Config) (http.Handler, func()) {
 		r.Get("/pages/{id}", h.HandleGetPage)
 		r.Get("/music-tracks", h.HandleGetMusicTracks)
 		r.Get("/project-statuses", h.HandleGetProjectStatuses)
-		r.Get("/github-contributions", h.HandleGetGitHubContributions(cfg.GitHubToken))
+		r.Get("/github-contributions", h.HandleGetGitHubContributions)
 
 		r.Route("/admin", func(r chi.Router) {
 			r.Use(middleware.AdminOnly(cfg.SupabaseURL, cfg.SupabaseAnonKey, cfg.AdminEmail))
@@ -101,8 +109,8 @@ func New(cfg Config) (http.Handler, func()) {
 			r.Post("/experience", h.HandleCreateExperience)
 			r.Put("/experience/{id}", h.HandleUpdateExperience)
 			r.Delete("/experience/{id}", h.HandleDeleteExperience)
-			r.Post("/generate-draft", h.HandleGenerateDraft(cfg.GeminiAPIKey))
-			r.Post("/refine-draft", h.HandleRefineDraft(cfg.GeminiAPIKey))
+			r.Post("/generate-draft", h.HandleGenerateDraft)
+			r.Post("/refine-draft", h.HandleRefineDraft)
 		})
 	})
 
