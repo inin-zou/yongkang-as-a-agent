@@ -1,0 +1,473 @@
+% 使用 XeLaTeX 编译两次；resume.cls 保持原样。
+\documentclass{resume}
+
+\usepackage{tabularx}
+\usepackage{needspace}
+\usepackage{xurl}
+\usepackage{lastpage}
+
+\ResumeName{邹永康}
+
+\hypersetup{
+  pdftitle={邹永康 - Agent Harness 工程师},
+  pdfauthor={邹永康}
+}
+
+\urlstyle{same}
+
+% =========================================================
+% 页面布局
+% 字体沿用 resume.cls，不重新指定中英文字体
+% =========================================================
+
+\geometry{
+  a4paper,
+  left=15mm,
+  right=15mm,
+  top=13mm,
+  bottom=14mm,
+  footskip=7mm
+}
+
+\newcommand{\BodyFont}{%
+  \zihao{5}
+  \setlength{\baselineskip}{15pt}
+}
+
+\newcommand{\DetailFont}{%
+  \zihao{-5}
+}
+
+\newlength{\EntryGap}
+\setlength{\EntryGap}{9pt}
+
+\newlength{\BulletGap}
+\setlength{\BulletGap}{3pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\setlength{\tabcolsep}{0pt}
+
+\raggedright
+\raggedbottom
+
+\emergencystretch=2em
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+\widowpenalty=10000
+\clubpenalty=10000
+
+% 保留 cls 的章节字体和横线，仅调整间距
+\ctexset{
+  section={
+    indent=-1em,
+    beforeskip=10pt,
+    afterskip=7pt
+  }
+}
+
+% =========================================================
+% 条目布局
+% 保留 ResumeItem 接口与原有字号、斜体
+% 第一行：公司 / 项目名称 + 右对齐日期
+% 第二行：五号斜体职位 / 奖项
+% =========================================================
+
+\RenewDocumentCommand{\ResumeItem}{omoo}{%
+  \par
+  \Needspace{6\baselineskip}%
+
+  \IfValueTF{#1}
+    {\pdfbookmark[2]{#1}{subsec:\arabic{resumebookmark}}}
+    {\pdfbookmark[2]{#2}{subsec:\arabic{resumebookmark}}}%
+
+  \stepcounter{resumebookmark}%
+
+  \begin{tabularx}{\linewidth}{
+    @{}
+    >{\raggedright\arraybackslash}X
+    @{\hspace{12pt}}
+    r
+    @{}
+  }
+    {\zihao{-4}\heiti\bfseries #2}
+      & {\DetailFont\IfValueT{#4}{#4}}\\[2pt]
+
+    \multicolumn{2}{@{}p{\linewidth}@{}}{
+      {\zihao{5}\textit{\IfValueT{#3}{#3}}}
+    }\\
+  \end{tabularx}\par\nobreak
+}
+
+\newenvironment{resumeBullets}{%
+  \begin{itemize}[
+    label=\textbullet,
+    leftmargin=12pt,
+    labelsep=5pt,
+    itemsep=\BulletGap,
+    parsep=0pt,
+    topsep=3pt,
+    partopsep=0pt
+  ]
+}{%
+  \end{itemize}
+}
+
+\newcommand{\ProjectLink}[1]{%
+  \par\nopagebreak
+  {\DetailFont
+    \textbf{链接:} \url{#1}\par
+  }
+}
+
+% 教育经历：学校与日期一行，学位与成绩分别放在下一行
+\newcommand{\Education}[4]{%
+  \par
+  \Needspace{4\baselineskip}%
+
+  \begin{tabularx}{\linewidth}{
+    @{}
+    >{\raggedright\arraybackslash}X
+    @{\hspace{10pt}}
+    r
+    @{}
+  }
+    {\zihao{5}\heiti\bfseries #1}
+      & {\DetailFont #2}\\[2pt]
+
+    \multicolumn{2}{@{}p{\linewidth}@{}}{
+      {\zihao{5}\textit{#3}}
+    }\\[1pt]
+
+    \multicolumn{2}{@{}p{\linewidth}@{}}{
+      {\DetailFont #4}
+    }\\
+  \end{tabularx}\par
+}
+
+% =========================================================
+% 页脚
+% =========================================================
+
+\pagenumbering{arabic}
+
+\pagestyle{fancy}
+\fancyhf{}
+
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\fancyfoot[L]{%
+  \fontsize{8}{10}\selectfont
+  \color{black!55}
+  邹永康
+}
+
+\fancyfoot[R]{%
+  \fontsize{8}{10}\selectfont
+  \color{black!55}
+  \thepage\ / \pageref*{LastPage}
+}
+
+\begin{document}
+
+\BodyFont
+
+% =========================================================
+% 顶部：左侧姓名与职位，右侧联系方式
+% 保留原有字号；较长的求职方向在左栏内自然换行
+% =========================================================
+
+\begin{minipage}[t]{0.60\textwidth}
+  \vspace{0pt}
+
+  {\zihao{-1}\heiti 邹永康\par}
+
+  \vspace{5pt}
+
+  {\zihao{-4}\heiti
+    求职方向：Agent Harness 工程师\par
+  }
+
+  \vspace{4pt}
+
+  {\DetailFont
+    Agent Runtime · Context Engineering · Agent Evaluation\par
+  }
+\end{minipage}\hfill
+\begin{minipage}[t]{0.38\textwidth}
+  \vspace{0pt}
+  \raggedleft
+  \zihao{-5}
+
+  \href{mailto:yongkang.zou.ai@gmail.com}
+       {yongkang.zou.ai@gmail.com}\\
+  \ResumeUrl{https://github.com/inin-zou}
+            {github.com/inin-zou}\\
+  \ResumeUrl{https://yongkang.dev/}
+            {yongkang.dev}
+\end{minipage}
+
+\par\vspace{4pt}
+
+% =========================================================
+% 工作经历
+% =========================================================
+
+\section{工作经历}
+
+\ResumeItem
+  {Epiminds（斯德哥尔摩）}
+  [Founding AI 工程师]
+  [2026.02 -- 2026.05]
+
+\begin{resumeBullets}
+  \item 构建企业级\textbf{多智能体营销平台}，
+  设计并实现 \textbf{20+ 个专家 Agent}，
+  覆盖受众分析、广告创意、优化与跨平台投放；
+  基于 \textbf{Vercel AI SDK}
+  实现模型调用、结构化输出与流式交互，
+  与Google、Meta Ads等平台API集成。
+
+  \item 基于 \textbf{Temporal}
+  构建长生命周期 Agent Workflow，
+  将多步骤推理、工具调用、人工审批与外部 API 操作
+  编排为可持久化执行流程，
+  支持\textbf{状态恢复、失败重试与故障恢复}；
+  负责 React、Express、PostgreSQL 与 Redis 核心系统开发
+  并部署于 GCP，服务 \textbf{100+ 企业日活用户}。
+
+  \item 设计并落地\textbf{用户反馈驱动的 Agent 持续优化闭环}：
+  通过产品侧点赞 / 点踩收集低摩擦用户反馈，
+  每周对生产 Trace 进行离线分析，
+  从端到端回答进一步归因至
+  \textbf{Agent Routing、Tool Call、Context} 等环节；
+  结合用户历史 Profile 与跨 Agent 交互进行归因，
+  而非孤立评估单条 Trace，
+  以识别长期偏好与系统性失败模式。
+
+  \item 参考 \textbf{SkillOpt} 思路迭代 Few-shot、Prompt / Skill
+  与路由策略；基于脱敏生产数据构建\textbf{分层回归测试集}，
+  在 Harness / 模型更新后执行端到端与工具级测试，
+  联合评估\textbf{回答质量、延迟与执行步数}，检测行为退化。
+
+\end{resumeBullets}
+
+\vspace{\EntryGap}
+
+\ResumeItem
+  {Mozart AI（伦敦 / 巴黎）}
+  [AI 开发工程师]
+  [2025.10 -- 2026.01]
+
+\begin{resumeBullets}
+  \item 从 0 到 1 交付 \textbf{AI Music Video} 服务，
+  负责架构设计、多模态生成流水线与生产部署；
+  将歌词和音乐特征转化为 LLM 生成的叙事、视觉风格与分镜，
+  协调下游图像与视频模型，并实现音乐节拍对齐；
+  协作构建长耗时生成任务的异步执行机制并部署于 GCP，
+  服务约 \textbf{700 DAU}。
+
+  \item 参与歌词生成小模型后训练，围绕团队共同维护的歌曲样本进行脱敏与重写，
+  从歌词内容、结构、韵脚等维度设计质量标准，
+  并结合 \textbf{LLM Judge 与声学特征分析}
+  构建小规模、高质量训练与偏好数据集。
+
+  \item 构建 \textbf{RLAIF-style Preference Data Pipeline}：
+  首先通过 \textbf{SFT} 使模型学习作曲结构框架与分段能力；
+  随后采用 \textbf{DPO} 学习团队定义的高质量歌词偏好，
+  保持结构正确性的同时优化 Creative Writing 能力。
+\end{resumeBullets}
+
+\vspace{\EntryGap}
+
+\ResumeItem
+  {Misogi Labs（巴黎）}
+  [AI 开发工程师]
+  [2025.05 -- 2025.09]
+
+\begin{resumeBullets}
+  \item 面向候选分子筛选场景，
+  集成 \textbf{MCP、LangGraph 与生成式模型}，
+  构建包含分子特性预测与 Tool Calling 的多智能体工作流，
+  并负责端到端流程编排及计算化学场景验证。
+\end{resumeBullets}
+
+\vspace{\EntryGap}
+
+\ResumeItem
+  {法国兴业银行（巴黎）}
+  [AI 开发工程师，实习]
+  [2024.04 -- 2024.10]
+
+\begin{resumeBullets}
+  \item 主导开发跨部门 \textbf{Agentic RAG} 知识问答系统，
+  使用 \textbf{LangChain 和 ElasticSearch} 构建文档检索，
+  接入 \textbf{4,000+ 份企业内部文档}；
+  同期与团队交付 CI/CD 部署自动化系统及生产事故检测助手。
+\end{resumeBullets}
+
+% =========================================================
+% 精选项目
+% =========================================================
+
+\section{精选项目}
+
+\ResumeItem
+  {Codex Privacy HUD}
+  [OpenAI Privacy Hackathon - Paris 冠军 · GitHub 累积 100+ Stars]
+  [2026.09 -- 至今]
+
+\begin{resumeBullets}
+  \item 开发面向 \textbf{OpenAI Codex} 的运行时隐私与审计插件，
+  集成本地 \textbf{openai/privacy-filter}；
+  基于 \textbf{Lifecycle Hooks}
+  捕获用户输入、工具结果、子智能体及工具调用参数等
+  已接入边界中的敏感信息流。
+
+  \item 构建\textbf{事件驱动的 Session Disclosure Ledger}，
+  区分本地检测、已披露与已阻止事件；将 Privacy HUD 集成至独立构建的
+  \textbf{Codex CLI 状态栏}，通过实时状态、会话审计及逐事件详情
+  展示 Agent 执行过程中敏感数据的流转状态；
+  \textbf{获奖后持续迭代，目前由本人独立维护，
+  GitHub 累积 100+ Stars}。
+\end{resumeBullets}
+
+\ProjectLink{https://github.com/inin-zou/codex-privacy-hud}
+
+% =========================================================
+% 技术项目
+% =========================================================
+
+\section{技术项目}
+
+\ResumeItem
+  {Clio：全双工语音 Agent}
+  [Big Berlin Hack · Inca Track 冠军]
+  [2026]
+
+\begin{resumeBullets}
+  \item 基于 \textbf{PersonaPlex 7B}
+  构建面向保险理赔场景的全双工 Speech-to-Speech Agent，
+  通过 \textbf{Twilio / LiveKit} 接入真实电话链路；
+  将实时音频执行与异步业务控制分离，
+  使控制通道仅处理结构化指令与转录事件。
+
+  \item 将信息抽取与业务推理移出实时语音 Hot Path，
+  通过规则式 \textbf{Intervention Gate}
+  与逐 Token 注入控制复述确认、缺失字段追问及结束检查；
+  针对高风险字段加入用户原话锚定校验，过滤缺乏来源依据的状态更新。
+
+  \item 将模型与 LiveKit Agent 部署于 A100，
+  结合会话状态恢复降低启动开销；
+  对电话链路、WebRTC、GPU Inference 进行 Latency Profiling，
+  项目记录的端到端
+  \textbf{Round-trip Latency 约为 450--650\,ms}。
+\end{resumeBullets}
+
+\ProjectLink{https://github.com/inin-zou/Clio}
+
+\vspace{\EntryGap}
+
+\ResumeItem
+  {KernelGen 多后端 AI 算子优化}
+  [GOSIM KernelGen 2026 · Sparse Attention 赛道第 1 名]
+  [2026.05]
+
+\begin{resumeBullets}
+  \item 基于 \textbf{Triton / FlagTree}
+  优化动态稀疏注意力与 DeepSeek mHC，
+  为 Ascend、天数智芯、海光、摩尔线程与沐曦
+  五类 AI 加速器设计后端分派及兼容执行路径。
+
+  \item 针对 Top-k Gather Sparse Attention，
+  结合在线 Softmax、BF16 计算路径、
+  FP32 回退与 V 分块策略优化访存及寄存器压力；
+  相较 PyTorch 参考实现，
+  五后端平均加速 \textbf{1.97 倍}。
+
+  \item 针对 mHC 使用运行时 Sinkhorn 循环、
+  自动调参与按输入规模分派，
+  在五后端取得平均 \textbf{71.85 倍加速}，
+  摩尔线程后端达到 \textbf{201.32 倍}；
+  建立参考实现、数值正确性测试与性能 Benchmark。
+\end{resumeBullets}
+
+\ProjectLink{https://github.com/inin-zou/kernelgen-challenge}
+
+% =========================================================
+% 技能与荣誉
+% =========================================================
+
+\section{技能与荣誉}
+
+\begin{itemize}[
+  leftmargin=0pt,
+  label={},
+  itemsep=4pt,
+  parsep=0pt,
+  topsep=0pt,
+  partopsep=0pt
+]
+  \item \textbf{智能体开发：}
+  MCP、RAG；Vercel AI SDK、LangGraph、LangChain
+
+  \item \textbf{监控与可观测性：}
+  Langfuse、Sentry、Prometheus、Grafana、PostHog
+
+  \item \textbf{模型训练与推理：}
+  SFT（LoRA）、RL (DPO、GRPO)；vLLM、Triton、PyTorch
+
+  \item \textbf{编程语言：}
+  Python、TypeScript、SQL
+
+  \item \textbf{后端与系统工程：}
+  Prisma、Node.js、Express、PostgreSQL、Redis、
+  Temporal、Docker、GitHub Actions、GCP
+
+  \item \textbf{前端开发：}
+  React、Next.js、Vite、tailwind CSS
+
+  \item \textbf{竞赛荣誉：}
+  14 次国际 AI Hackathon 获奖，包括 OpenAI Hackathon 冠军、
+  Lovable x Google DeepMind 黑客松季军
+
+  \item \textbf{语言能力：}
+  法语（DALF C1）、英语（IELTS 7.0）
+\end{itemize}
+
+% =========================================================
+% 教育经历
+% 保留学校、学位、成绩三行布局及原有字号、斜体
+% =========================================================
+
+\section{教育经历}
+
+\Education
+  {巴黎文理研究大学 -- PSL（Université Paris Dauphine -- PSL）}
+  {2023.09 -- 2024.12}
+  {\textnormal{计算机科学 | }硕士学位}
+  {\textbf{QS World University Rankings 2025：\#24}
+   | \textbf{年级排名第 10}}
+
+\vspace{6pt}
+
+\Education
+  {巴黎萨克雷大学（Université Paris-Saclay）}
+  {2022.09 -- 2023.08}
+  {\textnormal{计算机科学 | }硕士一年级}
+  {\textbf{QS World University Rankings 2025：\#73}
+   | \textbf{GPA：14.41/20}
+   | \textbf{年级排名第 3}}
+
+\vspace{6pt}
+\vspace{6pt}
+
+\Education
+  {图卢兹第一大学（Université Toulouse 1 Capitole）}
+  {2019.09 -- 2022.06}
+  {\textnormal{计算机、经济管理学 | }学士学位}
+  {\textbf{经济学与计量经济学 QS Rankings：\#71}
+   | \textbf{年级排名第 5}}
+
+\end{document}

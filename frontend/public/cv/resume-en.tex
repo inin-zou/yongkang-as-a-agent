@@ -1,0 +1,460 @@
+% Yongkang ZOU - two-page resume
+% Compile with pdfLaTeX.
+% Layout controls are collected below.
+
+\documentclass[a4paper,10pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+\usepackage[
+  a4paper,
+  left=15mm,
+  right=15mm,
+  top=13mm,
+  bottom=14mm,
+  footskip=7mm
+]{geometry}
+
+\usepackage{helvet}
+\usepackage{fix-cm}
+\renewcommand{\familydefault}{\sfdefault}
+
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{tabularx}
+\usepackage{needspace}
+\usepackage{xcolor}
+\usepackage{xurl}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+
+% Ensure PDF text is machine-readable.
+\input{glyphtounicode}
+\pdfgentounicode=1
+
+\hypersetup{
+  pdftitle={Yongkang ZOU - AI Engineer},
+  pdfauthor={Yongkang ZOU}
+}
+
+\urlstyle{same}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\setlength{\tabcolsep}{0pt}
+
+\raggedright
+\raggedbottom
+
+\hyphenpenalty=10000
+\exhyphenpenalty=10000
+\emergencystretch=1em
+\widowpenalty=10000
+\clubpenalty=10000
+
+% =========================================================
+% Spacing controls
+% =========================================================
+
+% Main text: font size / line spacing.
+\newcommand{\BodyFont}{\fontsize{10.2}{12.8}\selectfont}
+
+% Dates, links and education details.
+\newcommand{\DetailFont}{\fontsize{9.5}{11.5}\selectfont}
+
+% Space between experience/project entries.
+\newlength{\EntryGap}
+\setlength{\EntryGap}{8pt}
+
+% Space between bullet points.
+\newlength{\BulletGap}
+\setlength{\BulletGap}{3pt}
+
+% Space between an entry heading and its bullet list.
+\newlength{\HeadingToBullets}
+\setlength{\HeadingToBullets}{3pt}
+
+% Section spacing: left / before / after.
+\titlespacing*{\section}{0pt}{9pt}{6pt}
+
+\titleformat{\section}
+  {\fontsize{13}{15}\selectfont\bfseries}
+  {}
+  {0pt}
+  {}
+  [\vspace{3pt}\titlerule]
+
+% =========================================================
+% Custom commands
+% =========================================================
+
+\newenvironment{resumeBullets}{%
+  \begin{itemize}[
+    leftmargin=12pt,
+    labelsep=5pt,
+    label=\textbullet,
+    itemsep=\BulletGap,
+    parsep=0pt,
+    topsep=\HeadingToBullets,
+    partopsep=0pt
+  ]
+}{%
+  \end{itemize}
+}
+
+% Usage:
+% \entry{Company or project}{Dates}{Role or award}
+%
+% Two rows keep dates clear of titles.
+% The left column can wrap safely.
+\newcommand{\entry}[3]{%
+  \Needspace{7\baselineskip}%
+  \begin{tabularx}{\linewidth}{
+    @{}
+    >{\raggedright\arraybackslash}X
+    @{\hspace{12pt}}
+    r
+    @{}
+  }
+    {\fontsize{11}{13}\selectfont\bfseries #1}
+      & {\DetailFont #2}\\[2pt]
+    \multicolumn{2}{@{}p{\linewidth}@{}}{
+      {\fontsize{10}{12}\selectfont\itshape #3}
+    }\\
+  \end{tabularx}\par\nobreak
+}
+
+% Usage:
+% \education{University}{Dates}{Degree}{Details}
+\newcommand{\education}[4]{%
+  \Needspace{4\baselineskip}%
+  \begin{tabularx}{\linewidth}{
+    @{}
+    >{\raggedright\arraybackslash}X
+    @{\hspace{12pt}}
+    r
+    @{}
+  }
+    {\bfseries #1}
+      & {\DetailFont #2}\\[1pt]
+    \multicolumn{2}{@{}p{\linewidth}@{}}{
+      {\fontsize{10}{12}\selectfont\itshape #3}
+    }\\[1pt]
+    \multicolumn{2}{@{}p{\linewidth}@{}}{
+      {\DetailFont #4}
+    }\\
+  \end{tabularx}\par
+}
+
+\newcommand{\projectLink}[1]{%
+  {\DetailFont GitHub: \url{#1}\par}
+}
+
+% =========================================================
+% Footer
+% =========================================================
+
+\pagestyle{fancy}
+\fancyhf{}
+
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\fancyfoot[L]{%
+  \fontsize{8}{10}\selectfont
+  \color{black!55}
+  Yongkang ZOU
+}
+
+\fancyfoot[R]{%
+  \fontsize{8}{10}\selectfont
+  \color{black!55}
+  \thepage\ /\ \pageref*{LastPage}
+}
+
+\begin{document}
+
+\BodyFont
+
+% =========================================================
+% Header
+% =========================================================
+
+\begin{minipage}[t]{0.60\textwidth}
+  \vspace{0pt}
+
+  {\fontsize{28}{31}\selectfont
+    \bfseries Yongkang ZOU\par}
+
+  \vspace{5pt}
+
+  {\fontsize{10.5}{13}\selectfont
+    \textbf{AI Engineer}
+    $|$ AI Platform \& Agent Systems\par}
+
+  \vspace{3pt}
+
+  {\fontsize{10}{12}\selectfont
+    \itshape $14\times$ Hackathon Winner\par}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.38\textwidth}
+  \vspace{0pt}
+
+  \raggedleft
+  \fontsize{9.5}{12.5}\selectfont
+
+  \href{mailto:yongkang.zou.ai@gmail.com}
+       {yongkang.zou.ai@gmail.com}\\
+  \href{https://github.com/inin-zou}
+       {github.com/inin-zou}\\
+  \href{https://linkedin.com/in/yongkang-zou}
+       {linkedin.com/in/yongkang-zou}\\
+  \href{https://yongkang.dev}
+       {Portfolio: yongkang.dev}
+\end{minipage}
+
+\par\vspace{3pt}
+
+% =========================================================
+% Experience
+% =========================================================
+
+\section{Experience}
+
+\entry
+  {Epiminds (Stockholm, Sweden)}
+  {Feb 2026 -- May 2026}
+  {Founding AI Engineer $|$ Backed by EWOR}
+
+\begin{resumeBullets}
+  \item Built a \textbf{multi-agent marketing AI platform} with 20+ specialist agents for cross-platform campaign management across \textbf{Google, Meta, TikTok, and LinkedIn Ads APIs}, using \textbf{Vercel AI SDK} for model integration, tool calling, and streaming interactions.
+
+  \item Owned full-stack infrastructure development with \textbf{React, Express, PostgreSQL, and Redis}; introduced \textbf{Temporal} for durable agent workflow orchestration, retries, and failure recovery, and deployed on \textbf{GCP} to support daily usage by \textbf{100+ enterprise users}.
+
+  \item Led development of an internal \textbf{agent evaluation framework} supporting prompt iteration, A/B evaluation, version control, and regression testing, integrating \textbf{LangSmith} and \textbf{Sentry} to evaluate output quality and monitor production reliability across marketing strategies.
+\end{resumeBullets}
+
+\vspace{\EntryGap}
+
+\entry
+  {Mozart AI (London / Paris)}
+  {Oct 2025 -- Jan 2026}
+  {AI Engineer $|$ Backed by EWOR}
+
+\begin{resumeBullets}
+  \item Built an \textbf{AI music-to-video service} from scratch, owning architecture, multimodal pipeline development, and production deployment; extracted lyrics and musical features to drive \textbf{LLM}-generated narratives, visual styles, and storyboards, coordinating image and video models with beat-aligned shot planning and editing.
+
+  \item Co-developed \textbf{asynchronous task dispatch} for long-running generation jobs across multiple video models and deployed the service on \textbf{GCP}, supporting approximately \textbf{700 daily active users}.
+
+  \item Contributed to fine-tuning an \textbf{LLM} for lyric generation using \textbf{LoRA and DPO} to improve naturalness and stylistic consistency.
+\end{resumeBullets}
+
+\vspace{\EntryGap}
+
+\entry
+  {Misogi Labs (Paris, France)}
+  {May 2025 -- Sept 2025}
+  {AI Engineer}
+
+\begin{resumeBullets}
+  \item Developed a \textbf{multi-agent molecule screening system} to reduce manual effort in early-stage drug discovery, automating literature review, structure analysis, property reasoning, and candidate prioritization workflows.
+
+  \item Built the agentic workflow layer with \textbf{LangGraph and MCP tools}, allowing agents to access external chemistry resources, invoke analysis tools, and compare generated hypotheses against retrieved scientific evidence.
+
+  \item Integrated \textbf{generative models for computational chemistry} into multi-step evaluation pipelines, supporting structure-aware analysis, iterative molecule assessment, and future integration into industrial drug discovery workflows.
+\end{resumeBullets}
+
+\vspace{\EntryGap}
+
+\entry
+  {Société Générale (Paris, France)}
+  {April 2024 -- Oct 2024}
+  {AI Consultant Intern}
+
+\begin{resumeBullets}
+  \item Built a scalable \textbf{RAG-based internal QA system} for Société Générale, integrating \textbf{400+ internal documents} to help employees retrieve cross-department knowledge from complex enterprise documentation.
+
+  \item Built an \textbf{LLM-powered CI/CD deployment automation assistant}, helping internal teams generate and validate application deployment workflows with \textbf{GitHub Actions and Jenkins} in a controlled enterprise environment.
+\end{resumeBullets}
+
+% ---------------------------------------------------------
+% Optional experience: CITIC Securities
+% Retained from the original resume.
+% Uncomment the entire block to include it.
+% ---------------------------------------------------------
+
+% \vspace{\EntryGap}
+%
+% \entry
+%   {CITIC Securities (Beijing, China)}
+%   {July 2022 -- Sept 2022}
+%   {Assistant Financial Analyst Intern}
+%
+% \begin{resumeBullets}
+%   \item Conducted in-depth financial analysis and modeling for over 15 companies, applying the Discounted Cash Flow (DCF) model to estimate enterprise value based on stock market data and company fundamentals.
+%
+%   \item Delivered over 20 data visualizations of company financial performance using Excel VBA and Power BI, enhancing decision-making processes for senior analysts and supporting key investment strategies
+% \end{resumeBullets}
+
+% =========================================================
+% Skills
+% =========================================================
+
+\section{Skills}
+
+\begin{itemize}[
+  leftmargin=0pt,
+  label={},
+  itemsep=4pt,
+  parsep=0pt,
+  topsep=0pt,
+  partopsep=0pt
+]
+  \item \textbf{Programming:} Python, TypeScript, Go, SQL
+
+  \item \textbf{AI/ML}: SFT, RL (verl), LLM Inference (vLLM), PyTorch, Agentic Systems (LangGraph, LlamaIndex, LangChain)
+
+  \item \textbf{Backend \& Infra:} FastAPI, Node.js, Express, PostgreSQL, Redis, Docker, GitHub Actions, AWS, GCP
+
+  \item \textbf{Frontend:} React, Vite, Next.js, TypeScript, Zustand, Tailwind CSS
+
+  \item \textbf{Observability \& Monitoring:} Sentry, Prometheus, Grafana, LangSmith, PostHog
+
+  % Optional certifications: retained from the original resume.
+  % \item \textbf{Certifications}: Machine Learning in Production (Coursera), Certificate of Excellence in AI Agents (Hugging Face)
+\end{itemize}
+
+% =========================================================
+% Page 2
+% =========================================================
+
+\newpage
+
+{\fontsize{11}{13}\selectfont
+  \textbf{Yongkang ZOU} $|$ AI Engineer\par}
+
+\vspace{1pt}
+
+% =========================================================
+% Project Experience
+% =========================================================
+
+\section{Project Experience}
+
+\entry
+  {Codex Privacy HUD}
+  {Sept 2026}
+  {OpenAI Privacy Hackathon, Agentic AI Track Winner}
+
+\begin{resumeBullets}
+  \item Built a \textbf{local privacy protection plugin for Codex}, using \textbf{openai/privacy-filter} to prevent unintended privacy disclosure.
+
+  \item Instrumented \textbf{agent lifecycle hooks} and event tracing to track sensitive data flowing into model context, sub-agents, and external tools; built a \textbf{session-level exposure ledger} distinguishing disclosed data from blocked events, with a live exposure progress bar, session auditing, and expandable disclosure details.
+\end{resumeBullets}
+
+\projectLink{https://github.com/inin-zou/codex-privacy-hud}
+
+\vspace{\EntryGap}
+
+\entry
+  {GPU Kernel Optimization}
+  {May 2026}
+  {GOSIM KernelGen Paris 2026, Sparse Attention 1st Place Winner (solo)}
+
+\begin{resumeBullets}
+  \item Optimized \textbf{dynamic sparse attention and DeepSeek mHC kernels} using \textbf{Triton and TileLang}, targeting 5 AI accelerator platforms: Ascend, Iluvatar, Hygon, Moore Threads, and MetaX.
+
+  \item Implemented \textbf{online softmax, BF16 matrix operations, and V tiling} for Top-k Gather sparse attention, optimizing memory access and register pressure to achieve an average \textbf{1.97$\times$ speedup} over the PyTorch reference across five backends.
+
+  \item Fused \textbf{mHC multi-stream mixing and Sinkhorn normalization}, using runtime loops, autotuning, and input-shape dispatch to achieve an average \textbf{71.85$\times$ speedup} across five backends, reaching \textbf{201.32$\times$ on Moore Threads}.
+
+  \item Built \textbf{numerical correctness tests and performance benchmarks} against reference implementations, with dedicated execution paths to accommodate compiler differences across backends.
+\end{resumeBullets}
+
+\vspace{\EntryGap}
+
+\entry
+  {Clio: Low-Latency Speech-to-Speech RAG framework}
+  {Apr 2026}
+  {Big Berlin Hack, Inca Track Winner}
+
+\begin{resumeBullets}
+  \item Built a \textbf{low-latency Voice Agent framework} for insurance claims, enabling natural speech conversations over phone calls via \textbf{Twilio}.
+
+  \item Redesigned the \textbf{Speech-to-Speech RAG pipeline}, inspired by MoshiRAG, integrating business SOPs, conversation memory, and retrieved context into a real-time voice interaction loop.
+
+  \item Conducted \textbf{latency profiling} across the speech model, RAG retrieval, LLM reasoning, and telephony pipeline, achieving approximately \textbf{250ms interaction latency} and maintaining \textbf{400--600ms under weak network conditions}.
+
+  \item Integrated \textbf{PersonaPlex} with long-term memory and context consistency mechanisms to preserve business state and user information across \textbf{10-minute phone conversations}.
+\end{resumeBullets}
+
+\projectLink{https://github.com/inin-zou/Clio}
+
+% ---------------------------------------------------------
+% Optional project: Evoxtral-Realtime
+% Retained from the original resume.
+% Uncomment the entire block to include it.
+% ---------------------------------------------------------
+
+% \vspace{\EntryGap}
+%
+% \entry
+%   {Evoxtral-Realtime}
+%   {May 2026}
+%   {Reward-Guided Post-Training for Speech Agents}
+%
+% \begin{resumeBullets}
+%   \item Built a two-stage post-training pipeline for Voxtral-Mini-4B-Realtime, combining LoRA SFT with RAFT verifier-guided fine-tuning.
+%
+%   \item Designed a rule-based reward verifier over WER accuracy, expressive tag F1, and hallucination penalties to diagnose and optimize speech-agent behaviors.
+%
+%   \item 3,232 candidate completions from the SFT checkpoint and curated 727 high-reward samples for second-stage fine-tuning.
+%
+%   \item Fine-tuned a 16.2M-parameter LoRA adapter on a 4.5B speech model using bf16 on A100, reducing hallucination rate from 61\% to 53\% while maintaining tag F1 around 29\%.
+% \end{resumeBullets}
+%
+% {\DetailFont
+%   Hugging Face:\par
+%   \href{https://huggingface.co/YongkangZOU/evoxtral-realtime-sft}
+%        {\nolinkurl{huggingface.co/YongkangZOU/evoxtral-realtime-sft}}\par
+%   \href{https://huggingface.co/YongkangZOU/evoxtral-realtime-rl}
+%        {\nolinkurl{huggingface.co/YongkangZOU/evoxtral-realtime-rl}}\par
+% }
+
+% =========================================================
+% Education
+% =========================================================
+
+\section{Education}
+
+\education
+  {Université Paris Dauphine - PSL}
+  {Sept 2023 -- Oct 2024}
+  {M.S. in Computer Science (2nd Year of Master)}
+  {Core courses: Data Mining/Machine Learning, Optimization Tools}
+
+\vspace{5pt}
+
+\education
+  {Université Paris-Saclay}
+  {Sept 2022 -- Aug 2023}
+  {M.S. in Computer Science (1st Year of Master)}
+  {Ranked top 5\%, GPA: 14.41/20, Core courses: Advanced Databases}
+
+\vspace{5pt}
+
+\education
+  {Université Toulouse 1 Capitole}
+  {Sept 2019 -- Aug 2022}
+  {B.S. in Computer Science}
+  {Ranked top 3\%, Core courses: Machine Learning, Optimization Theory, Macro-Economics}
+
+\vspace{8pt}
+
+{\fontsize{10}{12}\selectfont
+  \textbf{Languages}: Chinese (Native), English (IELTS 7.0), French (DALF C1)\par}
+
+\end{document}
