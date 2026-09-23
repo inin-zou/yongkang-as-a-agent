@@ -1,3 +1,4 @@
+import { queryKeys } from '../../lib/queryKeys'
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchSkills, fetchHackathons, fetchExperience } from '../../lib/api'
@@ -334,9 +335,9 @@ export default function KnowledgeGraph() {
   const panRef = useRef({ x: 0, y: 0 })
   const scaleRef = useRef(1)
 
-  const { data: skills } = useQuery({ queryKey: ['skills'], queryFn: fetchSkills })
-  const { data: hackathons } = useQuery({ queryKey: ['hackathons'], queryFn: fetchHackathons })
-  const { data: experience } = useQuery({ queryKey: ['experience'], queryFn: fetchExperience })
+  const { data: skills } = useQuery({ queryKey: queryKeys.skills(), queryFn: fetchSkills })
+  const { data: hackathons } = useQuery({ queryKey: queryKeys.hackathons(), queryFn: fetchHackathons })
+  const { data: experience } = useQuery({ queryKey: queryKeys.experience(), queryFn: fetchExperience })
 
   // Build graph when data arrives
   useEffect(() => {

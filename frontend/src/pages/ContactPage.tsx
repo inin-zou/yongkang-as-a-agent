@@ -1,3 +1,4 @@
+import { queryKeys } from '../lib/queryKeys'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -13,7 +14,7 @@ export default function ContactPage() {
   const queryClient = useQueryClient()
 
   const { data: pageData } = useQuery({
-    queryKey: ['pages', 'contact'],
+    queryKey: queryKeys.page('contact'),
     queryFn: () => fetchPage('contact'),
   })
 
@@ -58,7 +59,7 @@ export default function ContactPage() {
         linkedin: editLinkedin,
         huggingface: editHuggingface,
       })
-      queryClient.setQueryData(['pages', 'contact'], updated)
+      queryClient.setQueryData(queryKeys.page('contact'), updated)
       setIsEditing(false)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Save failed')

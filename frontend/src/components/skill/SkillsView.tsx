@@ -1,3 +1,4 @@
+import { queryKeys } from '../../lib/queryKeys'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -31,12 +32,12 @@ export default function SkillsView() {
   const [savingPage, setSavingPage] = useState(false)
 
   const { data: skills, isLoading } = useQuery({
-    queryKey: ['skills'],
+    queryKey: queryKeys.skills(),
     queryFn: fetchSkills,
   })
 
   const { data: pageData } = useQuery({
-    queryKey: ['pages', 'skill'],
+    queryKey: queryKeys.page('skill'),
     queryFn: () => fetchPage('skill'),
   })
 
@@ -69,7 +70,7 @@ export default function SkillsView() {
             setSavingPage(true)
             try {
               const updated = await updatePage(token, 'skill', { narrative: editNarrative })
-              queryClient.setQueryData(['pages', 'skill'], updated)
+              queryClient.setQueryData(queryKeys.page('skill'), updated)
               setIsEditMode(false)
             } finally { setSavingPage(false) }
           }}
@@ -82,7 +83,7 @@ export default function SkillsView() {
         <SkillEditor
           onSave={async (data) => {
             await createSkill(token, data)
-            queryClient.invalidateQueries({ queryKey: ['skills'] })
+            queryClient.invalidateQueries({ queryKey: queryKeys.skills() })
             setCreating(false)
           }}
           onCancel={() => setCreating(false)}
@@ -114,7 +115,7 @@ export default function SkillsView() {
                     initial={domain}
                     onSave={async (data) => {
                       await updateSkill(token, domain.id!, data)
-                      queryClient.invalidateQueries({ queryKey: ['skills'] })
+                      queryClient.invalidateQueries({ queryKey: queryKeys.skills() })
                       setEditingSkill(null)
                     }}
                     onCancel={() => setEditingSkill(null)}
@@ -126,7 +127,7 @@ export default function SkillsView() {
                     onDelete={async () => {
                       if (!confirm(`Delete "${domain.title}"?`)) return
                       await deleteSkill(token, domain.id!)
-                      queryClient.invalidateQueries({ queryKey: ['skills'] })
+                      queryClient.invalidateQueries({ queryKey: queryKeys.skills() })
                     }}
                     isFirst={i === 0}
                     isLast={i === (skills?.length ?? 0) - 1}
@@ -138,7 +139,7 @@ export default function SkillsView() {
                           updateSkill(token, domain.id!, { title: domain.title, slug: domain.slug ?? '', skills: domain.skills ?? [], battleTested: domain.battleTested ?? [], sortOrder: prev.sortOrder ?? i - 1 }),
                           updateSkill(token, prev.id!, { title: prev.title, slug: prev.slug ?? '', skills: prev.skills ?? [], battleTested: prev.battleTested ?? [], sortOrder: domain.sortOrder ?? i }),
                         ])
-                        queryClient.invalidateQueries({ queryKey: ['skills'] })
+                        queryClient.invalidateQueries({ queryKey: queryKeys.skills() })
                       } catch (err) { console.error('Move up failed:', err); alert('Move failed: ' + (err instanceof Error ? err.message : err)) }
                     }}
                     onMoveDown={async () => {
@@ -149,7 +150,7 @@ export default function SkillsView() {
                           updateSkill(token, domain.id!, { title: domain.title, slug: domain.slug ?? '', skills: domain.skills ?? [], battleTested: domain.battleTested ?? [], sortOrder: next.sortOrder ?? i + 1 }),
                           updateSkill(token, next.id!, { title: next.title, slug: next.slug ?? '', skills: next.skills ?? [], battleTested: next.battleTested ?? [], sortOrder: domain.sortOrder ?? i }),
                         ])
-                        queryClient.invalidateQueries({ queryKey: ['skills'] })
+                        queryClient.invalidateQueries({ queryKey: queryKeys.skills() })
                       } catch (err) { console.error('Move down failed:', err); alert('Move failed: ' + (err instanceof Error ? err.message : err)) }
                     }}
                   >

@@ -1,3 +1,4 @@
+import { queryKeys } from '../../lib/queryKeys'
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
@@ -15,7 +16,7 @@ export default function AuthButton() {
   const token = session?.access_token ?? ''
 
   const { data: unread } = useQuery({
-    queryKey: ['admin-unread'],
+    queryKey: queryKeys.adminUnread(),
     queryFn: () => fetchUnreadCount(token),
     enabled: isAdmin && !!token,
     refetchInterval: 30_000,

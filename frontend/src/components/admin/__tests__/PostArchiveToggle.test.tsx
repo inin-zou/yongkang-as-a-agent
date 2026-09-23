@@ -1,3 +1,4 @@
+import { queryKeys } from '../../../lib/queryKeys'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider, useQuery } from '@tanstack/react-query'
@@ -10,9 +11,9 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 const initial: BlogPost = { id: 'one', slug: 'first', title: 'First', content: '<p>Prose</p>', preview: '', category: 'technical', publishedAt: '2026-01-01', archived: false }
 
 function Harness() {
-  const { data } = useQuery({ queryKey: ['admin-posts'], queryFn: fetchBlogPosts })
-  const publicPosts = useQuery({ queryKey: ['posts'], queryFn: fetchBlogPosts })
-  const direct = useQuery({ queryKey: ['post', 'first'], queryFn: () => fetchBlogPost('first') })
+  const { data } = useQuery({ queryKey: queryKeys.adminPosts(), queryFn: fetchBlogPosts })
+  const publicPosts = useQuery({ queryKey: queryKeys.posts(), queryFn: fetchBlogPosts })
+  const direct = useQuery({ queryKey: queryKeys.post('first'), queryFn: () => fetchBlogPost('first') })
   return <>{data && <PostArchiveToggle post={data[0]} token="test-token" />}
     <p>Public: {String(publicPosts.data?.[0].archived)}</p>
     <p>Direct: {String(direct.data?.archived)}</p>
