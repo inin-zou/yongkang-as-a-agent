@@ -191,6 +191,8 @@
 /* Track list and persistent player. */
 .document-layout .document-track-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
 .document-layout .document-track-row p { margin: 4px 0 0; }
+/* Genre matches the page's other meta lines (small muted mono), not section prose. */
+.document-layout .document-track-row p.soul-mono { font: 12px/1.65 var(--font-mono); letter-spacing: 0; color: var(--color-ink-muted); }
 .document-layout .document-play { border: 0; padding: 4px 0; background: none; color: var(--soul-accent); font: 14px/1.65 var(--font-sans); cursor: pointer; }
 .document-layout .music-player { padding: 16px 0; margin: 24px 0; border: 0; border-radius: 0; background: none; backdrop-filter: none; -webkit-backdrop-filter: none; box-shadow: none; }
 .document-layout .music-waveform { background: none; border-radius: 0; }
