@@ -1,133 +1,143 @@
 # yongkang.dev
 
-Personal portfolio for Yongkang ZOU — AI Engineer in Paris.
+Personal site of Yongkang Zou — AI engineer. My way of learning: BFS → DFS.
 
-The concept is "super agent with many skills" — a file-system-based portfolio where visitors browse `.md` files in a Note App-style interface.
+A scroll-driven intro tells the journey (Nanjing → Paris, economics → AI), then
+the site settles into a quiet "open document": a file-tree index on the left,
+plain editorial pages on the right.
 
 **Live at [yongkang.dev](https://yongkang.dev)**
 
-![yongkang.dev preview](frontend/public/readme-preview.jpg)
+![yongkang.dev — SOUL.md](frontend/public/readme-preview.jpg)
+
+![The journey intro, shot 04: the Qinhuai frame splits at the centre and the Seine opens](frontend/public/readme-intro.jpg)
 
 ## Stack
 
+- **Frontend:** React 19 + Vite + TanStack Query + react-router 7, GSAP (ScrollTrigger), WebGL
 - **Backend:** Go (chi router), serverless on Vercel (`api/index.go`)
-- **Frontend:** React 19 + Vite + TanStack Query + Three.js + GSAP + Tailwind CSS v4
-- **Database:** Supabase (PostgreSQL + Storage) — all content admin-editable via inline CMS
-- **AI:** Gemini API for blog post generation & refinement with image analysis (File API)
-- **Audio:** Persistent music player with playlist, client-side WAV-to-MP3 via ffmpeg.wasm
-- **Media:** HEIC-to-PNG conversion (heic2any), mermaid.js diagram rendering
-- **Deploy:** Vercel (Git integration auto-deploy) + Cloudflare DNS
+- **Database:** Supabase (PostgreSQL + Storage) — content admin-editable in place
+- **AI:** Gemini API for blog post drafting & refinement with image analysis
+- **CV:** LaTeX sources compiled with pdfLaTeX / XeLaTeX (`make cv`)
+- **Deploy:** Vercel Git integration (push to `main`) + Cloudflare DNS
 
 ## Pages
 
-| Tab | Description |
+| Route | Page |
 |---|---|
-| **SOUL.md** | Bio, stats, projects status board, knowledge graph |
-| **SKILL.md** | Skills, resume, hackathons (dotted map + timeline) |
-| **MEMORY.md** | Blog with three categories, likes, comments, guestbook |
-| **CONTACT.md** | Direct channels (GitHub, LinkedIn, Hugging Face) + contact form |
-| **MUSIC.md** | Artist profile + waveform audio player with persistent playback |
-| **ADMIN.md** | Posts, music, feedback, notifications (admin-only) |
+| `/` | Journey intro — 7 scroll-scrubbed shots + the name card |
+| `/files/soul` | **SOUL.md** — bio, selected work, writing, background, one playable track |
+| `/files/memory` | **MEMORY.md** — writing, filterable by category; posts with likes and comments |
+| `/files/music` | **MUSIC.md** — inhibitor, track list, persistent player |
+| `/files/skill` · `/experience` · `/cv` · `/hackathons` | Skills, experience, CV (PDF + `.tex` source), hackathons |
+| `/files/soul/graph` · `/commits` | Knowledge graph, GitHub contributions |
+| `/files/contact` · `/files/memory/guestbook` | Contact links + form, guestbook |
+| `/files/admin` | **ADMIN.md** — posts, music, feedback, notifications (admin only) |
+
+Old URLs (`/files/soul/journey`, `/files/soul/projects`, `/files/skill/resume`, …) redirect to their new homes.
 
 ## Development
 
 ```bash
-# Both backend (:8080) and frontend (:5173)
+# Backend (:8080) + frontend (:5173); Vite proxies /api to the backend
 make dev
 
 # Or separately
 cd backend && go run cmd/server/main.go
 cd frontend && npm run dev
 
-# Tests
-cd frontend && npm test          # vitest
-cd frontend && npm run test:e2e  # playwright
-
-# Lint
+# Tests / lint
+cd frontend && npm test            # vitest
+cd frontend && npm run test:e2e    # playwright
 cd frontend && npm run lint
 
-# Deploy (auto-deploys on git push to main via Vercel Git integration)
+# Rebuild the CV PDFs after editing cv/<lang>/resume.tex
+make cv
+
+# Deploy: Vercel builds and ships every push to main
 git push origin main
 ```
+
+Local dev talks to the **production** Supabase — admin actions on localhost change live data.
+For GitHub sign-in on localhost, Supabase Auth → Redirect URLs must include `http://localhost:5173/**`.
 
 ## Architecture
 
 ```
-api/index.go              Vercel serverless entrypoint (chi router)
+api/index.go                Vercel serverless entrypoint (same chi router as dev)
 backend/
-  pkg/handler/            API handlers + Gemini AI (generate + refine)
-  pkg/service/            Business logic (primary/fallback pattern)
-  pkg/repository/         Supabase + embedded JSON data access
-  pkg/model/              Go types
-  data/*.json             Fallback data (embedded via go:embed)
+  pkg/handler/              API handlers + Gemini drafting
+  pkg/middleware/           CORS, logging, rate limits, AdminOnly (Supabase JWT + ADMIN_EMAIL)
+  pkg/service/              PortfolioService: Supabase first, embedded JSON fallback
+  pkg/repository/           SupabaseRepository (lib/pq) · EmbeddedRepository (go:embed)
+  data/*.json               Fallback data
+cv/                         CV sources (en: pdfLaTeX, zh: XeLaTeX + resume.cls) + build.sh
 frontend/
-  src/pages/              Page components ({Name}Page.tsx)
+  public/intro/shots/       Intro bitmap layers (WebP, generated from the storyboard)
+  public/cv/                Published CV PDFs and sources
   src/components/
-    admin/                AdminBar, EditableItem, PostEditor, MediaUploadBar
-    global/               Layout, FileSystemLayout, MusicPlayerBar, BlogPostContent
-    soul/                 ProjectsView, KnowledgeGraph
-    skill/                HackathonMap, SkillsView, ResumeView
-    navigation/           Sidebar, TabNavigation, Breadcrumb
-  src/hooks/              useAdminEdit, useBlogMediaUpload, useReducedMotion
-  src/lib/                API client, auth, markdown, mediaConvert, MusicPlayerContext
-  src/styles/             CSS (theme, file-system, admin, memory, player, etc.)
-scripts/                  Dev tools (og-crop, pixel-editor, photo-to-pixels)
+    intro/                  IntroLab (timeline), pixelStretch (WebGL split & stretch),
+                            StudyInk (SVG text/diagrams over the shots)
+    doc/                    DocumentLayout — top bar, file-tree directory, breadcrumb, footer
+    soul/                   SOUL.md page, selected work, knowledge graph, contributions
+    skill/                  Skills, experience, CV viewer, hackathons
+    admin/                  AdminBar, EditableItem, PostEditor, editors, media upload
+    global/                 BlogPostContent, PostInteractions, MusicPlayerBar, ErrorBoundary
+  src/lib/                  api.ts (?_t= cache busting), auth, MusicPlayerContext, markdown
+  src/styles/document.css   The paper design system for every /files page
+docs/superpowers/specs/     Design specs, storyboards and references
 ```
 
-### Backend Architecture
+### The journey intro
+
+- **Scroll is the clock.** A pinned GSAP ScrollTrigger scrubs one timeline (~12 viewport
+  heights); it plays backwards as naturally as forwards. A `play` mode runs it on its own.
+- **Bitmap layers + SVG ink.** Each shot is a few WebP layers generated from the storyboard
+  crops (environment, character poses, foreground). All legible text — book titles,
+  formulas, the Transformer diagram — is SVG laid over the art, so it is always spelled right.
+- **Horizontal pixel stretch** (`pixelStretch.ts`, WebGL with a Canvas 2D fallback): in shot 04
+  the frame is cut at the centre, the halves slide apart and the gap fills with the cut
+  columns stretched into strictly horizontal bands; then the next scene opens from the
+  centre. 07 → 08 reuses it, collapsing the bands into the page's divider rules.
+- `prefers-reduced-motion` gets static keyframes with captions; captions switch EN / 中.
+
+### Data flow
 
 ```
 Request → chi router → middleware (CORS, Logger, RateLimit, AdminOnly)
                             ↓
-                        handler/
-                     (HTTP handlers)
-                            ↓
-                        service/
-                  (business logic layer)
-                     ↓              ↓
-             SupabaseRepository  EmbeddedRepository
-              (PostgreSQL)        (go:embed JSON)
-                primary              fallback
+                  handler → PortfolioService
+                     ↓                ↓
+          SupabaseRepository    EmbeddedRepository
+             (primary)            (go:embed fallback)
 ```
 
-Three-layer design with no controller abstraction — handlers serve as both route handlers and controllers:
+GET handlers set `Vercel-CDN-Cache-Control: s-maxage=86400`; the client appends `?_t=` to
+every request so fresh data shows right after an admin edit.
 
-- **handler/** — parses requests, calls service, writes responses. `api.go` (~70 routes), `gemini.go` (AI draft generation via Gemini File API)
-- **middleware/** — CORS, request logging, IP-based rate limiting, admin JWT validation (`AdminOnly` checks Supabase JWT + `ADMIN_EMAIL`)
-- **service/** — `PortfolioService` tries primary repo (Supabase) first, falls back to embedded JSON if unavailable or empty
-- **repository/** — `DataRepository` interface with two implementations. `SupabaseRepository` for read/write via `lib/pq`. `EmbeddedRepository` for read-only fallback from `go:embed` compiled JSON
-- **model/** — shared Go structs with JSON tags, used across all layers
+## Key features
 
-The Vercel serverless entrypoint (`api/index.go`, package `handler`) initializes the same chi router with `sync.Once` — identical code path in dev and production.
+- **Inline admin editing** — sign in with GitHub, edit content in place
+- **AI blog drafting** — draft from a rough idea or refine an existing post with Gemini
+- **Blog rendering** — markdown ↔ HTML round-trip that keeps mermaid diagrams, videos,
+  photo galleries (`## Photos`) and a lightbox
+- **Persistent music player** — keeps playing across pages
+- **CV as source** — PDF preview, download, and a "View source (.tex)" toggle
+- **Knowledge graph** — force-directed graph generated from Supabase data
+- **Accessible** — keyboard focus, reduced-motion paths, semantic landmarks
 
-## Key Features
+## Branches
 
-- **Inline admin editing** — admin sees EDIT button on every page, edits in place
-- **AI blog drafting** — generate posts from rough ideas, or refine existing posts with REFINE WITH AI
-- **Smart media placement** — Gemini analyzes uploaded images via File API, places inline (Type A) or under a `## Photos` heading (Type B)
-- **WeChat Moments gallery** — frontend auto-detects "Photos" headings and wraps images into grid. 1 image shows full, 2+ crop to square grid (2-col or 3-col based on count)
-- **Click-to-expand lightbox** — all blog images open fullscreen via portal overlay, Escape to close
-- **Mermaid diagrams** — write as ` ```mermaid ` fenced blocks in the editor, rendered as diagrams with dark theme. Survives HTML↔MD round-trip.
-- **Persistent music player** — slim bar at bottom, continues playing across tab navigation, playlist with repeat modes
-- **Markdown editor** — content stored as HTML, edited as markdown (turndown + marked). Custom rules preserve mermaid, iframes, videos, and styled images through the round-trip.
-- **Media conversion** — HEIC-to-PNG (heic2any), WAV-to-MP3 (ffmpeg.wasm), all client-side
-- **Mobile responsive** — collapsible sidebar, full-screen layout, scrollable tabs on phones
-- **CDN caching** — 24h Vercel edge cache with timestamp-based cache busting
-- **Knowledge graph** — force-directed graph at `/files/soul/graph` auto-generated from Supabase data (skills, hackathons, companies, tech stacks). Holographic rendering with prismatic glow. Nodes sized by connection count. Search with not-found feedback link.
-- **Admin notifications** — clickable notifications navigate to the liked/commented post, with post title shown inline
-- **Error boundary** — catches rendering crashes with styled fallback UI + reload button
-- **Social sharing** — OG image + Twitter card meta tags for link previews on LinkedIn, Twitter, WeChat
-- **Lazy FFmpeg** — 5-10MB wasm bundle only loaded when admin uploads media, not on page load
-- **Primary/fallback data** — Supabase first, embedded JSON fallback if unavailable
-- **Accessibility** — `:focus-visible` keyboard outlines, `aria-expanded` sidebar, `aria-live` form status
+- `main` — the live site
+- `archive-design` — the previous dark file-system design
 
-## Env Vars
+## Env vars
 
 | Variable | Purpose |
 |---|---|
 | `SUPABASE_URL` | Supabase project URL |
 | `SUPABASE_ANON_KEY` | Supabase anonymous key |
 | `DATABASE_URL` | PostgreSQL connection string |
-| `ADMIN_EMAIL` | Admin gate (exact email match) |
+| `ADMIN_EMAIL` | Admin gate — must match the GitHub account's email exactly |
 | `FRONTEND_URL` | CORS origin |
-| `GEMINI_API_KEY` | Gemini API for AI draft generation & refinement |
+| `GEMINI_API_KEY` | Gemini API for AI drafting & refinement |
