@@ -1,25 +1,35 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { fetchBlogPosts, fetchProjects, fetchProjectStatuses } from '../../lib/api'
+import { fetchBlogPosts } from '../../lib/api'
 import SoulReveal from './SoulReveal'
 
+// Hand-picked from the CV (owner-provided). Update here when the selection changes.
+const SELECTED_WORK = [
+  {
+    title: 'Codex Privacy HUD',
+    meta: 'OpenAI Privacy Hackathon Paris · Winner · 100+ GitHub stars',
+    date: '2026.09 – now',
+    description: 'A runtime privacy and audit plugin for OpenAI Codex: tracks sensitive data crossing agent boundaries, with a session disclosure ledger and a Codex CLI status line.',
+    href: 'https://github.com/inin-zou/codex-privacy-hud',
+  },
+  {
+    title: 'Clio',
+    meta: 'Big Berlin Hack · Inca Track winner',
+    date: '2026',
+    description: 'A full-duplex speech-to-speech voice agent for insurance claims on real phone lines (Twilio / LiveKit), with ~450–650 ms round-trip latency.',
+    href: 'https://github.com/inin-zou/Clio',
+  },
+  {
+    title: 'KernelGen',
+    meta: 'GOSIM KernelGen 2026 · 1st, Sparse Attention track',
+    date: '2026.05',
+    description: 'Triton / FlagTree kernels for dynamic sparse attention and DeepSeek mHC across five AI accelerator backends: 1.97× average speedup on sparse attention, 71.85× on mHC.',
+    href: 'https://github.com/inin-zou/kernelgen-challenge',
+  },
+]
+
 export default function SoulReadmeContent({ subtitle, bio, currently }: { subtitle: string; bio: string[]; currently: string }) {
-  const projects = useQuery({ queryKey: ['projects'], queryFn: () => fetchProjects() })
   const posts = useQuery({ queryKey: ['posts'], queryFn: fetchBlogPosts })
-  const validProjects = (projects.data ?? []).filter(project => project.title && project.slug)
-  // The legacy /projects endpoint can decode status records without titles/slugs.
-  // Fall back to the existing status API instead of fabricating project metadata.
-  const needsStatuses = projects.isSuccess && validProjects.length === 0
-  const statuses = useQuery({ queryKey: ['project-statuses'], queryFn: fetchProjectStatuses, enabled: needsStatuses })
-  const selected = validProjects.length
-    ? [...validProjects].sort((a, b) => Number(!!b.isFavorite) - Number(!!a.isFavorite)).slice(0, 3)
-    : (statuses.data ?? []).slice(0, 3).map(status => ({
-      slug: status.id ?? status.name, title: status.name, description: status.description,
-      tags: [status.status], demoUrl: undefined,
-      codeUrl: status.links?.split(/[\s,]+/).find(link => /^https?:\/\//i.test(link)),
-    }))
-  const workPending = projects.isPending || (needsStatuses && statuses.isPending)
-  const workError = projects.isError || (needsStatuses && statuses.isError)
   const latest = [...(posts.data ?? [])].sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt)).slice(0, 3)
 
   return <>
@@ -33,11 +43,12 @@ export default function SoulReadmeContent({ subtitle, bio, currently }: { subtit
     </header></SoulReveal>
     <SoulReveal><section className="soul-section" aria-labelledby="soul-work-title">
       <div><h2 id="soul-work-title">Selected work</h2>
-        {workPending && <p role="status">Loading selected work…</p>}
-        {workError && <p role="status">Selected work could not be loaded. <button onClick={() => void (needsStatuses ? statuses.refetch() : projects.refetch())}>Try again</button></p>}
-        {!workPending && !workError && !selected.length && <p>No projects published yet.</p>}
-        {selected.map(project => <article className="soul-project-row" key={project.slug}>
-          <h3>{project.demoUrl || project.codeUrl ? <a href={project.demoUrl || project.codeUrl} target="_blank" rel="noreferrer">{project.title}</a> : <Link to="/files/soul/projects">{project.title}</Link>}</h3>
+        {SELECTED_WORK.map(project => <article className="soul-project-row" key={project.title}>
+          <div className="soul-project-head">
+            <h3><a href={project.href} target="_blank" rel="noreferrer">{project.title}</a></h3>
+            <span className="soul-mono">{project.date}</span>
+          </div>
+          <p className="soul-mono soul-project-meta">{project.meta}</p>
           <p>{project.description}</p>
         </article>)}
       </div>

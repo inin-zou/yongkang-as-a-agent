@@ -6,7 +6,7 @@ import FileSystemLayout from '../../global/FileSystemLayout'
 import Layout from '../../global/Layout'
 import SoulPage from '../../../pages/SoulPage'
 import { useAdminEdit } from '../../../hooks/useAdminEdit'
-import { fetchProjects, fetchProjectStatuses, updatePage } from '../../../lib/api'
+import { fetchProjectStatuses, updatePage } from '../../../lib/api'
 
 vi.mock('../../../hooks/useAdminEdit', () => ({ useAdminEdit: vi.fn(() => ({ isAdmin: false, token: '' })) }))
 vi.mock('../../../lib/AuthContext', () => ({ useAuth: () => ({ user: null }) }))
@@ -109,12 +109,12 @@ describe('SOUL document boundary', () => {
 })
 
 describe('SOUL pages', () => {
-  it('limits README work to three linked items without redundant decoration', async () => {
-    vi.mocked(fetchProjects).mockResolvedValueOnce(Array.from({ length: 5 }, (_, i) => ({ slug: `project-${i}`, title: `Project ${i}`, description: 'Description', tags: [], category: 'side', date: '2026-04-01' })))
+  it('shows the three hand-picked selected works without redundant decoration', async () => {
     const { container } = mount('/files/soul', true)
-    await screen.findByText('Project 0')
+    expect(await screen.findByRole('link', { name: 'Codex Privacy HUD' })).toHaveAttribute('href', 'https://github.com/inin-zou/codex-privacy-hud')
+    expect(screen.getByRole('link', { name: 'Clio' })).toHaveAttribute('href', 'https://github.com/inin-zou/Clio')
+    expect(screen.getByRole('link', { name: 'KernelGen' })).toHaveAttribute('href', 'https://github.com/inin-zou/kernelgen-challenge')
     expect(container.querySelectorAll('.soul-project-row')).toHaveLength(3)
-    expect(screen.queryByText('Project 3')).not.toBeInTheDocument()
     expect(screen.queryByText('View project ↗')).not.toBeInTheDocument()
     expect(container.querySelector('.soul-accent-rule, .soul-section-index, .soul-eyebrow, .soul-journey-rail')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Journey: Nanjing to Paris' })).toHaveAttribute('href', '/files/soul/journey')
@@ -134,19 +134,9 @@ describe('SOUL pages', () => {
     expect(screen.getByLabelText('Status')).toHaveValue('ACTIVE')
     expect(screen.getByLabelText('Next Step')).toHaveValue('Release')
   })
-  it('uses real status data when the legacy projects endpoint has no titles or slugs', async () => {
-    vi.mocked(fetchProjects).mockResolvedValueOnce([{ slug: '', title: '', description: 'Status-shaped legacy data', tags: null, date: '', category: '' }] as unknown as Awaited<ReturnType<typeof fetchProjects>>)
-    vi.mocked(fetchProjectStatuses).mockResolvedValueOnce([{ id: 'status-project', name: 'Existing status project', description: 'Real status description', status: 'ACTIVE', sortOrder: 0 }])
+  it('renders saved copy and latest writing first', async () => {
     mount('/files/soul', true)
-    expect(await screen.findByText('Existing status project')).toBeInTheDocument()
-    expect(screen.getByText('Real status description')).toBeInTheDocument()
-  })
-  it('renders saved copy, real projects and latest writing first', async () => {
-    mount('/files/soul', true)
-    expect(await screen.findByText('Real project')).toBeInTheDocument()
-    expect(screen.getByText('A saved biography.')).toBeInTheDocument()
-    expect(screen.getByText('An API description.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Real project' })).toHaveAttribute('href', 'https://github.com/example/project')
+    expect(await screen.findByText('A saved biography.')).toBeInTheDocument()
     const posts = screen.getAllByRole('link', { name: /Latest writing|Older writing/ })
     expect(posts.map(post => post.textContent)).toEqual(['Latest writing', 'Older writing'])
     expect(posts[0]).toHaveAttribute('href', '/files/memory/research/newer')

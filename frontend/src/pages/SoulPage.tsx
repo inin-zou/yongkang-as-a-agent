@@ -67,7 +67,7 @@ function SoulReadme() {
   const speed = (pageData?.speed as string) ?? 'Full demo in < 20 hours avg'
   const languages = (pageData?.languages as string) ?? 'Chinese (native) · French (DALF C2) · English (IELTS 7.0)'
 
-  const currently = (pageData?.currently as string) ?? 'TurboQuant experiments, systems reading, and a steady coding practice.'
+  const currently = (pageData?.currently as string) ?? 'Systems reading and a steady coding practice.'
 
   // Edit form state
   const [editCurrently, setEditCurrently] = useState('')

@@ -270,3 +270,8 @@
 @media (max-width: 400px) {
   .document-layout .music-player-info { display: none; }
 }
+
+/* Selected work: title + date on one line, event meta as a quiet mono line. */
+.document-layout .soul-project-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+.document-layout .soul-project-head .soul-mono { color: var(--color-ink-muted); font-size: 12px; white-space: nowrap; }
+.document-layout .soul-project-meta { margin: 2px 0 6px; color: var(--color-ink-muted); font-size: 12px; }
