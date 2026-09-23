@@ -32,3 +32,13 @@ blog-draft-*.md
 # Playwright MCP (temp snapshots/logs)
 .playwright-mcp/
 frontend/test-results/
+
+# LaTeX build artefacts (sources + published PDFs are tracked)
+cv/**/*.aux
+cv/**/*.log
+cv/**/*.out
+cv/**/*.fls
+cv/**/*.fdb_latexmk
+cv/**/*.xdv
+cv/**/*.synctex.gz
+cv/**/resume.pdf

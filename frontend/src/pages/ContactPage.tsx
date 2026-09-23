@@ -161,7 +161,7 @@ export default function ContactPage() {
               <li><a href={github} target="_blank" rel="noopener noreferrer">GitHub ↗</a></li>
               <li><a href={linkedin} target="_blank" rel="noopener noreferrer">LinkedIn ↗</a></li>
               <li><a href={huggingface} target="_blank" rel="noopener noreferrer">Hugging Face ↗</a></li>
-              <li><Link to="/files/skill/experience">CV ↗</Link></li>
+              <li><Link to="/files/skill/cv">CV ↗</Link></li>
             </ul>
             <section className="soul-section"><h2>Leave a message</h2><ContactForm /></section>
           </>

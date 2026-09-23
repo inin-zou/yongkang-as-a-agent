@@ -285,3 +285,13 @@
 .document-layout .soul-projects .soul-project-row > p:not(.soul-project-meta) { -webkit-line-clamp: 2; }
 .document-layout .soul-project-head h3 a, .document-layout .editor-content .soul-project-head h3 a { text-decoration: none; border-bottom: 0; }
 .document-layout .soul-project-head h3 a:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+/* CV: toolbar of text controls, framed PDF, source view. */
+.document-layout .cv-toolbar { display: flex; flex-wrap: wrap; gap: 20px; align-items: baseline; margin: 0 0 20px; font-size: 12px; color: var(--color-ink-muted); }
+.document-layout .cv-toolbar button, .document-layout .cv-source-tabs button { background: none; border: 0; padding: 0; font: inherit; color: var(--color-ink-muted); cursor: pointer; }
+.document-layout .cv-toolbar button[aria-pressed='true'], .document-layout .cv-source-tabs button[aria-pressed='true'] { color: var(--color-ink); text-decoration: underline; text-underline-offset: 4px; }
+.document-layout .cv-toolbar a, .document-layout .cv-toolbar button[aria-expanded] { color: var(--soul-accent); }
+.document-layout .cv-frame iframe { display: block; width: 100%; height: min(80vh, 1000px); border: 1px solid var(--color-divider, #DEDDD6); background: #fff; }
+.document-layout .cv-fallback { margin: 8px 0 0; font-size: 11px; color: var(--color-ink-muted); }
+.document-layout .cv-source-tabs { display: flex; gap: 16px; margin-bottom: 8px; font-size: 12px; }
+.document-layout .cv-source pre { margin: 0; max-height: 80vh; overflow: auto; padding: 16px; border: 1px solid var(--color-divider, #DEDDD6); font: 12px/1.6 var(--font-mono); color: var(--color-ink); background: transparent; white-space: pre; }

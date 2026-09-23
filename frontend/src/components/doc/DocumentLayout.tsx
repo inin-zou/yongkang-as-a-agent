@@ -31,6 +31,7 @@ function Directory() {
       <summary className="soul-mono">+ MORE / ARCHIVE</summary>
       <NavLink end to="/files/skill">Skills</NavLink>
       <NavLink to="/files/skill/experience">Experience</NavLink>
+      <NavLink to="/files/skill/cv">CV</NavLink>
       <NavLink to="/files/skill/hackathons">Hackathons</NavLink>
       <NavLink to="/files/soul/graph">Graph</NavLink>
       <NavLink to="/files/soul/commits">Commits</NavLink>
