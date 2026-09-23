@@ -28,10 +28,6 @@ func NewPortfolioService(
 	return &PortfolioService{primary: primary, fallback: fallback, supabase: supabase}
 }
 
-// getRepo returns primary if available, otherwise fallback.
-// Used for simple single-source reads where primary/fallback logic is not needed.
-// For methods that need len checks, use inline primary/fallback pattern instead.
-
 // GetProjects returns all projects, optionally filtered by category.
 func (s *PortfolioService) GetProjects(category string) ([]model.Project, error) {
 	if category != "" {
