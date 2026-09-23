@@ -32,7 +32,12 @@ function Directory() {
           <li key={to as string}><NavLink className="dir-child" end={Boolean(end)} to={to as string}>{label}</NavLink></li>)}
       </ul>
     </details>
-    {user && <div className="soul-directory-group"><p>ADMIN/</p>{['posts', 'music', 'feedback', 'notifications'].map(section => <Link key={section} aria-current={tab === 'admin' && (item === section || (section === 'posts' && pathname === '/files/admin')) ? 'page' : undefined} to={`/files/admin/${section}`}>{section}</Link>)}</div>}
+    {user && <div className="dir-admin">
+      <NavLink className="dir-file" end to="/files/admin">ADMIN.md</NavLink>
+      <ul className="dir-children">
+        {['posts', 'music', 'feedback', 'notifications'].map(section => <li key={section}><Link className="dir-child" aria-current={tab === 'admin' && (item === section || (section === 'posts' && pathname === '/files/admin')) ? 'page' : undefined} to={`/files/admin/${section}`}>{section}</Link></li>)}
+      </ul>
+    </div>}
     <AuthButton />
   </nav>
 }

@@ -338,3 +338,6 @@
 .document-layout .soul-directory .dir-archive summary::before { content: '+ '; }
 .document-layout .soul-directory .dir-archive[open] summary::before { content: '− '; }
 .document-layout .soul-directory .auth-button { padding-left: 12px; font: 12px var(--font-mono); }
+.document-layout .soul-directory .dir-admin { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--soul-line); }
+.document-layout .soul-directory .dir-admin > a.dir-file[aria-current='page'] { border-left-color: transparent; }
+.document-layout .soul-directory .auth-button { margin-top: 16px; padding-left: 12px; }
