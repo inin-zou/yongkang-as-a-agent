@@ -469,22 +469,25 @@ function ArtistOverview({ tracks }: { tracks: MusicTrack[] }) {
             <div style={{ clear: 'both' }} />
 
             <TrackList tracks={tracks} />
-            <p className="soul-mono document-muted">{[status, location, genre].filter(Boolean).join(' · ')}</p>
-
-            <p className="editor-label">Platforms</p>
-            <div className="music-platform-links">
-              {Object.entries(platforms).map(([name, url]) => (
-                <a
-                  key={name}
-                  href={url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  data-interactive
-                >
-                  {name}
-                </a>
-              ))}
-            </div>
+            <section className="music-platforms" aria-labelledby="music-platforms-heading">
+              {(status || location) && (
+                <p className="music-status">{[status, location].filter(Boolean).join(' · ')}</p>
+              )}
+              <h2 id="music-platforms-heading">Platforms</h2>
+              <div className="music-platform-links">
+                {Object.entries(platforms).map(([name, url]) => (
+                  <a
+                    key={name}
+                    href={url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-interactive
+                  >
+                    {name} <span aria-hidden="true">↗</span>
+                  </a>
+                ))}
+              </div>
+            </section>
           </>
         )}
       </div>

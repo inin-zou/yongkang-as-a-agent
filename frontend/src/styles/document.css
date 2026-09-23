@@ -198,7 +198,11 @@
 .document-layout .music-play-btn, .document-layout .music-play-btn:hover { border: 0; border-radius: 0; color: var(--soul-accent); background: none; }
 .document-layout .music-progress-fill, .document-layout .music-player-progress-fill { background: var(--soul-accent); border-radius: 0; }
 .document-layout .music-track-meta, .document-layout .music-time span { font: 12px/1.65 var(--font-mono); color: var(--color-ink-muted); }
-.document-layout .music-platform-links a { border: 0; padding: 0; background: none; border-radius: 0; font: 15px/1.65 var(--font-sans); }
+.document-layout .music-platforms { margin: 0; }
+.document-layout .music-platforms .music-status { margin: 0 0 24px; font: 12px/1.65 var(--font-mono); letter-spacing: 0; color: var(--color-ink-muted); overflow-wrap: anywhere; }
+.document-layout .music-platforms h2 { margin: 0 0 12px; }
+.document-layout .music-platform-links { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 0; }
+.document-layout .music-platform-links a { min-width: 0; overflow-wrap: anywhere; border: 0; padding: 0; background: none; border-radius: 0; font: 15px/1.65 var(--font-sans); color: var(--soul-accent); text-decoration: underline; text-underline-offset: 4px; }
 .document-layout .music-player-bar { height: 48px; padding: 0; gap: 16px; border-top: 1px solid var(--soul-line); box-shadow: none; }
 .document-layout .music-player-time, .document-layout .music-player-repeat-label { font-size: 11px; }
 .document-layout .music-player-track-name { font: 14px/1.3 var(--font-sans); }
