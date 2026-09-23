@@ -6,6 +6,7 @@ import { VIEW_W, VIEW_H, SLICE_U } from './palette'
 import { sceneImages, loadSceneImages } from './sceneTextures'
 import { createStretchRenderer, rasterize, NOW_RULE_ROWS, sampleCollapseBand, splitEdges } from './pixelStretch'
 import { EconomicsInk, TransformerInk, DeskInk, ContinueInk } from './StudyInk'
+import { DEPART_END, DEPART_SPLIT, composeDepartTransition } from './departTransition'
 import './intro.css'
 
 gsap.registerPlugin(ScrollTrigger, useGSAP)
@@ -23,11 +24,11 @@ const shotsByLang: Record<Lang, string[]> = {
 // Play mode runs the 24-unit timeline in 15 s.
 const PLAY_SPEED = 1.6
 // Both authored layers contain solid blue around this shared scene-space joint.
-const HIP = '688 324'
+const HIP = DEPART_END.hip.join(' ')
 const shots = shotsByLang.en.slice(0, 7)
 const captions = captionsByLang.en
 const shotNumbers = [1, 2, 3, 4, 5, 6, 7]
-const shotStarts = [0, 3, 6, 9, 12.5, 15.4, 18.4, 21.4]
+const shotStarts = [0, DEPART_SPLIT.end, 6, 9, 12.5, 15.4, 18.4, 21.4]
 const passageOffset = 6
 const identityStart = 22.9
 const motionQuery = '(prefers-reduced-motion: reduce)'
@@ -155,6 +156,8 @@ function AnimatedIntro() {
   const rootRef = useRef<HTMLElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const departCanvasRef = useRef<HTMLCanvasElement>(null)
+  const departure = useRef({ gap: 0, reveal: 1, centre: DEPART_SPLIT.centre, zoom: 1 })
   const nowCanvasRef = useRef<HTMLCanvasElement>(null)
   const settling = useRef({ gap: 0, reveal: 1, collapse: 0 })
   const renderRef = useRef<(() => void) | null>(null)
@@ -172,6 +175,8 @@ function AnimatedIntro() {
   useEffect(() => {
     const canvas = canvasRef.current!
     const renderer = createStretchRenderer(canvas)
+    const departCanvas = departCanvasRef.current!
+    const departRenderer = createStretchRenderer(departCanvas)
     const nowCanvas = nowCanvasRef.current!
     const nowRenderer = createStretchRenderer(nowCanvas)
     let version = 0
@@ -184,6 +189,7 @@ function AnimatedIntro() {
       gsap.set(leftHalf, { x: edges.leftShift / width * VIEW_W })
       gsap.set(rightHalf, { x: edges.rightShift / width * VIEW_W })
       renderer?.render(stretch.current)
+      departRenderer?.render(departure.current)
       nowRenderer?.render(settling.current)
     }
     renderRef.current = draw
@@ -195,11 +201,21 @@ function AnimatedIntro() {
       const width = Math.max(1, Math.round(canvas.clientWidth * dpr))
       const height = Math.max(1, Math.round(canvas.clientHeight * dpr))
       try {
-        const [nanjing, paris, study] = await images
+        const decoded = await images
+        const { nanjing, paris, continueStudy: study } = decoded
         if (disposed || ticket !== version) return
         if (!renderer) {
           if (!disposed) setReady(true)
           return
+        }
+        if (departRenderer) {
+          await document.fonts.ready
+          if (disposed || ticket !== version) return
+          const frames = await composeDepartTransition(decoded, width, height, rootRef.current!.querySelector('.intro-arrow02')!)
+          if (disposed || ticket !== version) return
+          departCanvas.width = width
+          departCanvas.height = height
+          departRenderer.setScenes(frames[0], frames[1])
         }
         const scenes = await Promise.all([rasterize(nanjing, width, height), rasterize(paris, width, height)])
         if (disposed || ticket !== version) return
@@ -239,6 +255,7 @@ function AnimatedIntro() {
       observer.disconnect()
       renderRef.current = null
       renderer?.dispose()
+      departRenderer?.dispose()
       nowRenderer?.dispose()
     }
   }, [])
@@ -249,6 +266,7 @@ function AnimatedIntro() {
     const root = rootRef.current!
     // useGSAP owns the timeline and its trigger, reverting both on mode changes
     // and StrictMode remounts. Only children of the pinned stage are animated.
+    Object.assign(departure.current, { gap: 0, reveal: 1, centre: DEPART_SPLIT.centre, zoom: 1 })
     Object.assign(stretch.current, { gap: 0, reveal: 1 })
     Object.assign(settling.current, { gap: 0, reveal: 1, collapse: 0 })
     const passage = gsap.timeline({ defaults: { ease: 'none' } })
@@ -309,24 +327,30 @@ function AnimatedIntro() {
 
     // Preserve the approved 03→04→05 choreography at local times 0–9.4.
     const timeline = gsap.timeline({ paused: true, defaults: { ease: 'none' } })
-    timeline.addLabel('depart', 0).addLabel('look', 3).addLabel('touch', passageOffset)
+    timeline.addLabel('depart', 0).addLabel('look', DEPART_SPLIT.end).addLabel('touch', passageOffset)
       .addLabel('crossing', passageOffset + 3).addLabel('arrival', passageOffset + 6.5)
       .addLabel('turn', 15.4).addLabel('continue', 18.4).addLabel('identity', identityStart)
-    gsap.set('.intro-camera01', { y: 0, scale: 1.06, svgOrigin: '800 450' })
+    gsap.set('.intro-camera01', { y: 0, scale: 1.06, svgOrigin: DEPART_END.cameraOrigin.join(' ') })
     gsap.set('.intro-walk01', { x: -35, y: 12 })
     gsap.set('.intro-body01', { x: 0, y: 0, svgOrigin: HIP })
     gsap.set('.intro-leg01', { x: 0, y: 0, rotation: 12, scale: 0.92, svgOrigin: HIP })
-    timeline.to('.intro-walk01', { x: 300, y: 0, duration: 1.25, ease: 'power2.inOut' }, 0.35)
-    timeline.to('.intro-leg01', { rotation: -12, scale: 1.08, duration: 1.25, ease: 'power2.inOut' }, 0.35)
-    timeline.to('.intro-camera01', { y: 65, scale: 1.18, duration: 1, ease: 'power2.inOut' }, 1.65)
-    timeline.set('.intro-shot01', { autoAlpha: 0 }, 3)
-    timeline.set('.intro-shot02', { autoAlpha: 1 }, 3)
+    timeline.to('.intro-walk01', { ...DEPART_END.walk, duration: 1.25, ease: 'power2.inOut' }, 0.35)
+    timeline.to('.intro-leg01', { ...DEPART_END.leg, duration: 1.25, ease: 'power2.inOut' }, 0.35)
+    timeline.to('.intro-camera01', { ...DEPART_END.camera, duration: 1, ease: 'power2.inOut' }, 1.65)
+    gsap.set('.intro-depart-canvas', { autoAlpha: 0 })
+    // Timeline-owned visibility and state make arbitrary reverse seeks exact.
+    timeline.set('.intro-depart-canvas', { autoAlpha: 1 }, DEPART_SPLIT.start)
+    timeline.to(departure.current, { gap: 1.6, zoom: DEPART_SPLIT.zoom, duration: 1.05, ease: 'power2.inOut' }, DEPART_SPLIT.start)
+    timeline.to(departure.current, { reveal: 0, duration: DEPART_SPLIT.end - DEPART_SPLIT.reveal }, DEPART_SPLIT.reveal)
+    timeline.set('.intro-depart-canvas', { autoAlpha: 0 }, DEPART_SPLIT.end)
+    timeline.set('.intro-shot01', { autoAlpha: 0 }, DEPART_SPLIT.end)
+    timeline.set('.intro-shot02', { autoAlpha: 1 }, DEPART_SPLIT.end)
     gsap.set('.intro-background02', { scale: 1, svgOrigin: '1120 500' })
     gsap.set('.intro-shoulder02', { scale: 1, svgOrigin: '0 900' })
     gsap.set('.intro-arrow02', { x: 0 })
-    timeline.to('.intro-background02', { scale: 1.1, duration: 2.3, ease: 'power2.inOut' }, 3.3)
-    timeline.to('.intro-shoulder02', { scale: 1.24, duration: 2.3, ease: 'power2.inOut' }, 3.3)
-    timeline.to('.intro-arrow02', { x: 35, duration: 0.7, ease: 'power2.inOut' }, 4.7)
+    timeline.to('.intro-background02', { scale: 1.1, duration: 1.5, ease: 'power2.inOut' }, 4.2)
+    timeline.to('.intro-shoulder02', { scale: 1.24, duration: 1.5, ease: 'power2.inOut' }, 4.2)
+    timeline.to('.intro-arrow02', { x: 35, duration: 0.6, ease: 'power2.inOut' }, 5)
     timeline.set('.intro-shot02', { autoAlpha: 0 }, passageOffset)
     timeline.set('.intro-shot03', { autoAlpha: 1 }, passageOffset)
     timeline.add(passage, passageOffset)
@@ -408,6 +432,7 @@ function AnimatedIntro() {
         <canvas ref={canvasRef} className="intro-canvas" />
         <div className="intro-now-surface"><NowRules /><canvas ref={nowCanvasRef} className="intro-now-canvas" /></div>
         {shotNumbers.map(shot => <Scene key={shot} shot={shot} />)}
+        <canvas ref={departCanvasRef} className="intro-canvas intro-depart-canvas" />
       </div>
       <p className="intro-loading" role="status" hidden={ready}>{loadFailed ? 'Images could not load. Reload to retry, or skip to work.' : 'Loading scenes…'}</p>
       <div className="intro-end"><EndCard /></div>

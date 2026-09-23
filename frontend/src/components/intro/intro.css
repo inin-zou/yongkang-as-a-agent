@@ -189,3 +189,6 @@ html:has(.intro-root), body:has(.intro-root), .intro-root { overflow-anchor: non
 .intro-static-now { position: relative; aspect-ratio: 16 / 9; display: grid; place-items: center; --accent: #244CB3; }
 .intro-static-now .intro-identity { position: relative; }
 .intro-now-rules { pointer-events: none; }
+
+/* Above every scene SVG, active only for the Depart → Look hand-off. */
+.intro-depart-canvas { z-index: 1; visibility: hidden; pointer-events: none; }

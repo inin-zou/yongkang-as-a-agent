@@ -6,7 +6,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import IntroLab from './IntroLab'
 import { sceneImages } from './sceneTextures'
 
-const starts = [0, 3, 6, 9, 12.5, 15.4, 18.4, 21.4]
+const starts = [0, 4, 6, 9, 12.5, 15.4, 18.4, 21.4]
 const numbers = ['01', '02', '03', '04', '05', '06', '07']
 const labels = ['01 Depart', '02 Look', '03 Reach', '04 Cross', '05 Arrive', '06 Turn', '07 Continue', '08 Now']
 const duration = 24
@@ -357,13 +357,15 @@ it('pushes past shot 02 shoulder faster than the gate and reverses the arrow nud
   expect(shoulder).not.toBeNull()
   const read = () => [gsap.getProperty(bg, 'scaleX'), gsap.getProperty(shoulder, 'scaleX'), gsap.getProperty(arrow, 'x')]
   const frames = new Map()
-  for (const time of [3, 3.4, 4.5, 5.8, 6]) {
+  for (const time of [4, 4.2, 4.8, 5.8, 6]) {
     act(() => { timeline.time(time, false) })
     frames.set(time, read())
   }
+  expect(frames.get(4).map(Number)).toEqual([1, 1, 0])
+  expect(frames.get(4.2).map(Number)).toEqual([1, 1, 0])
   expect(Number(frames.get(5.8)[1])).toBeGreaterThan(Number(frames.get(5.8)[0]))
   expect(Number(frames.get(5.8)[2])).toBeGreaterThan(0)
-  for (const time of [6, 5.8, 4.5, 3.4, 3]) {
+  for (const time of [6, 5.8, 4.8, 4.2, 4]) {
     act(() => { timeline.time(time, false) })
     expect(read()).toEqual(frames.get(time))
   }
@@ -490,7 +492,7 @@ it('keeps shot 01 background covering the viewport throughout its upward tilt', 
 
 it.each([
   [0, '01 Depart', '1999 · Nanjing'],
-  [3, '02 Look', '1999–2018 · Nanjing'],
+  [4, '02 Look', '1999–2018 · Nanjing'],
   [6, '03 Reach', '2018 · Leaving'],
   [9, '04 Cross', 'Nanjing → Paris'],
   [12.5, '05 Arrive', '2019 · Paris'],
@@ -648,4 +650,31 @@ it('includes four section rules with the static identity on paper', async () => 
   const { container } = await renderReady(<IntroLab />)
   expect(container.querySelectorAll('.intro-now-rule')).toHaveLength(4)
   expect(container.querySelector('.intro-static-now')).toHaveTextContent('yongkang zou')
+})
+
+
+it('splits Depart after its camera settles and restores the same state on reverse seeks', async () => {
+  const { container } = await renderReady(<IntroLab />)
+  const timeline = ScrollTrigger.getById('journey-intro')!.animation! as gsap.core.Timeline
+  const tween = timeline.getChildren().find(child => 'targets' in child &&
+    (child as gsap.core.Tween).targets().some(target => typeof target === 'object' && target !== null && 'centre' in target && 'zoom' in target)) as gsap.core.Tween
+  expect(tween).toBeDefined()
+  const state = tween.targets()[0] as { gap: number; reveal: number; centre: number; zoom: number }
+  const times = [0, 2.649, 2.65, 2.9, 3.25, 3.7, 3.999, 4, 4.2, 6]
+  const frames = times.map(time => {
+    act(() => { timeline.time(time, false) })
+    if (time < 4) expect(container.querySelector('.intro-shot01')).toHaveStyle({ visibility: 'visible' })
+    expect(container.querySelector('.intro-depart-canvas')).toHaveStyle({ visibility: time >= 2.65 && time < 4 ? 'visible' : 'hidden' })
+    return { gap: state.gap, reveal: state.reveal, centre: state.centre, zoom: state.zoom }
+  })
+  expect(frames[2]).toEqual({ gap: 0, reveal: 1, centre: 0.13, zoom: 1 })
+  expect(frames[3].gap).toBeGreaterThan(0)
+  expect(frames[3].zoom).toBeGreaterThan(1)
+  expect(frames[4].reveal).toBe(1)
+  expect(frames[7]).toEqual({ gap: 1.6, reveal: 0, centre: 0.13, zoom: 1.2 })
+  for (let index = times.length - 1; index >= 0; index--) {
+    act(() => { timeline.time(times[index], false) })
+    expect({ gap: state.gap, reveal: state.reveal, centre: state.centre, zoom: state.zoom }).toEqual(frames[index])
+    expect(container.querySelector('.intro-depart-canvas')).toHaveStyle({ visibility: times[index] >= 2.65 && times[index] < 4 ? 'visible' : 'hidden' })
+  }
 })

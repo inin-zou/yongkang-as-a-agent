@@ -24,14 +24,13 @@ export const sceneImages = {
 } as const
 
 // Decode every SVG pose and environment before the timeline can advance.
-// Return crossing textures first, followed by the settling source.
-export async function loadSceneImages(): Promise<[HTMLImageElement, HTMLImageElement, HTMLImageElement]> {
+export type DecodedScenes = Record<keyof typeof sceneImages, HTMLImageElement>
+export async function loadSceneImages(): Promise<DecodedScenes> {
   const images = await Promise.all(Object.entries(sceneImages).map(async ([key, src]) => {
     const image = new Image()
     image.src = src
     await image.decode()
     return [key, image] as const
   }))
-  const decoded = Object.fromEntries(images)
-  return [decoded.nanjing, decoded.paris, decoded.continueStudy]
+  return Object.fromEntries(images) as DecodedScenes
 }

@@ -1,7 +1,9 @@
-// Split A at its centre, translate both halves outward, and extend the cut
-// columns horizontally. Scene B then opens from the centre (reveal 1 → 0).
+// Split A at its configurable seam, translate both halves outward, and extend the cut
+// columns horizontally. Scene B then opens from that seam (reveal 1 → 0).
 export interface StretchState {
   gap: number
+  centre?: number
+  zoom?: number
   reveal: number
   // Optional gap-only bookend: 0 = sampled bands, 1 = paper section rules.
   collapse?: number
@@ -48,12 +50,15 @@ export function sampleCollapseBand(row: number, collapse: number, rows = COLLAPS
 
 // The unstaggered per-pixel mapping shared by the shader and fallback.
 // Cut samples are texel centres immediately beside the seam.
-export function sampleStretch(x: number, gap: number, reveal: number, width = 1600): { source: 'A' | 'B'; u: number } {
-  if (reveal < 1 && Math.abs(x - 0.5) <= (1 - reveal) / 2) return { source: 'B', u: x }
-  if (gap === 0) return { source: 'A', u: x }
-  if (x < 0.5 - gap / 2) return { source: 'A', u: x + gap / 2 }
-  if (x > 0.5 + gap / 2) return { source: 'A', u: x - gap / 2 }
-  return { source: 'A', u: 0.5 + (x < 0.5 ? -0.5 : 0.5) / width }
+export function sampleStretch(x: number, gap: number, reveal: number, width = 1600, centre = 0.5, zoom = 1): { source: 'A' | 'B'; u: number } {
+  if (reveal < 1 && Math.abs(x - centre) <= (1 - reveal) * Math.max(centre, 1 - centre)) return { source: 'B', u: x }
+  let u = x
+  if (gap > 0) {
+    if (x < centre - gap / 2) u = x + gap / 2
+    else if (x > centre + gap / 2) u = x - gap / 2
+    else u = centre + (x < centre ? -0.5 : 0.5) / width
+  }
+  return { source: 'A', u: zoom === 1 ? u : centre + (u - centre) / zoom }
 }
 
 export interface StretchRenderer {
@@ -80,6 +85,8 @@ varying highp vec2 vSplitUv;
 uniform sampler2D uA;
 uniform sampler2D uB;
 uniform float uGap;
+uniform float uCentre;
+uniform float uZoom;
 uniform float uWidth;
 uniform float uReveal;
 uniform float uRows;
@@ -96,6 +103,11 @@ highp float splitHash(highp float row) {
 }
 
 float hash(float n) { return fract(sin(n * 127.1) * 43758.5453); }
+
+vec4 sceneA(vec2 uv) {
+  if (uZoom == 1.0) return texture2D(uA, uv);
+  return texture2D(uA, vec2(uCentre, 0.5) + (uv - vec2(uCentre, 0.5)) / uZoom);
+}
 
 void main() {
   vec2 uv = vUv;
@@ -127,20 +139,20 @@ void main() {
   // Only boundaries stagger. Original halves translate rigidly; y never changes.
   float halfGap = uGap * 0.5 + hash(row) * uStagger * grow;
   float open = clamp((1.0 - uReveal) * 5.0, 0.0, 1.0) * clamp(uReveal * 5.0, 0.0, 1.0);
-  float opening = (1.0 - uReveal) * 0.5 + (hash(row + 71.0) - 0.5) * uStagger * open;
+  float opening = (1.0 - uReveal) * max(uCentre, 1.0 - uCentre) + (hash(row + 71.0) - 0.5) * uStagger * open;
 
   vec4 col;
-  if (uReveal < 1.0 && abs(uv.x - 0.5) <= opening) {
+  if (uReveal <= 0.0 || (uReveal < 1.0 && abs(uv.x - uCentre) <= opening)) {
     col = texture2D(uB, uv);
   } else if (uGap <= 0.0) {
-    col = texture2D(uA, uv);
-  } else if (uv.x < 0.5 - halfGap) {
-    col = texture2D(uA, vec2(uv.x + uGap * 0.5, uv.y));
-  } else if (uv.x > 0.5 + halfGap) {
-    col = texture2D(uA, vec2(uv.x - uGap * 0.5, uv.y));
+    col = sceneA(uv);
+  } else if (uv.x < uCentre - halfGap) {
+    col = sceneA(vec2(uv.x + uGap * 0.5, uv.y));
+  } else if (uv.x > uCentre + halfGap) {
+    col = sceneA(vec2(uv.x - uGap * 0.5, uv.y));
   } else {
-    float cut = 0.5 + (uv.x < 0.5 ? -0.5 : 0.5) / uWidth;
-    col = texture2D(uA, vec2(cut, uv.y));
+    float cut = uCentre + (uv.x < uCentre ? -0.5 : 0.5) / uWidth;
+    col = sceneA(vec2(cut, uv.y));
   }
   gl_FragColor = col;
 }`
@@ -205,11 +217,13 @@ function createGL(canvas: HTMLCanvasElement): StretchRenderer | null {
       gl.viewport(0, 0, canvas.width, canvas.height)
       gl.uniform1f(u('uWidth'), a.width)
       // ~5 CSS px per row regardless of screen size
-      gl.uniform1f(u('uRows'), canvas.clientHeight / 5)
+      gl.uniform1f(u('uRows'), (canvas.clientHeight || 900) / 5)
       ready = true
     },
     render(s) {
       if (!ready) return
+      gl.uniform1f(u('uCentre'), s.centre ?? 0.5)
+      gl.uniform1f(u('uZoom'), s.zoom ?? 1)
       gl.uniform1f(uGap, s.gap)
       gl.uniform1f(uReveal, s.reveal)
       gl.uniform1f(uGapOnly, s.collapse === undefined ? 0 : 1)
@@ -275,26 +289,39 @@ function create2D(canvas: HTMLCanvasElement): StretchRenderer | null {
         ctx.restore()
         return
       }
+      const centre = s.centre ?? 0.5
+      const zoom = s.zoom ?? 1
+      const seam = centre * w
       const shift = s.gap * w / 2
-      ctx.drawImage(A, 0, 0, w / 2, h, -shift, 0, w / 2, h)
-      ctx.drawImage(A, w / 2, 0, w / 2, h, w / 2 + shift, 0, w / 2, h)
-      const rows = Math.max(1, canvas.clientHeight / 5)
+      // Zoom about the seam before translating either half. Crop from the
+      // original texture, so resizing never accumulates raster transforms.
+      const sourceX = (x: number) => (centre + (x / w - centre) / zoom) * A!.width
+      const sourceY = (y: number) => (0.5 + (y / h - 0.5) / zoom) * A!.height
+      const drawA = (left: number, right: number, offset: number) => {
+        ctx.drawImage(A!, sourceX(left + offset), sourceY(0), (right - left) / w * A!.width / zoom, A!.height / zoom,
+          left, 0, right - left, h)
+      }
+      if (seam - shift > 0) drawA(0, seam - shift, shift)
+      if (seam + shift < w) drawA(seam + shift, w, -shift)
+      const rows = Math.max(1, (canvas.clientHeight || 900) / 5)
       const hash = (n: number) => { const v = Math.sin(n * 127.1) * 43758.5453; return v - Math.floor(v) }
       const grow = Math.min(1, s.gap * 5)
       const open = Math.min(1, (1 - s.reveal) * 5) * Math.min(1, s.reveal * 5)
       ctx.imageSmoothingEnabled = false
       for (let y = 0; y < h; y++) {
-        // WebGL's v coordinate runs bottom to top after texture upload.
         const row = Math.floor((1 - (y + 0.5) / h) * rows)
-        const halfGap = Math.min(w / 2, shift + hash(row) * 0.025 * w * grow)
+        const halfGap = shift + hash(row) * 0.025 * w * grow
         if (s.gap > 0) {
-          const left = sampleStretch(0.5 - 0.25 / w, s.gap, 1, w).u
-          const right = sampleStretch(0.5 + 0.25 / w, s.gap, 1, w).u
-          ctx.drawImage(A, Math.floor(left * w), y, 1, 1, w / 2 - halfGap, y, halfGap, 1)
-          ctx.drawImage(A, Math.floor(right * w), y, 1, 1, w / 2, y, halfGap, 1)
+          for (const side of [-1, 1]) {
+            const left = side < 0 ? Math.max(0, seam - halfGap) : seam
+            const right = side < 0 ? seam : Math.min(w, seam + halfGap)
+            const cut = centre * A.width + side * 0.5 / zoom
+            ctx.drawImage(A, Math.floor(cut), sourceY(y), 1, A.height / h / zoom, left, y, right - left, 1)
+          }
         }
-        const opening = Math.max(0, Math.min(w / 2, ((1 - s.reveal) / 2 + (hash(row + 71) - 0.5) * 0.025 * open) * w))
-        if (s.reveal < 1 && opening > 0) ctx.drawImage(B, w / 2 - opening, y, opening * 2, 1, w / 2 - opening, y, opening * 2, 1)
+        const opening = Math.max(0, ((1 - s.reveal) * Math.max(centre, 1 - centre) + (hash(row + 71) - 0.5) * 0.025 * open) * w)
+        const left = Math.max(0, seam - opening), right = Math.min(w, seam + opening)
+        if (s.reveal < 1 && right > left) ctx.drawImage(B, left / w * B.width, y / h * B.height, (right - left) / w * B.width, B.height / h, left, y, right - left, 1)
       }
     },
     dispose() {},
