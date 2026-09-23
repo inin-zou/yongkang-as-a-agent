@@ -76,7 +76,7 @@ export default function DocumentLayout() {
           <IndexDisclosure key={pathname} />
         </aside>
         <main id="document-main" tabIndex={-1}>
-          <div className="soul-breadcrumb soul-mono">~/yongkang/<span>{item ? [tab?.toUpperCase(), item, sub].filter(Boolean).join(' / ') : `${tab?.toUpperCase()}.md`}</span></div>
+          <div className="soul-breadcrumb soul-mono">~/yongkang/<span>{[`${tab?.toUpperCase()}.md`, item, sub].filter(Boolean).join(' / ')}</span></div>
           <div className={`soul-page-content${item === 'graph' ? ' soul-graph-page' : ''}${item === 'graph' || item === 'commits' ? ' soul-canvas-page' : ''}`} key={pathname}><Outlet /></div>
           <footer className="soul-footer">
             <div><p>Say hello.</p><a href="mailto:yongkang.zou.ai@gmail.com">yongkang.zou.ai@gmail.com</a></div>
