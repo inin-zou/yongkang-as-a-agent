@@ -287,10 +287,10 @@
 .document-layout .soul-section-heading h2 { margin: 0; }
 .document-layout .soul-section-heading > a { font-size: 14px; white-space: nowrap; }
 .document-layout .soul-readme .soul-project-row { margin-bottom: 32px; }
-.document-layout .soul-project-row h3 a { color: var(--color-ink); text-decoration: none; }
+.document-layout .soul-project-row h3 a { color: var(--soul-accent); text-decoration: none; }
+.document-layout .soul-project-row h3 a:hover { text-decoration: underline; text-underline-offset: 4px; }
 .document-layout .soul-project-row p { display: block; overflow: visible; margin: 4px 0; }
 .document-layout .soul-project-meta { font-size: 11px; }
-.document-layout .soul-project-row > div > a { font-size: 14px; }
 .document-layout .soul-readme .soul-post-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 16px; }
 .document-layout .soul-post-row p { grid-column: 1 / -1; margin: 2px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .document-layout .soul-background-row { display: grid; grid-template-columns: 110px minmax(0, 1fr) auto; gap: 12px; margin-bottom: 8px; }

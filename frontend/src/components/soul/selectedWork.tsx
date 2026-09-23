@@ -29,7 +29,6 @@ export function SelectedWorkList() {
       <h3><a href={project.href} target="_blank" rel="noreferrer">{project.title}</a></h3>
       <p className="soul-project-description">{project.description}</p>
       <p className="soul-mono soul-project-meta">{project.meta} · {project.date}</p>
-      <a href={project.href} target="_blank" rel="noreferrer">code ↗</a>
     </div>
   </article>)}</>
 }
