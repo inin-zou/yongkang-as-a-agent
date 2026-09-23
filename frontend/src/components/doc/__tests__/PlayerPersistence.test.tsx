@@ -2,7 +2,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import FileSystemLayout from '../../global/FileSystemLayout'
+import DocumentLayout from '../../doc/DocumentLayout'
 import { MusicPlayerProvider, useMusicPlayer } from '../../../lib/MusicPlayerContext'
 
 vi.mock('../../../lib/AuthContext', () => ({ useAuth: () => ({ user: null }) }))
@@ -18,7 +18,7 @@ it('keeps the same audio and player when navigating between public tabs', () => 
   vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
   const play = vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue()
   const { container } = render(<QueryClientProvider client={new QueryClient()}><MusicPlayerProvider><MemoryRouter initialEntries={['/files/music']}>
-    <Routes><Route path="/files/:tab" element={<FileSystemLayout />}><Route index element={<StartTrack />} /></Route></Routes>
+    <Routes><Route path="/files/:tab" element={<DocumentLayout />}><Route index element={<StartTrack />} /></Route></Routes>
   </MemoryRouter></MusicPlayerProvider></QueryClientProvider>)
   fireEvent.click(screen.getByRole('button', { name: 'Start track' }))
   const audio = container.querySelector('audio')

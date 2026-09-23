@@ -3,8 +3,7 @@ import { createBrowserRouter, RouterProvider, Navigate, useParams, useLocation }
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './lib/AuthContext'
 import { MusicPlayerProvider } from './lib/MusicPlayerContext'
-import Layout from './components/global/Layout'
-import FileSystemLayout from './components/global/FileSystemLayout'
+import DocumentLayout from './components/doc/DocumentLayout'
 import ErrorBoundary from './components/global/ErrorBoundary'
 
 const queryClient = new QueryClient({
@@ -86,7 +85,7 @@ const router = createBrowserRouter([
   },
   {
     path: '/files/:tab',
-    element: <Layout><FileSystemLayout /></Layout>,
+    element: <DocumentLayout />,
     children: [
       { index: true, element: <TabRouter /> },
       { path: ':item', element: <TabRouter /> },
