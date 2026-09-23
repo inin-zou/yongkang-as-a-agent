@@ -114,7 +114,7 @@ describe('SOUL document boundary', () => {
     expect(screen.getByText('MORE / ARCHIVE').closest('details')).not.toHaveAttribute('open')
     fireEvent.click(screen.getByText('MORE / ARCHIVE'))
     expect(screen.getByText('MORE / ARCHIVE').closest('details')).toHaveAttribute('open')
-    expect(screen.getByRole('link', { name: 'Graph' })).toHaveAttribute('href', '/files/soul/graph')
+    expect(screen.getByRole('link', { name: 'KnowledgeGraph' })).toHaveAttribute('href', '/files/soul/graph')
   })
 })
 

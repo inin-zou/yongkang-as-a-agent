@@ -28,7 +28,7 @@ function Directory() {
     <details className="dir-archive" open={archiveOpen || undefined}>
       <summary className="dir-file">MORE / ARCHIVE</summary>
       <ul className="dir-children">
-        {[['/files/skill', 'Skills', true], ['/files/skill/experience', 'Experience'], ['/files/skill/cv', 'CV'], ['/files/skill/hackathons', 'Hackathons'], ['/files/soul/graph', 'Graph'], ['/files/soul/commits', 'Commits'], ['/files/contact', 'Contact'], ['/files/memory/guestbook', 'Guestbook']].map(([to, label, end]) =>
+        {[['/files/skill', 'Skills', true], ['/files/skill/experience', 'Experience'], ['/files/skill/cv', 'CV'], ['/files/skill/hackathons', 'Hackathons'], ['/files/soul/graph', 'KnowledgeGraph'], ['/files/soul/commits', 'Commits'], ['/files/contact', 'Contact'], ['/files/memory/guestbook', 'Guestbook']].map(([to, label, end]) =>
           <li key={to as string}><NavLink className="dir-child" end={Boolean(end)} to={to as string}>{label}</NavLink></li>)}
       </ul>
     </details>

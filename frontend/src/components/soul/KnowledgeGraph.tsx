@@ -588,9 +588,8 @@ export default function KnowledgeGraph() {
   return (
     <div className="editor-page" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div className="editor-meta">auto-generated from Supabase data</div>
-      <h1>Graph</h1>
+      <h1>KnowledgeGraph</h1>
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', flexWrap: 'wrap', marginBottom: 'var(--space-sm)' }}>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--color-ink-muted)' }}>Knowledge Graph</span>
         <div style={{ position: 'relative', marginLeft: 'auto' }}>
           <input
             type="text"
