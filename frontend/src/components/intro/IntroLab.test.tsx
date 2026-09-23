@@ -112,6 +112,7 @@ it('renders every static keyframe and work links without a pin or canvas for red
   expect(ScrollTrigger.getAll()).toHaveLength(0)
   expect(screen.queryByRole('button')).toBeNull()
   expect(screen.getByRole('link', { name: 'skip to work →' })).toHaveAttribute('href', '/files/soul')
+  expect(screen.getByRole('link', { name: 'explore my work →' })).toHaveAttribute('href', '/files/soul')
 })
 
 it('updates the HUD while scrolling without committing React renders', async () => {

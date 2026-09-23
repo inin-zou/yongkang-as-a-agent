@@ -13,14 +13,13 @@ export default function ExperienceBlock({ experience }: { experience: Experience
   return (
     <div className="experience-block">
       <div className="experience-date">{start} — {end}</div>
-      <div className="experience-role">{experience.role}</div>
-      <div className="experience-company">{experience.company}</div>
+      <h3>{experience.role} — {experience.company}</h3>
       <div className="experience-location">{experience.location}</div>
 
       <p className="experience-narrative">{experience.skillAssembled}</p>
 
       <ul className="experience-highlights">
-        {experience.highlights.map((h, i) => (
+        {experience.highlights.slice(0, 3).map((h, i) => (
           <li key={i}>{h}</li>
         ))}
       </ul>

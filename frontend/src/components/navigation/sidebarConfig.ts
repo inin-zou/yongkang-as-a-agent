@@ -28,6 +28,7 @@ export const FILE_TABS: TabConfig[] = [
     basePath: '/files/soul',
     sidebarItems: [
       { id: 'readme', label: 'README', preview: 'Who is the agent', routeSegment: '' },
+      { id: 'journey', label: 'JOURNEY', preview: 'Still becoming', routeSegment: 'journey' },
       { id: 'projects', label: 'PROJECTS', preview: 'Currently cooking', routeSegment: 'projects' },
       { id: 'graph', label: 'GRAPH', preview: 'Knowledge graph', routeSegment: 'graph' },
       { id: 'commits', label: 'COMMITS', preview: 'GitHub contributions', routeSegment: 'commits' },

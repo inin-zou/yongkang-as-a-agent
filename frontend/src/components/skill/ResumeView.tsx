@@ -1,12 +1,10 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import gsap from 'gsap'
 import { fetchExperience, createExperience, updateExperience, deleteExperience } from '../../lib/api'
 import { useAdminEdit } from '../../hooks/useAdminEdit'
 import AdminBar from '../admin/AdminBar'
 import EditableItem from '../admin/EditableItem'
 import ExperienceEditor from '../admin/ExperienceEditor'
-import AsciiTitle from '../global/AsciiTitle'
 import ExperienceBlock from './ExperienceBlock'
 import type { Experience } from '../../types'
 import '../../styles/skill.css'
@@ -18,22 +16,10 @@ export default function ResumeView() {
   const [editingExp, setEditingExp] = useState<Experience | null>(null)
   const [creating, setCreating] = useState(false)
 
-  const listRef = useRef<HTMLDivElement>(null)
   const { data: experience, isLoading } = useQuery({
     queryKey: ['experience'],
     queryFn: fetchExperience,
   })
-
-  useEffect(() => {
-    if (!experience || !listRef.current) return
-    const blocks = listRef.current.querySelectorAll('.experience-block')
-    if (blocks.length === 0) return
-
-    gsap.fromTo(blocks,
-      { opacity: 0, y: 20, filter: 'blur(6px)' },
-      { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.5, stagger: 0.1, ease: 'power2.out', clearProps: 'all' },
-    )
-  }, [experience])
 
   if (isLoading) {
     return (
@@ -50,7 +36,7 @@ export default function ResumeView() {
   return (
     <div className="editor-page">
       <div className="editor-meta">Every role assembled a new skill</div>
-      <AsciiTitle name="resume" />
+      <h1>Resume</h1>
 
       {isAdmin && (
         <AdminBar
@@ -71,7 +57,7 @@ export default function ResumeView() {
         />
       )}
 
-      <div className="editor-content" ref={listRef}>
+      <div className="editor-content">
         {sorted.map((exp, i) => (
           isEditMode && editingExp?.id === exp.id && exp.id ? (
             <ExperienceEditor

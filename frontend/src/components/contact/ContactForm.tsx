@@ -7,21 +7,18 @@ const labelStyle: CSSProperties = {
   display: 'block',
   fontFamily: 'var(--font-mono)',
   fontSize: '0.75rem',
-  textTransform: 'uppercase',
-  letterSpacing: '0.05em',
   color: 'var(--color-ink-muted)',
   marginBottom: 6,
 }
 
 const inputStyle: CSSProperties = {
-  border: '1px solid var(--color-ink-faint)',
-  background: 'var(--color-surface-0)',
+  border: '1px solid var(--color-grid)',
+  background: 'var(--color-void)',
   color: 'var(--color-ink)',
   padding: 12,
-  borderRadius: 'var(--radius-sm)',
+  borderRadius: 0,
   fontFamily: 'var(--font-sans)',
-  fontSize: '0.9rem',
-  outline: 'none',
+  fontSize: '1rem',
   width: '100%',
   boxSizing: 'border-box',
   transition: 'border-color 0.15s ease',
@@ -58,7 +55,7 @@ export default function ContactForm() {
   }
 
   function handleBlur(e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) {
-    e.target.style.borderColor = 'var(--color-ink-faint)'
+    e.target.style.borderColor = 'var(--color-grid)'
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -162,15 +159,14 @@ export default function ContactForm() {
         disabled={isSending}
         data-interactive
         style={{
-          padding: '1rem 2.5rem',
-          background: 'var(--color-ink)',
+          padding: '8px 16px',
+          background: 'var(--soul-accent)',
           color: 'var(--color-void)',
           border: 'none',
-          borderRadius: 'var(--radius-md)',
+          borderRadius: 0,
           fontFamily: 'var(--font-mono)',
-          fontSize: '0.85rem',
-          textTransform: 'uppercase',
-          letterSpacing: '0.1em',
+          fontSize: '0.75rem',
+          letterSpacing: 0,
           cursor: 'pointer',
           alignSelf: 'flex-start',
           opacity: isSending ? 0.6 : 1,

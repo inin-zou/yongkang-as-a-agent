@@ -1,28 +1,16 @@
 import { useState, lazy, Suspense } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchPage, updatePage } from '../lib/api'
 import { useAdminEdit } from '../hooks/useAdminEdit'
 import AdminBar from '../components/admin/AdminBar'
+import SoulReadmeContent from '../components/soul/SoulReadmeContent'
+import SoulJourney from '../components/soul/SoulJourney'
 import ProjectsView from '../components/soul/ProjectsView'
 import '../styles/skill.css'
 
 const KnowledgeGraph = lazy(() => import('../components/soul/KnowledgeGraph'))
 const ContributionGraph = lazy(() => import('../components/soul/ContributionGraph'))
-
-const ASCII_NAME = `███████╗ ██████╗ ██╗   ██╗
-╚══███╔╝██╔═══██╗██║   ██║
-  ███╔╝ ██║   ██║██║   ██║
- ███╔╝  ██║   ██║██║   ██║
-███████╗╚██████╔╝╚██████╔╝
-╚══════╝ ╚═════╝  ╚═════╝
-
-██╗   ██╗ ██████╗ ███╗   ██╗ ██████╗ ██╗  ██╗ █████╗ ███╗   ██╗ ██████╗
-╚██╗ ██╔╝██╔═══██╗████╗  ██║██╔════╝ ██║ ██╔╝██╔══██╗████╗  ██║██╔════╝
- ╚████╔╝ ██║   ██║██╔██╗ ██║██║  ███╗█████╔╝ ███████║██╔██╗ ██║██║  ███╗
-  ╚██╔╝  ██║   ██║██║╚██╗██║██║   ██║██╔═██╗ ██╔══██║██║╚██╗██║██║   ██║
-   ██║   ╚██████╔╝██║ ╚████║╚██████╔╝██║  ██╗██║  ██║██║ ╚████║╚██████╔╝
-   ╚═╝    ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝ ╚═════╝`
 
 const DEFAULT_DOMAIN_TREE = `AI Engineering
 ├── Spatial Intelligence & 3D
@@ -35,8 +23,8 @@ const DEFAULT_DOMAIN_TREE = `AI Engineering
 └── Creative AI & Content`
 
 const DEFAULT_BIO = [
-  'Part engineer, part artist. Building across RAG, multi-agent systems, 3D spatial intelligence, and music AI.',
-  'Not assembling API wrappers. Exploring where cutting-edge tech takes us next.',
+  'AI Engineer. My way of learning: BFS -> DFS',
+  "BFS: I try everything that interests me, don't want to become boring.\nDFS: building solid projects that real users depend on.",
 ]
 
 const DEFAULT_STATS = { hackathons: 24, wins: 9, domains: '8+', languages: 3 }
@@ -44,7 +32,7 @@ const DEFAULT_STATS = { hackathons: 24, wins: 9, domains: '8+', languages: 3 }
 export default function SoulPage() {
   const { item } = useParams<{ item?: string }>()
 
-  if (item === 'projects') {
+  if (item === 'projects' || item === 'in-progress') {
     return <ProjectsView />
   }
 
@@ -55,6 +43,8 @@ export default function SoulPage() {
   if (item === 'commits') {
     return <Suspense fallback={null}><ContributionGraph /></Suspense>
   }
+
+  if (item === 'journey') return <SoulJourney />
 
   return <SoulReadme />
 }
@@ -70,14 +60,17 @@ function SoulReadme() {
   })
 
   // Data with fallbacks
-  const subtitle = (pageData?.subtitle as string) ?? 'AI Engineer · Paris, France'
+  const subtitle = (pageData?.subtitle as string) ?? ''
   const bio = (pageData?.bio as string[]) ?? DEFAULT_BIO
   const domains = (pageData?.domains as string) ?? DEFAULT_DOMAIN_TREE
   const stats = (pageData?.stats as Record<string, unknown>) ?? DEFAULT_STATS
   const speed = (pageData?.speed as string) ?? 'Full demo in < 20 hours avg'
   const languages = (pageData?.languages as string) ?? 'Chinese (native) · French (DALF C2) · English (IELTS 7.0)'
 
+  const currently = (pageData?.currently as string) ?? 'TurboQuant experiments, systems reading, and a steady coding practice.'
+
   // Edit form state
+  const [editCurrently, setEditCurrently] = useState('')
   const [editSubtitle, setEditSubtitle] = useState('')
   const [editBio0, setEditBio0] = useState('')
   const [editBio1, setEditBio1] = useState('')
@@ -96,6 +89,7 @@ function SoulReadme() {
       setIsEditing(false)
       setError('')
     } else {
+      setEditCurrently(currently)
       setEditSubtitle(subtitle)
       setEditBio0(bio[0] ?? '')
       setEditBio1(bio[1] ?? '')
@@ -115,10 +109,13 @@ function SoulReadme() {
     setError('')
     try {
       const updated = await updatePage(token, 'soul', {
+        ...pageData,
+        currently: editCurrently,
         subtitle: editSubtitle,
-        bio: [editBio0, editBio1],
+        bio: [editBio0, editBio1, ...bio.slice(2)],
         domains: editDomains,
         stats: {
+          ...stats,
           hackathons: editHackathons,
           wins: editWins,
           domains: editDomainsCount,
@@ -137,21 +134,7 @@ function SoulReadme() {
   }
 
   return (
-    <div className="editor-page">
-      <div className="editor-meta">Last updated — April 2026</div>
-
-      <pre style={{
-        fontFamily: 'var(--font-mono)',
-        fontSize: 'clamp(0.28rem, 0.75vw, 0.5rem)',
-        lineHeight: 1.15,
-        color: 'var(--color-ink)',
-        margin: '0 0 var(--space-sm) 0',
-        overflow: 'hidden',
-      }}>
-        {ASCII_NAME}
-      </pre>
-
-      <div className="editor-content">
+    <article className="soul-readme">
         {isAdmin && (
           <AdminBar
             isEditing={isEditing}
@@ -171,7 +154,7 @@ function SoulReadme() {
                 id="soul-subtitle"
                 type="text"
                 className="memory-feedback-input"
-                placeholder="AI Engineer · Paris, France"
+                placeholder="Optional one-line subtitle"
                 value={editSubtitle}
                 onChange={(e) => setEditSubtitle(e.target.value)}
               />
@@ -197,6 +180,11 @@ function SoulReadme() {
                 onChange={(e) => setEditBio1(e.target.value)}
                 rows={2}
               />
+            </div>
+
+            <div>
+              <label htmlFor="soul-currently" className="memory-feedback-label">Currently</label>
+              <textarea id="soul-currently" className="memory-feedback-input" value={editCurrently} onChange={e => setEditCurrently(e.target.value)} rows={2} />
             </div>
 
             <div>
@@ -278,60 +266,8 @@ function SoulReadme() {
 
           </div>
         ) : (
-          <>
-            <p className="editor-subtitle">{subtitle}</p>
-
-            <p style={{ whiteSpace: 'pre-line' }}>{bio[0]}</p>
-            <p style={{ whiteSpace: 'pre-line' }}>{bio[1]}</p>
-
-            <div className="editor-divider" />
-
-            <p className="editor-label">Domains</p>
-            <div className="cli-block" style={{ marginBottom: 'var(--space-md)' }}>
-              <div className="cli-prompt">$ agent --tree domains</div>
-              <div className="cli-output cli-tree">
-                <pre style={{ margin: 0, fontFamily: 'inherit', fontSize: 'inherit', color: 'inherit' }}>
-                  {domains}
-                </pre>
-              </div>
-            </div>
-
-            <div className="editor-divider" />
-
-            <p className="editor-label">Stats</p>
-            <div className="cli-block">
-              <div className="cli-prompt">$ agent --stats</div>
-              <div className="cli-output" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 16px' }}>
-                <span><strong style={{ color: 'var(--color-ink)' }}>{String(stats.hackathons)}</strong> hackathons</span>
-                <span>|</span>
-                <span><strong style={{ color: 'var(--color-ink)' }}>{String(stats.wins)}</strong> wins</span>
-                <span>|</span>
-                <span><strong style={{ color: 'var(--color-ink)' }}>{String(stats.domains)}</strong> domains</span>
-                <span>|</span>
-                <span><strong style={{ color: 'var(--color-ink)' }}>{String(stats.languages)}</strong> languages</span>
-              </div>
-            </div>
-
-            <div className="cli-block" style={{ marginTop: 'var(--space-sm)' }}>
-              <div className="cli-prompt">$ agent --info</div>
-              <div className="cli-output">
-                <div>SPEED    {speed}</div>
-                <div>LANGUAGE {languages}</div>
-              </div>
-            </div>
-
-            <div className="editor-divider" />
-
-            <p className="editor-label">See Also</p>
-            <div className="editor-links">
-              <Link to="/files/skill" data-interactive>SKILL.md</Link>
-              <Link to="/files/memory" data-interactive>MEMORY.md</Link>
-              <Link to="/files/contact" data-interactive>CONTACT.md</Link>
-              <Link to="/files/music" data-interactive>MUSIC.md</Link>
-            </div>
-          </>
+          <SoulReadmeContent subtitle={subtitle} bio={bio} currently={currently} />
         )}
-      </div>
-    </div>
+    </article>
   )
 }

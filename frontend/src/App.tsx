@@ -5,7 +5,6 @@ import { AuthProvider } from './lib/AuthContext'
 import { MusicPlayerProvider } from './lib/MusicPlayerContext'
 import Layout from './components/global/Layout'
 import FileSystemLayout from './components/global/FileSystemLayout'
-import NoiseOverlay from './components/global/NoiseOverlay'
 import ErrorBoundary from './components/global/ErrorBoundary'
 
 const queryClient = new QueryClient({
@@ -31,7 +30,6 @@ function retryImport<T>(fn: () => Promise<T>): Promise<T> {
   })
 }
 
-const Landing = lazy(() => retryImport(() => import('./pages/Landing')))
 const SoulPage = lazy(() => retryImport(() => import('./pages/SoulPage')))
 const SkillPage = lazy(() => retryImport(() => import('./pages/SkillPage')))
 const MemoryPage = lazy(() => retryImport(() => import('./pages/MemoryPage')))
@@ -53,17 +51,6 @@ function PageLoader() {
     }}>
       Loading...
     </div>
-  )
-}
-
-function LandingLayout() {
-  return (
-    <>
-      <NoiseOverlay />
-      <Suspense fallback={<PageLoader />}>
-        <Landing />
-      </Suspense>
-    </>
   )
 }
 
@@ -91,7 +78,7 @@ function TabRouter() {
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <LandingLayout />,
+    element: <Suspense fallback={<PageLoader />}><IntroLab /></Suspense>,
   },
   {
     path: '/files',

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchSkills, fetchHackathons, fetchExperience } from '../../lib/api'
 import type { SkillDomain, Hackathon, Experience } from '../../types'
-import AsciiTitle from '../global/AsciiTitle'
 
 /* ── types ─────────────────────────────────────────────────── */
 
@@ -25,43 +24,14 @@ interface GraphEdge {
   target: string
 }
 
-/* ── colors per kind (holographic minimalism: desaturated fill + prismatic glow) */
-
-// Desaturated fills — soft, milky versions that sit on warm grey
+/* Neutral tones distinguish node kinds on paper. */
 const KIND_FILL: Record<NodeKind, string> = {
-  skill: 'rgba(77, 208, 225, 0.35)',    // teal, translucent
-  company: 'rgba(255, 138, 101, 0.3)',   // coral, translucent
-  domain: 'rgba(179, 136, 255, 0.3)',    // lavender, translucent
-  hackathon: 'rgba(255, 255, 255, 0.06)', // barely visible
-  tech: 'rgba(105, 240, 174, 0.25)',     // mint, translucent
+  skill: '#b9b8af', company: '#deddd6', domain: '#cecdc4', hackathon: '#eeede7', tech: '#e3e2da',
 }
-
-// Full-saturation stroke for the ring
 const KIND_STROKE: Record<NodeKind, string> = {
-  skill: 'rgba(77, 208, 225, 0.7)',
-  company: 'rgba(255, 138, 101, 0.6)',
-  domain: 'rgba(179, 136, 255, 0.6)',
-  hackathon: 'rgba(255, 255, 255, 0.1)',
-  tech: 'rgba(105, 240, 174, 0.5)',
+  skill: '#68675f', company: '#68675f', domain: '#68675f', hackathon: '#b9b8af', tech: '#68675f',
 }
-
-// Glow halo color (used with shadowBlur for holographic bleed)
-const KIND_GLOW: Record<NodeKind, string> = {
-  skill: '#4dd0e1',
-  company: '#ff8a65',
-  domain: '#b388ff',
-  hackathon: 'transparent',
-  tech: '#69f0ae',
-}
-
-// Solid colors for legend dots
-const KIND_LEGEND: Record<NodeKind, string> = {
-  skill: '#4dd0e1',
-  company: '#ff8a65',
-  domain: '#b388ff',
-  hackathon: '#555',
-  tech: '#69f0ae',
-}
+const KIND_LEGEND = KIND_FILL
 
 /* ── domain → skill domain mapping ─────────────────────────── */
 
@@ -358,7 +328,7 @@ export default function KnowledgeGraph() {
   const alphaRef = useRef(1)
   const rafRef = useRef(0)
   const [hovered, setHovered] = useState<GraphNode | null>(null)
-  const [dragging, setDragging] = useState<GraphNode | null>(null)
+  const draggingRef = useRef<GraphNode | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchMiss, setSearchMiss] = useState(false)
   const panRef = useRef({ x: 0, y: 0 })
@@ -396,7 +366,7 @@ export default function KnowledgeGraph() {
   }, [])
 
   // Draw loop
-  const draw = useCallback(() => {
+  const draw = useCallback(function drawFrame() {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
@@ -408,6 +378,13 @@ export default function KnowledgeGraph() {
     const { nodes, edges } = graphRef.current
 
     // Simulate
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches && alphaRef.current > 0.001) {
+      // Settle before painting rather than animating the layout.
+      while (alphaRef.current > 0.001) {
+        simulate(nodes, edges, alphaRef.current)
+        alphaRef.current *= 0.95
+      }
+    }
     if (alphaRef.current > 0.001) {
       simulate(nodes, edges, alphaRef.current)
       alphaRef.current *= 0.995
@@ -431,7 +408,7 @@ export default function KnowledgeGraph() {
     for (const e of edges) {
       const a = nodeMap.get(e.source), b = nodeMap.get(e.target)
       if (!a || !b) continue
-      ctx.strokeStyle = 'rgba(255,255,255,0.06)'
+      ctx.strokeStyle = '#deddd6'
       ctx.beginPath()
       ctx.moveTo(a.x, a.y)
       ctx.lineTo(b.x, b.y)
@@ -441,7 +418,7 @@ export default function KnowledgeGraph() {
     // Highlight edges for hovered node
     if (hovered) {
       ctx.lineWidth = 1
-      ctx.strokeStyle = 'rgba(255,255,255,0.25)'
+      ctx.strokeStyle = '#68675f'
       for (const e of edges) {
         if (e.source !== hovered.id && e.target !== hovered.id) continue
         const a = nodeMap.get(e.source), b = nodeMap.get(e.target)
@@ -453,7 +430,7 @@ export default function KnowledgeGraph() {
       }
     }
 
-    // Draw nodes (holographic: glow halo → translucent fill → thin stroke ring)
+    // Draw nodes with a flat fill and hairline outline.
     for (const n of nodes) {
       const isHovered = hovered?.id === n.id
       const isConnected = hovered && edges.some(
@@ -466,24 +443,12 @@ export default function KnowledgeGraph() {
       if (dimmed) {
         // Dimmed: barely visible dot
         ctx.globalAlpha = 0.15
-        ctx.fillStyle = 'rgba(255,255,255,0.1)'
+        ctx.fillStyle = '#68675f'
         ctx.beginPath()
         ctx.arc(n.x, n.y, r, 0, Math.PI * 2)
         ctx.fill()
         ctx.globalAlpha = 1
       } else {
-        // 1. Glow halo (always on for non-hackathon, brighter on hover)
-        if (n.kind !== 'hackathon') {
-          ctx.shadowColor = KIND_GLOW[n.kind]
-          ctx.shadowBlur = isHovered ? 24 : 10
-          ctx.fillStyle = 'rgba(0,0,0,0.01)' // invisible fill to trigger shadow
-          ctx.beginPath()
-          ctx.arc(n.x, n.y, r + 2, 0, Math.PI * 2)
-          ctx.fill()
-          ctx.shadowColor = 'transparent'
-          ctx.shadowBlur = 0
-        }
-
         // 2. Translucent fill
         ctx.fillStyle = KIND_FILL[n.kind]
         ctx.beginPath()
@@ -500,8 +465,8 @@ export default function KnowledgeGraph() {
       const isSmallNode = n.kind === 'hackathon' || (n.kind === 'tech' && n.radius <= 5)
       if (isSmallNode && !isHovered && !isConnected) continue
 
-      ctx.fillStyle = dimmed ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.85)'
-      ctx.font = (n.kind === 'hackathon' || n.kind === 'tech') ? '8px system-ui' : '10px system-ui'
+      ctx.fillStyle = dimmed ? '#b9b8af' : '#242421'
+      ctx.font = '12px Inter, sans-serif'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'top'
       ctx.fillText(n.label, n.x, n.y + n.radius + 4)
@@ -511,7 +476,7 @@ export default function KnowledgeGraph() {
 
     // Legend (top-right)
     const legendX = w - 140, legendY = 16
-    ctx.font = '10px system-ui'
+    ctx.font = '12px Inter, sans-serif'
     const kinds: { kind: NodeKind; label: string }[] = [
       { kind: 'skill', label: 'Skill Domain' },
       { kind: 'tech', label: 'Tech Stack' },
@@ -527,13 +492,13 @@ export default function KnowledgeGraph() {
       ctx.arc(legendX, y + 5, 4, 0, Math.PI * 2)
       ctx.fill()
       ctx.globalAlpha = 1
-      ctx.fillStyle = 'rgba(255,255,255,0.5)'
+      ctx.fillStyle = '#68675f'
       ctx.textAlign = 'left'
       ctx.textBaseline = 'middle'
       ctx.fillText(label, legendX + 10, y + 5)
     })
 
-    rafRef.current = requestAnimationFrame(draw)
+    rafRef.current = requestAnimationFrame(drawFrame)
   }, [hovered])
 
   useEffect(() => {
@@ -557,6 +522,7 @@ export default function KnowledgeGraph() {
   }
 
   function handleMouseMove(e: React.MouseEvent) {
+    const dragging = draggingRef.current
     if (dragging) {
       const dx = e.movementX / scaleRef.current
       const dy = e.movementY / scaleRef.current
@@ -576,14 +542,15 @@ export default function KnowledgeGraph() {
     const node = nodeAt(e.clientX, e.clientY)
     if (node) {
       node.pinned = true
-      setDragging(node)
+      draggingRef.current = node
     }
   }
 
   function handleMouseUp() {
+    const dragging = draggingRef.current
     if (dragging) {
       dragging.pinned = false
-      setDragging(null)
+      draggingRef.current = null
     }
   }
 
@@ -621,7 +588,7 @@ export default function KnowledgeGraph() {
   return (
     <div className="editor-page" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div className="editor-meta">auto-generated from Supabase data</div>
-      <AsciiTitle name="graph" />
+      <h1>Graph</h1>
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', flexWrap: 'wrap', marginBottom: 'var(--space-sm)' }}>
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', color: 'var(--color-ink-muted)' }}>Knowledge Graph</span>
         <div style={{ position: 'relative', marginLeft: 'auto' }}>
@@ -633,12 +600,11 @@ export default function KnowledgeGraph() {
             style={{
               background: 'var(--color-surface-0)',
               border: '1px solid var(--color-ink-faint)',
-              borderRadius: 'var(--radius-sm)',
+              borderRadius: 0,
               padding: '4px 10px',
               fontFamily: 'var(--font-mono)',
               fontSize: '0.75rem',
               color: 'var(--color-ink)',
-              outline: 'none',
               width: 220,
             }}
           />
@@ -650,7 +616,7 @@ export default function KnowledgeGraph() {
               marginTop: 6,
               background: 'var(--color-surface-1)',
               border: '1px solid var(--color-ink-faint)',
-              borderRadius: 'var(--radius-sm)',
+              borderRadius: 0,
               padding: '8px 12px',
               fontFamily: 'var(--font-mono)',
               fontSize: '0.7rem',

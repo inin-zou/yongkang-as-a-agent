@@ -4,7 +4,6 @@ import '../styles/memory.css'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useAuth } from '../lib/AuthContext'
 import { supabase } from '../lib/supabase'
-import AsciiTitle from '../components/global/AsciiTitle'
 import { useBlogMediaUpload } from '../hooks/useBlogMediaUpload'
 import MediaUploadBar from '../components/admin/MediaUploadBar'
 import {
@@ -902,16 +901,16 @@ export default function AdminPage() {
     return <LoginForm />
   }
 
-  const sectionMap: Record<string, { label: string; ascii: string }> = {
-    '': { label: 'Posts', ascii: 'posts' },
-    posts: { label: 'Posts', ascii: 'posts' },
-    music: { label: 'Music', ascii: 'music' },
-    feedback: { label: 'Feedback', ascii: 'feedback' },
-    notifications: { label: 'Notifications', ascii: 'notifications' },
+  const sectionMap: Record<string, { label: string }> = {
+    '': { label: 'Posts' },
+    posts: { label: 'Posts' },
+    music: { label: 'Music' },
+    feedback: { label: 'Feedback' },
+    notifications: { label: 'Notifications' },
   }
 
   const section = item || ''
-  const { label, ascii } = sectionMap[section] ?? sectionMap['']
+  const { label } = sectionMap[section] ?? sectionMap['']
 
   const content = (() => {
     switch (section) {
@@ -928,7 +927,7 @@ export default function AdminPage() {
   return (
     <div className="editor-page">
       <div className="editor-meta">Admin Panel — {label}</div>
-      <AsciiTitle name={ascii} />
+      <h1>{label}</h1>
       <div className="editor-content">
         {content}
       </div>

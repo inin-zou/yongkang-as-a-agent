@@ -4,7 +4,6 @@ import { fetchProjectStatuses, createProjectStatus, updateProjectStatus, deleteP
 import { useAdminEdit } from '../../hooks/useAdminEdit'
 import AdminBar from '../admin/AdminBar'
 import EditableItem from '../admin/EditableItem'
-import AsciiTitle from '../global/AsciiTitle'
 import type { ProjectStatus } from '../../types'
 import '../../styles/skill.css'
 import '../../styles/admin.css'
@@ -155,7 +154,7 @@ export default function ProjectsView() {
 
   if (isLoading) {
     return (
-      <div className="editor-page">
+      <div className="editor-page soul-projects">
         <p style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8rem', color: 'var(--color-ink-faint)' }}>
           Loading projects...
         </p>
@@ -164,9 +163,8 @@ export default function ProjectsView() {
   }
 
   return (
-    <div className="editor-page">
-      <div className="editor-meta">Agent runtime status</div>
-      <AsciiTitle name="projects" />
+    <div className="editor-page soul-projects">
+      <h1>Projects</h1>
 
       <div className="editor-content">
         {isAdmin && (
@@ -183,14 +181,7 @@ export default function ProjectsView() {
 
         {creating && renderForm(handleSaveNew, () => setCreating(false))}
 
-        <div className="cli-block">
-          <div className="cli-prompt">$ agent --status</div>
-          <div className="cli-output">
-            <div className="cli-status-header">
-              <span className="cli-status-pid">PID</span>
-              <span className="cli-status-state">STATUS</span>
-              <span className="cli-status-name">PROJECT</span>
-            </div>
+        <div className="soul-project-list">
             {projects?.map((p, i) => (
               <div key={p.id ?? i}>
                 {isEditMode && editingProject?.id === p.id && p.id ? (
@@ -247,17 +238,12 @@ export default function ProjectsView() {
                       }
                     }}
                   >
-                    <div className="cli-status-row">
-                      <span className="cli-status-pid">{String(i + 1).padStart(3, '0')}</span>
-                      <span className={`cli-status-state cli-status-${p.status.toLowerCase().replace(' ', '-')}`}>
-                        {p.status}
-                      </span>
-                      <div className="cli-status-info">
-                        <div className="cli-status-name">{p.name}</div>
-                        <div className="cli-status-desc">{'\u2192'} {p.description}</div>
-                        {p.nextStep && <div className="cli-status-next">{'\u2192'} Next: {p.nextStep}</div>}
-                      </div>
-                    </div>
+                    <article className="soul-project-row">
+                      <h3>{p.links?.split(/[\s,]+/).find(link => /^https?:\/\//i.test(link)) ? <a href={p.links.split(/[\s,]+/).find(link => /^https?:\/\//i.test(link))} target="_blank" rel="noreferrer">{p.name}</a> : p.name}</h3>
+                      <p>{p.description}</p>
+                      {p.status !== 'ACTIVE' && <span className="soul-mono soul-project-meta">{p.status}</span>}
+                      {p.nextStep && <p className="soul-mono soul-project-meta">Next: {p.nextStep}</p>}
+                    </article>
                   </EditableItem>
                 )}
               </div>
@@ -267,7 +253,6 @@ export default function ProjectsView() {
                 No active projects
               </div>
             )}
-          </div>
         </div>
       </div>
     </div>

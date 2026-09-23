@@ -5,78 +5,8 @@ import { useAdminEdit } from '../../hooks/useAdminEdit'
 import AdminBar from '../admin/AdminBar'
 import EditableItem from '../admin/EditableItem'
 import HackathonEditor from '../admin/HackathonEditor'
-import AsciiTitle from '../global/AsciiTitle'
-import HackathonMap from './HackathonMap'
 import type { Hackathon } from '../../types'
 import '../../styles/skill.css'
-
-/* ===== CLI Stats Block ===== */
-function CliStats({ hackathons }: { hackathons: Hackathon[] }) {
-  const wins = hackathons.filter(h => h.result && !/finalist/i.test(h.result)).length
-  const solo = hackathons.filter(h => h.solo).length
-  const funded = hackathons.filter(h => h.result?.toLowerCase().includes('funding') || h.result?.toLowerCase().includes('eur')).length
-  const countries = new Set(hackathons.filter(h => !h.isRemote && h.country).map(h => h.country)).size
-
-  return (
-    <div className="cli-block">
-      <div className="cli-prompt">$ agent --stats hackathons</div>
-      <div className="cli-output">
-        <div className="cli-box">
-          <span className="cli-stat">MISSIONS: <strong>{hackathons.length}</strong></span>
-          <span className="cli-divider">│</span>
-          <span className="cli-stat">WINS: <strong>{wins}</strong></span>
-          <span className="cli-divider">│</span>
-          <span className="cli-stat">SOLO: <strong>{solo}</strong></span>
-          <span className="cli-divider">│</span>
-          <span className="cli-stat">COUNTRIES: <strong>{countries}</strong></span>
-          <span className="cli-divider">│</span>
-          <span className="cli-stat">FUNDED: <strong>{funded}</strong></span>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/* ===== Domain Mind Map (text-based tree) ===== */
-function DomainTree({ hackathons }: { hackathons: Hackathon[] }) {
-  // Group hackathons by domain
-  const domains = new Map<string, string[]>()
-  for (const h of hackathons) {
-    const list = domains.get(h.domain) || []
-    list.push(h.projectName)
-    domains.set(h.domain, list)
-  }
-
-  return (
-    <div className="cli-block">
-      <div className="cli-prompt">$ agent --tree domains</div>
-      <div className="cli-output cli-tree">
-        <div className="cli-tree-root">AI Engineering</div>
-        {Array.from(domains.entries()).map(([domain, projects], i, arr) => {
-          const isLast = i === arr.length - 1
-          const branch = isLast ? '└── ' : '├── '
-          const indent = isLast ? '    ' : '│   '
-          return (
-            <div key={domain}>
-              <span className="cli-tree-branch">{branch}</span>
-              <span className="cli-tree-domain">{domain}</span>
-              {projects.map((proj, j) => {
-                const pBranch = j === projects.length - 1 ? '└── ' : '├── '
-                return (
-                  <div key={j} className="cli-tree-project">
-                    <span className="cli-tree-indent">{indent}</span>
-                    <span className="cli-tree-branch">{pBranch}</span>
-                    <span>{proj}</span>
-                  </div>
-                )
-              })}
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
 
 /* ===== Terminal Timeline ===== */
 function HackathonTimeline({
@@ -98,7 +28,6 @@ function HackathonTimeline({
 }) {
   return (
     <div className="cli-block">
-      <div className="cli-prompt">$ agent --log hackathons --reverse</div>
       <div className="cli-output">
         {hackathons.map((h, i) => {
           if (isEditMode && editingHackathon?.id === h.id && h.id) {
@@ -113,7 +42,6 @@ function HackathonTimeline({
           }
 
           const hasWin = !!h.result
-          const trophy = hasWin ? '🏆' : '  '
           const projectUrl = h.projectUrl || undefined
 
           return (
@@ -124,10 +52,9 @@ function HackathonTimeline({
               onDelete={() => onDelete(h)}
             >
               <div className={`cli-log-line ${hasWin ? 'cli-log-win' : 'cli-log-default'}`}>
-                <span className="cli-log-date">[{h.date}]</span>
-                <span className="cli-log-trophy">{trophy}</span>
+                <span className="cli-log-date">{h.date}</span>
                 <span className="cli-log-name">{h.name}</span>
-                <span className="cli-log-arrow">→</span>
+                <span className="document-muted">{h.city}</span>
                 {projectUrl ? (
                   <a href={projectUrl} target="_blank" rel="noopener noreferrer" className="cli-log-project">
                     {h.projectName}
@@ -174,7 +101,7 @@ export default function HackathonsView() {
   return (
     <div className="editor-page">
       <div className="editor-meta">26 missions. 11 wins. Always shipping.</div>
-      <AsciiTitle name="hackathons" />
+      <h1>Hackathons</h1>
 
       {isAdmin && (
         <AdminBar
@@ -196,23 +123,10 @@ export default function HackathonsView() {
       )}
 
       <div className="editor-content">
-        <CliStats hackathons={all} />
-
-        <div className="editor-divider" />
-
-        <p className="editor-label">Domains</p>
-        <DomainTree hackathons={all} />
-
-        <div className="editor-divider" />
-
-        <p className="editor-label">Map</p>
-        <HackathonMap hackathons={all} />
-
-        <div className="editor-divider" />
-
-        <p className="editor-label">Timeline</p>
+        {[...new Set(all.map(h => h.date.slice(0, 4)))].sort().reverse().map(year => <section className="document-year" key={year}>
+          <h2>{year}</h2>
         <HackathonTimeline
-          hackathons={all}
+          hackathons={all.filter(h => h.date.startsWith(year))}
           isEditMode={isEditMode}
           editingHackathon={editingHackathon}
           onEdit={(h) => setEditingHackathon(h)}
@@ -228,6 +142,7 @@ export default function HackathonsView() {
           }}
           onCancelEdit={() => setEditingHackathon(null)}
         />
+        </section>)}
       </div>
     </div>
   )

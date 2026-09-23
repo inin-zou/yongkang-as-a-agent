@@ -46,7 +46,7 @@ export default function AuthButton() {
 
   return (
     <div className="auth-button" ref={ref}>
-      <button className="auth-trigger" onClick={() => setOpen(!open)}>
+      <button className="auth-trigger" aria-expanded={open} aria-controls="document-auth-menu" onClick={() => setOpen(!open)}>
         <span className="auth-avatar-wrapper">
           <img src={githubAvatar} alt={githubUsername} className="auth-avatar" />
           {isAdmin && badgeCount > 0 && <span className="auth-badge" />}
@@ -55,7 +55,7 @@ export default function AuthButton() {
       </button>
 
       {open && (
-        <div className="auth-dropdown">
+        <div id="document-auth-menu" className="auth-dropdown">
           {isAdmin && (
             <Link
               to="/files/admin"

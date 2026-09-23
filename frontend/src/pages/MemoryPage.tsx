@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, NavLink, useParams } from 'react-router-dom'
 import '../styles/skill.css'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -16,7 +16,6 @@ import { useAdminEdit } from '../hooks/useAdminEdit'
 import AdminBar from '../components/admin/AdminBar'
 import PostEditor from '../components/admin/PostEditor'
 import BlogPostContent from '../components/global/BlogPostContent'
-import AsciiTitle from '../components/global/AsciiTitle'
 import PostInteractions from '../components/global/PostInteractions'
 import type { GuestbookEntry } from '../types/index'
 import '../styles/memory.css'
@@ -114,15 +113,15 @@ function BlogPostView({ slug }: { slug: string }) {
         />
       ) : (
         <>
+          <h1 className="editor-title">{post.title}</h1>
           <div className="editor-meta">
-            {post.publishedAt?.split('T')[0]}
+            {post.category} · {post.publishedAt?.split('T')[0]}
             {post.updatedAt && post.updatedAt.split('T')[0] !== post.publishedAt?.split('T')[0] && (
               <span style={{ marginLeft: '8px', color: 'var(--color-ink-faint)' }}>
                 (edited {post.updatedAt.split('T')[0]})
               </span>
             )}
           </div>
-          <h1 className="editor-title">{post.title}</h1>
           {isEditMode && (
             <div style={{ display: 'flex', gap: 'var(--space-xs)', marginBottom: 'var(--space-sm)' }}>
               <button className="admin-btn" onClick={() => setEditing(true)}>EDIT</button>
@@ -222,7 +221,7 @@ function GuestbookView() {
   return (
     <div className="editor-page">
       <div className="editor-meta">Open channel — sign in with GitHub to leave a note</div>
-      <AsciiTitle name="guestbook" />
+      <h1>Guestbook</h1>
       <div className="editor-content">
 
         {/* Comment form or sign-in prompt */}
@@ -283,90 +282,36 @@ function GuestbookView() {
   )
 }
 
-/* ─── CLI-style Memory Landing ─── */
+/* Writing index uses the same rows as the README. */
+function MemoryLanding({ category }: { category?: string }) {
+  const { data: posts, isLoading } = useQuery({ queryKey: ['posts'], queryFn: fetchBlogPosts })
+  const categories = [...new Set(posts?.map(post => post.category) ?? [])]
+  const visible = (posts ?? []).filter(post => !category || post.category === category)
+    .slice().sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
 
-function MemoryLanding() {
-  const { data: posts } = useQuery({ queryKey: ['posts'], queryFn: fetchBlogPosts })
-
-  const hackathonCount = posts?.filter(p => p.category === 'hackathon').length ?? 0
-  const technicalCount = posts?.filter(p => p.category === 'technical').length ?? 0
-  const researchCount = posts?.filter(p => p.category === 'research').length ?? 0
-  const totalCount = posts?.length ?? 0
-
-  return (
-    <div className="editor-page">
-      <div className="editor-meta">Agent memory bank — {totalCount} entries</div>
-      <AsciiTitle name="memory" />
-      <div className="editor-content">
-        <p>Three types of memory stored in this agent's knowledge base.</p>
-
-        <div className="editor-divider" />
-
-        <div className="cli-block">
-          <div className="cli-prompt">$ agent --memory-stats</div>
-          <div className="cli-output">
-            <div>HACKATHON JOURNEY {'  '} — {hackathonCount} entries</div>
-            <div style={{ color: 'var(--color-ink-faint)', marginLeft: '28px', fontSize: '0.85em' }}>
-              Competition stories, lessons learned, what went wrong and right
-            </div>
-            <div style={{ marginTop: '8px' }}>TECHNICAL BLOG {'     '} — {technicalCount} entries</div>
-            <div style={{ color: 'var(--color-ink-faint)', marginLeft: '28px', fontSize: '0.85em' }}>
-              Engineering deep-dives, LeetCode notes, book insights
-            </div>
-            <div style={{ marginTop: '8px' }}>RESEARCH READING {'   '} — {researchCount} entries</div>
-            <div style={{ color: 'var(--color-ink-faint)', marginLeft: '28px', fontSize: '0.85em' }}>
-              Paper summaries, tech trends, SOTA analysis
-            </div>
-          </div>
-        </div>
-
-        <div className="cli-block" style={{ marginTop: 'var(--space-sm)' }}>
-          <div className="cli-prompt">$ agent --memory-recent</div>
-          <div className="cli-output">
-            {posts && posts.length > 0 ? (
-              posts.slice(0, 5).map(post => (
-                <div key={post.slug} style={{ marginBottom: '4px' }}>
-                  <span style={{ color: 'var(--color-ink-faint)', marginRight: '8px' }}>
-                    {post.publishedAt?.split('T')[0]}
-                  </span>
-                  <span>{post.title}</span>
-                  <span style={{ color: 'var(--color-ink-faint)', marginLeft: '8px' }}>
-                    [{post.category}]
-                  </span>
-                </div>
-              ))
-            ) : (
-              <div>No entries yet.</div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+  return <div className="editor-page">
+    <h1>Writing</h1>
+    <nav className="document-filters" aria-label="Writing categories">
+      <NavLink end to="/files/memory">All</NavLink>
+      {categories.map(value => <NavLink key={value} to={`/files/memory/${value}`}>{value}</NavLink>)}
+    </nav>
+    {isLoading && <p>Loading writing...</p>}
+    {!isLoading && visible.length === 0 && <p>No entries yet.</p>}
+    {visible.map(post => <article className="soul-post-row" key={post.id}>
+      <div><h3><Link to={`/files/memory/${post.category}/${post.slug}`}>{post.title}</Link></h3><p className="soul-mono">{post.category}</p></div>
+      <time className="soul-mono" dateTime={post.publishedAt}>{post.publishedAt?.split('T')[0]}</time>
+    </article>)}
+  </div>
 }
-
-/* ─── Main page ─── */
 
 export default function MemoryPage() {
   const { item, sub } = useParams<{ item?: string; sub?: string }>()
-
-  // /files/memory → landing page (CLI overview)
+  const { data: posts, isLoading } = useQuery({ queryKey: ['posts'], queryFn: fetchBlogPosts, enabled: !!item && !sub && item !== 'guestbook' && item !== 'feedback' })
   if (!item) return <MemoryLanding />
-
-  // /files/memory/feedback → guestbook
-  if (item === 'feedback') return <GuestbookView />
-
-  // /files/memory/hackathon|technical|research → landing page (sidebar handles drill-down)
-  // /files/memory/hackathon/post-slug → show the post
-  const categoryIds: string[] = CATEGORIES.map(c => c)
-  if (item && categoryIds.includes(item)) {
-    if (sub) {
-      return <BlogPostView slug={sub} />
-    }
-    // Just a category selected, show landing
-    return <MemoryLanding />
-  }
-
-  // Fallback: treat item as a slug (backwards compatibility)
+  if (item === 'guestbook' || item === 'feedback') return <GuestbookView />
+  if (sub) return <BlogPostView slug={sub} />
+  if ((CATEGORIES as readonly string[]).includes(item) || posts?.some(post => post.category === item)) return <MemoryLanding category={item} />
+  if (isLoading) return <div className="editor-page">Loading writing...</div>
+  // Preserve legacy direct post URLs.
   return <BlogPostView slug={item} />
 }

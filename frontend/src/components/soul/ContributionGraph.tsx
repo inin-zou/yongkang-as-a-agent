@@ -2,21 +2,14 @@ import { useRef, useEffect, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchGitHubContributions } from '../../lib/api'
 import type { ContributionDay } from '../../lib/api'
-import AsciiTitle from '../global/AsciiTitle'
 
 const CELL = 11
 const GAP = 2
 const STRIDE = CELL + GAP
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-// Prismatic palette for intensity levels (0-4)
-const COLORS = [
-  'rgba(255,255,255,0.04)',  // 0: empty
-  'rgba(77, 208, 225, 0.25)', // 1: low (teal faint)
-  'rgba(77, 208, 225, 0.45)', // 2: medium
-  'rgba(105, 240, 174, 0.6)', // 3: high (teal→mint)
-  'rgba(105, 240, 174, 0.85)', // 4: max (mint bright)
-]
+// Neutral intensity levels on paper.
+const COLORS = ['#eeede7', '#deddd6', '#b9b8af', '#89887e', '#242421']
 
 function getLevel(count: number, max: number): number {
   if (count === 0) return 0
@@ -63,7 +56,7 @@ export default function ContributionGraph() {
 
     // Month labels
     ctx.font = '9px system-ui'
-    ctx.fillStyle = 'rgba(255,255,255,0.35)'
+    ctx.fillStyle = '#68675f'
     ctx.textAlign = 'left'
     ctx.textBaseline = 'top'
     let lastMonth = -1
@@ -80,7 +73,7 @@ export default function ContributionGraph() {
     // Day labels (Mon, Wed, Fri)
     ctx.textAlign = 'right'
     ctx.textBaseline = 'middle'
-    ctx.fillStyle = 'rgba(255,255,255,0.25)'
+    ctx.fillStyle = '#68675f'
     ;['', 'M', '', 'W', '', 'F', ''].forEach((label, i) => {
       if (label) ctx.fillText(label, LEFT_PAD - 4, TOP_PAD + i * STRIDE + CELL / 2)
     })
@@ -98,24 +91,13 @@ export default function ContributionGraph() {
         ctx.roundRect(x, y, CELL, CELL, 2)
         ctx.fill()
 
-        // Subtle glow for high-contribution days
-        if (level >= 3) {
-          ctx.shadowColor = level === 4 ? 'rgba(105,240,174,0.4)' : 'rgba(77,208,225,0.25)'
-          ctx.shadowBlur = 6
-          ctx.fillStyle = COLORS[level]
-          ctx.beginPath()
-          ctx.roundRect(x, y, CELL, CELL, 2)
-          ctx.fill()
-          ctx.shadowColor = 'transparent'
-          ctx.shadowBlur = 0
-        }
       })
     })
 
     // Legend
     const legendY = TOP_PAD + 7 * STRIDE + 6
     ctx.font = '9px system-ui'
-    ctx.fillStyle = 'rgba(255,255,255,0.3)'
+    ctx.fillStyle = '#68675f'
     ctx.textAlign = 'left'
     ctx.textBaseline = 'middle'
     ctx.fillText('Less', w - 120, legendY + CELL / 2)
@@ -126,7 +108,7 @@ export default function ContributionGraph() {
       ctx.roundRect(lx, legendY, CELL, CELL, 2)
       ctx.fill()
     })
-    ctx.fillStyle = 'rgba(255,255,255,0.3)'
+    ctx.fillStyle = '#68675f'
     ctx.fillText('More', w - 88 + 5 * (CELL + 2) + 2, legendY + CELL / 2)
   }, [calendar])
 
@@ -193,10 +175,9 @@ export default function ContributionGraph() {
         </a>
         {' '}— {calendar?.totalContributions ?? '...'} contributions in the last year
       </div>
-      <AsciiTitle name="commits" />
+      <h1>Commits</h1>
       <div className="editor-content">
         <div className="cli-block" style={{ marginBottom: 'var(--space-md)' }}>
-          <div className="cli-prompt">$ git log --author="inin-zou" --oneline | wc -l</div>
           <div className="cli-output" style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
             <span><strong style={{ color: 'var(--color-ink)' }}>{calendar?.totalContributions ?? '...'}</strong> contributions</span>
             <span>|</span>

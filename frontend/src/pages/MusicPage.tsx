@@ -1,12 +1,11 @@
 import { useRef, useState, useEffect } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchMusic, fetchMusicTracks, fetchPage, updatePage, createMusicTrack, updateMusicTrack, deleteMusicTrack } from '../lib/api'
 import { useAdminEdit } from '../hooks/useAdminEdit'
 import { useMusicPlayer } from '../lib/MusicPlayerContext'
 import AdminBar from '../components/admin/AdminBar'
 import TrackEditor from '../components/admin/TrackEditor'
-import AsciiTitle from '../components/global/AsciiTitle'
 import PostInteractions from '../components/global/PostInteractions'
 import type { MusicTrack } from '../types/index'
 import '../styles/music.css'
@@ -212,7 +211,21 @@ function TrackView({ track, allTracks }: { track: MusicTrack; allTracks: MusicTr
 }
 
 /* ===== Artist Overview (default view) ===== */
-function ArtistOverview() {
+function TrackList({ tracks }: { tracks: MusicTrack[] }) {
+  const { play, togglePlay, currentTrack, playing, duration } = useMusicPlayer()
+  return <section className="soul-section" aria-label="Tracks">
+    <h2>Tracks</h2>
+    {tracks.map(track => {
+      const active = currentTrack?.slug === track.slug
+      return <div className="document-track-row" key={track.slug}>
+        <div><h3><Link to={`/files/music/${track.slug}`}>{track.name}</Link></h3><p className="soul-mono document-muted">{track.genre}{active && duration > 0 ? ` · ${formatTime(duration)}` : ''}</p></div>
+        <button type="button" className="document-play" aria-label={`${active && playing ? 'Pause' : 'Play'} ${track.name}`} onClick={() => active ? togglePlay() : play(track, tracks)}>{active && playing ? 'Pause' : 'Play'}{active && playing ? ' Ⅱ' : ' ▷'}</button>
+      </div>
+    })}
+  </section>
+}
+
+function ArtistOverview({ tracks }: { tracks: MusicTrack[] }) {
   const { isAdmin, token } = useAdminEdit()
   const [isEditing, setIsEditing] = useState(false)
   const [addingTrack, setAddingTrack] = useState(false)
@@ -299,7 +312,7 @@ function ArtistOverview() {
     return (
       <div className="editor-page">
         <div className="editor-meta">inhibitor — Alternative RnB / Lo-Fi</div>
-        <AsciiTitle name="music" />
+        <h1>Music</h1>
         <div className="editor-content">
           <p>Could not load artist data.</p>
         </div>
@@ -312,7 +325,7 @@ function ArtistOverview() {
       <div className="editor-meta">
         {artistName} — {genre}
       </div>
-      <AsciiTitle name="music" />
+      <h1>Music</h1>
       <div className="editor-content">
         {isAdmin && (
           <AdminBar
@@ -453,18 +466,10 @@ function ArtistOverview() {
               )
             })()}
 
-            <div className="editor-divider" style={{ clear: 'both' }} />
+            <div style={{ clear: 'both' }} />
 
-            <p className="editor-label">Status</p>
-            <p>{status}</p>
-
-            <p className="editor-label">Location</p>
-            <p>{location}</p>
-
-            <p className="editor-label">Genre</p>
-            <p>{genre}</p>
-
-            <div className="editor-divider" />
+            <TrackList tracks={tracks} />
+            <p className="soul-mono document-muted">{[status, location, genre].filter(Boolean).join(' · ')}</p>
 
             <p className="editor-label">Platforms</p>
             <div className="music-platform-links">
@@ -496,7 +501,7 @@ export default function MusicPage() {
     queryFn: fetchMusicTracks,
   })
 
-  if (!item) return <ArtistOverview />
+  if (!item) return <ArtistOverview tracks={tracks ?? []} />
 
   const currentTrack = tracks?.find(t => t.slug === item)
 
@@ -513,5 +518,5 @@ export default function MusicPage() {
     )
   }
 
-  return <ArtistOverview />
+  return <ArtistOverview tracks={tracks ?? []} />
 }

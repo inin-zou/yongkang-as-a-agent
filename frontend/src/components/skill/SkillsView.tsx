@@ -6,24 +6,14 @@ import { useAdminEdit } from '../../hooks/useAdminEdit'
 import AdminBar from '../admin/AdminBar'
 import EditableItem from '../admin/EditableItem'
 import SkillEditor from '../admin/SkillEditor'
-import AsciiTitle from '../global/AsciiTitle'
 import type { SkillDomain } from '../../types'
 import '../../styles/skill.css'
 
 function SkillEntry({ domain }: { domain: SkillDomain }) {
   return (
     <div className="cli-skill-entry">
-      <div className="cli-skill-slug">{domain.slug}</div>
-      <div className="cli-skill-tags">
-        {(domain.skills || []).map((s) => (
-          <span key={s} className="cli-skill-tag">{s}</span>
-        ))}
-        {domain.subcategories?.map((sub) =>
-          sub.skills.map((s) => (
-            <span key={s} className="cli-skill-tag">{s}</span>
-          ))
-        )}
-      </div>
+      <h3>{domain.title}</h3>
+      <p className="document-muted">{[...(domain.skills ?? []), ...(domain.subcategories?.flatMap(sub => sub.skills) ?? [])].join(' · ')}</p>
       <div className="cli-skill-tested">
         ref: {domain.battleTested.join(' · ')}
       </div>
@@ -66,7 +56,7 @@ export default function SkillsView() {
   return (
     <div className="editor-page">
       <div className="editor-meta">Agent skill manifest — {skills?.length || 0} domains, 26 missions</div>
-      <AsciiTitle name="skills" />
+      <h1>Skills</h1>
 
       {isAdmin && (
         <AdminBar
@@ -116,7 +106,6 @@ export default function SkillsView() {
 
         <p className="editor-label">Domains</p>
         <div className="cli-block">
-          <div className="cli-prompt">$ agent --list skills</div>
           <div className="cli-output">
             {skills?.map((domain, i) => (
               <div key={domain.title}>
@@ -167,7 +156,6 @@ export default function SkillsView() {
                     <SkillEntry domain={domain} />
                   </EditableItem>
                 )}
-                {i < (skills.length - 1) && <div className="cli-skill-divider" />}
               </div>
             ))}
           </div>
@@ -180,12 +168,10 @@ export default function SkillsView() {
           <Link to="/files/skill/hackathons" className="skill-nav-card" data-interactive>
             <div className="skill-nav-card-title">HACKATHONS</div>
             <div className="skill-nav-card-stat">26 missions · 11 wins</div>
-            <div className="skill-nav-card-link">→ View journey</div>
           </Link>
           <Link to="/files/skill/resume" className="skill-nav-card" data-interactive>
             <div className="skill-nav-card-title">RESUME</div>
             <div className="skill-nav-card-stat">6 roles · 3 years</div>
-            <div className="skill-nav-card-link">→ View experience</div>
           </Link>
         </div>
       </div>
