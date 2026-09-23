@@ -6,7 +6,7 @@ import AuthButton from '../../global/AuthButton'
 import AdminPage from '../../../pages/AdminPage'
 
 const auth = vi.hoisted(() => ({ user: null as null | { id: string }, loading: false, loginWithGitHub: vi.fn(), logout: vi.fn(), githubUsername: 'visitor', githubAvatar: '/avatar.jpg', session: null }))
-vi.mock('../../../lib/AuthContext', () => ({ useAuth: () => auth }))
+vi.mock('../../../lib/auth', () => ({ useAuth: () => auth }))
 vi.mock('../../../lib/api', () => ({ fetchUnreadCount: vi.fn(async () => ({ count: 0 })) }))
 afterEach(() => { cleanup(); auth.user = null })
 function mount(node: React.ReactNode) {

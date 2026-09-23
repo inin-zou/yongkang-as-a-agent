@@ -9,6 +9,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
     css: true,
-    exclude: ['e2e/**', 'node_modules/**'],
+    // *.live.test.* hit https://yongkang.dev; run them on demand with `npm run test:live`.
+    exclude: ['e2e/**', 'node_modules/**', ...(process.env.LIVE ? [] : ['**/*.live.test.*'])],
   },
 })

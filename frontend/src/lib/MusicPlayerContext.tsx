@@ -1,6 +1,4 @@
 import {
-  createContext,
-  useContext,
   useRef,
   useState,
   useCallback,
@@ -8,28 +6,7 @@ import {
   type ReactNode,
 } from 'react'
 import type { MusicTrack } from '../types'
-
-type RepeatMode = 'off' | 'all' | 'one'
-
-interface MusicPlayerState {
-  currentTrack: MusicTrack | null
-  playlist: MusicTrack[]
-  playlistIndex: number
-  playing: boolean
-  currentTime: number
-  duration: number
-  repeatMode: RepeatMode
-  // actions
-  play: (track: MusicTrack, allTracks: MusicTrack[]) => void
-  togglePlay: () => void
-  next: () => void
-  prev: () => void
-  seek: (time: number) => void
-  setRepeatMode: (mode: RepeatMode) => void
-  audioRef: React.RefObject<HTMLAudioElement | null>
-}
-
-const MusicPlayerContext = createContext<MusicPlayerState | undefined>(undefined)
+import { MusicPlayerContext, type RepeatMode } from './musicPlayer'
 
 export function MusicPlayerProvider({ children }: { children: ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null)
@@ -196,10 +173,4 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
       <audio ref={audioRef} preload="metadata" style={{ display: 'none' }} />
     </MusicPlayerContext.Provider>
   )
-}
-
-export function useMusicPlayer(): MusicPlayerState {
-  const ctx = useContext(MusicPlayerContext)
-  if (!ctx) throw new Error('useMusicPlayer must be used within a MusicPlayerProvider')
-  return ctx
 }

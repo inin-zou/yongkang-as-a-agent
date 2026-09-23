@@ -13,8 +13,8 @@ import HackathonsView from '../../skill/HackathonsView'
 
 vi.mock('../../../hooks/useAdminEdit', () => ({ useAdminEdit: () => ({ isAdmin: false, token: '' }) }))
 const player = vi.hoisted(() => ({ currentTrack: { slug: 'song', name: 'A song', genre: 'R&B' }, playing: true, currentTime: 10, duration: 120, repeatMode: 'off', play: vi.fn(), togglePlay: vi.fn(), next: vi.fn(), prev: vi.fn(), seek: vi.fn(), setRepeatMode: vi.fn() }))
-vi.mock('../../../lib/MusicPlayerContext', () => ({ useMusicPlayer: () => player }))
-vi.mock('../../../lib/AuthContext', () => ({ useAuth: () => ({ user: null }) }))
+vi.mock('../../../lib/musicPlayer', () => ({ useMusicPlayer: () => player }))
+vi.mock('../../../lib/auth', () => ({ useAuth: () => ({ user: null }) }))
 vi.mock('../../../lib/api', () => ({
   fetchBlogPosts: vi.fn(async () => [
     { id: 'one', slug: 'first', title: 'First post', category: 'technical', publishedAt: '2026-01-01' },

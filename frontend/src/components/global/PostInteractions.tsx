@@ -6,7 +6,7 @@ import {
   togglePostLike,
   createPostComment,
 } from '../../lib/api'
-import { useAuth } from '../../lib/AuthContext'
+import { useAuth } from '../../lib/auth'
 import type { PostComment } from '../../types/index'
 
 function HeartOutline() {

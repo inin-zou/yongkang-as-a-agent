@@ -11,7 +11,7 @@ import {
   updateBlogPost,
   deleteBlogPost,
 } from '../lib/api'
-import { useAuth } from '../lib/AuthContext'
+import { useAuth } from '../lib/auth'
 import { useAdminEdit } from '../hooks/useAdminEdit'
 import AdminBar from '../components/admin/AdminBar'
 import PostArchiveToggle from '../components/admin/PostArchiveToggle'

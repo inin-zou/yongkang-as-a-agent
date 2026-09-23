@@ -245,7 +245,10 @@ func uploadToGeminiFileAPI(apiKey string, mediaBytes []byte, mimeType string, di
 			var status struct {
 				State string `json:"state"`
 			}
-			json.Unmarshal(getBody, &status)
+			if err := json.Unmarshal(getBody, &status); err != nil {
+				log.Printf("file %s: unreadable state response (poll %d): %v", fileInfo.File.Name, i+1, err)
+				continue
+			}
 			log.Printf("file %s state: %s (poll %d)", fileInfo.File.Name, status.State, i+1)
 			if status.State == "ACTIVE" {
 				break

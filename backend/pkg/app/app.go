@@ -34,7 +34,7 @@ func New(cfg Config) (http.Handler, func()) {
 			log.Printf("Warning: failed to connect to Supabase: %v (running without database)", err)
 		} else {
 			log.Println("Connected to Supabase")
-			closeApp = func() { supabase.Close() }
+			closeApp = func() { _ = supabase.Close() }
 			primary = supabase
 		}
 	} else {

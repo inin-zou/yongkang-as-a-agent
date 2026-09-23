@@ -7,7 +7,7 @@ vi.mock('../../../hooks/useAdminEdit', () => ({
   useAdminEdit: vi.fn(() => ({ isAdmin: true, token: 'test-token' })),
 }))
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+ 
 const { useAdminEdit } = await import('../../../hooks/useAdminEdit')
 const mockedUseAdminEdit = vi.mocked(useAdminEdit)
 

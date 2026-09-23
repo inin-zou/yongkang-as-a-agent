@@ -1,24 +1,8 @@
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react'
+import { useEffect, useState, useCallback, type ReactNode } from 'react'
 import type { User, Session } from '@supabase/supabase-js'
 import { useQueryClient } from '@tanstack/react-query'
 import { supabase } from './supabase'
-
-interface AuthState {
-  user: User | null
-  session: Session | null
-  loading: boolean
-  loginWithGitHub: () => Promise<void>
-  logout: () => Promise<void>
-  getAuthHeaders: () => Record<string, string>
-  /** GitHub username from user metadata */
-  githubUsername: string
-  /** GitHub avatar URL */
-  githubAvatar: string
-  /** GitHub profile URL */
-  githubProfileUrl: string
-}
-
-const AuthContext = createContext<AuthState | undefined>(undefined)
+import { AuthContext } from './auth'
 
 function extractGitHubMeta(user: User | null) {
   const meta = user?.user_metadata ?? {}
@@ -88,10 +72,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   )
-}
-
-export function useAuth(): AuthState {
-  const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error('useAuth must be used within an AuthProvider')
-  return ctx
 }

@@ -41,7 +41,7 @@ type Experience struct {
 	Role           string   `json:"role"`
 	Company        string   `json:"company"`
 	Location       string   `json:"location"`
-	StartDate      string   `json:"startDate"` // YYYY-MM
+	StartDate      string   `json:"startDate"`         // YYYY-MM
 	EndDate        string   `json:"endDate,omitempty"` // YYYY-MM or "Present"
 	SkillAssembled string   `json:"skillAssembled"`
 	Highlights     []string `json:"highlights"`
@@ -127,7 +127,7 @@ type FeedbackRequest struct {
 // GuestbookEntry represents a GitHub-authenticated visitor comment.
 type GuestbookEntry struct {
 	ID               string `json:"id"`
-	GitHubUsername    string `json:"githubUsername"`
+	GitHubUsername   string `json:"githubUsername"`
 	GitHubAvatarURL  string `json:"githubAvatarUrl"`
 	GitHubProfileURL string `json:"githubProfileUrl"`
 	Message          string `json:"message"`
@@ -136,7 +136,7 @@ type GuestbookEntry struct {
 
 // GuestbookRequest represents an incoming guestbook comment.
 type GuestbookRequest struct {
-	GitHubUsername    string `json:"githubUsername"`
+	GitHubUsername   string `json:"githubUsername"`
 	GitHubAvatarURL  string `json:"githubAvatarUrl"`
 	GitHubProfileURL string `json:"githubProfileUrl"`
 	Message          string `json:"message"`
@@ -146,7 +146,7 @@ type GuestbookRequest struct {
 type PostComment struct {
 	ID               string `json:"id"`
 	PostID           string `json:"postId"`
-	GitHubUsername    string `json:"githubUsername"`
+	GitHubUsername   string `json:"githubUsername"`
 	GitHubAvatarURL  string `json:"githubAvatarUrl"`
 	GitHubProfileURL string `json:"githubProfileUrl"`
 	Message          string `json:"message"`
@@ -155,7 +155,7 @@ type PostComment struct {
 
 // PostCommentRequest represents an incoming comment submission.
 type PostCommentRequest struct {
-	GitHubUsername    string `json:"githubUsername"`
+	GitHubUsername   string `json:"githubUsername"`
 	GitHubAvatarURL  string `json:"githubAvatarUrl"`
 	GitHubProfileURL string `json:"githubProfileUrl"`
 	Message          string `json:"message"`
@@ -177,7 +177,7 @@ type PostStats struct {
 type ProjectStatus struct {
 	ID          string `json:"id,omitempty"`
 	Name        string `json:"name"`
-	Status      string `json:"status"`      // "ACTIVE", "PLANNING", "ON HOLD", "SHIPPED"
+	Status      string `json:"status"` // "ACTIVE", "PLANNING", "ON HOLD", "SHIPPED"
 	Description string `json:"description"`
 	NextStep    string `json:"nextStep,omitempty"`
 	Links       string `json:"links,omitempty"` // comma-separated URLs

@@ -3,9 +3,10 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import DocumentLayout from '../../doc/DocumentLayout'
-import { MusicPlayerProvider, useMusicPlayer } from '../../../lib/MusicPlayerContext'
+import { MusicPlayerProvider } from '../../../lib/MusicPlayerContext'
+import { useMusicPlayer } from '../../../lib/musicPlayer'
 
-vi.mock('../../../lib/AuthContext', () => ({ useAuth: () => ({ user: null }) }))
+vi.mock('../../../lib/auth', () => ({ useAuth: () => ({ user: null }) }))
 vi.mock('../../global/AuthButton', () => ({ default: () => null }))
 vi.mock('../../../lib/api', () => ({ fetchBlogPosts: vi.fn(async () => []) }))
 afterEach(() => { cleanup(); vi.restoreAllMocks() })

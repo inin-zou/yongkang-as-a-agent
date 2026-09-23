@@ -1030,7 +1030,7 @@ func (h *APIHandler) HandleGetGitHubContributions(githubToken string) http.Handl
 			w.Header().Set("CDN-Cache-Control", cdnVal)
 			w.Header().Set("Cache-Control", "public, max-age=300")
 			w.WriteHeader(http.StatusOK)
-			w.Write(ghContribCache)
+			_, _ = w.Write(ghContribCache) // client disconnects are not actionable
 			return
 		}
 
@@ -1097,6 +1097,6 @@ func (h *APIHandler) HandleGetGitHubContributions(githubToken string) http.Handl
 		w.Header().Set("CDN-Cache-Control", cdnVal)
 		w.Header().Set("Cache-Control", "public, max-age=300")
 		w.WriteHeader(http.StatusOK)
-		w.Write(ghContribCache)
+		_, _ = w.Write(ghContribCache)
 	}
 }

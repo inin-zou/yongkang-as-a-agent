@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { useAuth } from '../../lib/AuthContext'
+import { useAuth } from '../../lib/auth'
 import { fetchUnreadCount } from '../../lib/api'
 
 const ADMIN_GITHUB_USERNAME = 'yongkangzou'

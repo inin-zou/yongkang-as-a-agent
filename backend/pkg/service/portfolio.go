@@ -12,9 +12,9 @@ import (
 
 // PortfolioService provides business logic on top of the repository layer.
 type PortfolioService struct {
-	primary  repository.DataRepository       // Supabase (nil if not configured)
-	fallback repository.DataRepository       // Embedded JSON (always available)
-	supabase *repository.SupabaseRepository  // for blog/guestbook/admin-only methods
+	primary  repository.DataRepository      // Supabase (nil if not configured)
+	fallback repository.DataRepository      // Embedded JSON (always available)
+	supabase *repository.SupabaseRepository // for blog/guestbook/admin-only methods
 }
 
 // NewPortfolioService creates a new PortfolioService backed by the given repositories.

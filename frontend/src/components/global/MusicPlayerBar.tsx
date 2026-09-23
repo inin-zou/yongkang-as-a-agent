@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react'
-import { useMusicPlayer } from '../../lib/MusicPlayerContext'
+import { useMusicPlayer } from '../../lib/musicPlayer'
 import '../../styles/player.css'
 
 function formatTime(seconds: number): string {

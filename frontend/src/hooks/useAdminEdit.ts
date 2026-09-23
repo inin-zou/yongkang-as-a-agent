@@ -1,4 +1,4 @@
-import { useAuth } from '../lib/AuthContext'
+import { useAuth } from '../lib/auth'
 
 export function useAdminEdit() {
   const { user, session } = useAuth()

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test } from '@playwright/test'
 
 test.describe('Admin draft creator layout', () => {
   test('check button layout on new post form', async ({ page }) => {

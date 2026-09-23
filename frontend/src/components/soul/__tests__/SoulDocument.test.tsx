@@ -8,9 +8,9 @@ import { useAdminEdit } from '../../../hooks/useAdminEdit'
 import { updatePage } from '../../../lib/api'
 
 const player = vi.hoisted(() => ({ currentTrack: null as { slug: string } | null, playing: false, currentTime: 0, duration: 0, play: vi.fn(), togglePlay: vi.fn() }))
-vi.mock('../../../lib/MusicPlayerContext', () => ({ useMusicPlayer: () => player }))
+vi.mock('../../../lib/musicPlayer', () => ({ useMusicPlayer: () => player }))
 vi.mock('../../../hooks/useAdminEdit', () => ({ useAdminEdit: vi.fn(() => ({ isAdmin: false, token: '' })) }))
-vi.mock('../../../lib/AuthContext', () => ({ useAuth: () => ({ user: null }) }))
+vi.mock('../../../lib/auth', () => ({ useAuth: () => ({ user: null }) }))
 vi.mock('../../global/AuthButton', () => ({ default: () => null }))
 vi.mock('../../global/MusicPlayerBar', () => ({ default: () => <div data-testid="player" /> }))
 vi.mock('../../../lib/api', () => ({

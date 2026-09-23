@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { fetchBlogPosts, fetchMusicTracks } from '../../lib/api'
-import { useMusicPlayer } from '../../lib/MusicPlayerContext'
+import { useMusicPlayer } from '../../lib/musicPlayer'
 import SoulReveal from './SoulReveal'
 import { SelectedWorkList } from './selectedWork'
 
