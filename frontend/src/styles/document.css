@@ -331,12 +331,18 @@
 .document-layout .soul-directory a.dir-child { display: block; padding: 3px 0 3px 12px; border-left: 2px solid transparent; font: 14px/1.5 var(--font-sans); color: var(--color-ink-muted); text-decoration: none; }
 .document-layout .soul-directory a.dir-file:hover, .document-layout .soul-directory a.dir-child:hover, .document-layout .soul-directory summary.dir-file:hover { color: var(--color-ink); }
 .document-layout .soul-directory a.dir-file[aria-current='page'], .document-layout .soul-directory a.dir-child[aria-current='page'] { border-left-color: var(--soul-accent); color: var(--color-ink); }
-.document-layout .soul-directory .dir-archive { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--soul-line); }
-.document-layout .soul-directory .dir-archive summary { list-style: none; cursor: pointer; }
-.document-layout .soul-directory .dir-archive summary::-webkit-details-marker { display: none; }
-.document-layout .soul-directory .dir-archive summary::before { content: '+ '; }
-.document-layout .soul-directory .dir-archive[open] summary::before { content: '− '; }
+.document-layout .dir-archive { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--soul-line); }
+.document-layout .dir-archive summary { list-style: none; cursor: pointer; }
+.document-layout .dir-archive summary::-webkit-details-marker { display: none; }
+.document-layout .dir-archive summary::before { content: '+ '; }
+.document-layout .dir-archive[open] summary::before { content: '− '; }
 .document-layout .soul-directory .auth-button { padding-left: 12px; font: 12px var(--font-mono); }
 .document-layout .soul-directory .dir-admin { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--soul-line); }
 .document-layout .soul-directory .dir-admin > a.dir-file[aria-current='page'] { border-left-color: transparent; }
 .document-layout .soul-directory .auth-button { margin-top: 16px; padding-left: 12px; }
+
+.document-layout .memory-archive summary { color: var(--color-ink-muted); font-size: 11px; letter-spacing: .08em; }
+.document-layout .memory-archive ul { list-style: none; padding: 0; margin: 12px 0 0; }
+.document-layout .memory-archive li { display: flex; justify-content: space-between; gap: 16px; padding: 8px 0; }
+.document-layout .memory-archive time { color: var(--color-ink-muted); font-size: 11px; flex-shrink: 0; }
+.post-archived-marker { margin: 0 6px 0 0; font-family: var(--font-mono); font-size: 11px; color: var(--color-ink-faint); font-weight: normal; }

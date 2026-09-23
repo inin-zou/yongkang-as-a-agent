@@ -1,3 +1,4 @@
+import PostArchiveToggle from '../components/admin/PostArchiveToggle'
 import { useState, useRef, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import '../styles/memory.css'
@@ -478,6 +479,7 @@ function PostsManager() {
             <div className="admin-post-info">
               <div className="admin-post-title">
                 {post.title}
+                {post.archived && <span className="post-archived-marker">archived</span>}
                 {' '}
                 <span className={`admin-category-badge admin-category-${post.category}`}>
                   {post.category}
@@ -489,6 +491,7 @@ function PostsManager() {
               <button className="admin-btn" onClick={() => handleEdit(post)}>
                 EDIT
               </button>
+              <PostArchiveToggle post={post} token={token} />
               <button className="admin-btn admin-btn-danger" onClick={() => handleDelete(post)}>
                 DELETE
               </button>

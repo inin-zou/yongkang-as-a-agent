@@ -12,7 +12,7 @@ function Directory() {
   const { user } = useAuth()
   const { pathname } = useLocation()
   const { data: posts } = useQuery({ queryKey: ['posts'], queryFn: fetchBlogPosts, enabled: tab === 'memory' })
-  const categories = [...new Set(posts?.map(post => post.category) ?? [])]
+  const categories = [...new Set(posts?.filter(post => !post.archived).map(post => post.category) ?? [])]
   const archiveOpen = tab === 'skill' || tab === 'contact' || item === 'guestbook' || item === 'graph' || item === 'commits'
   return <nav aria-label="Directory" className="soul-directory">
     <p className="soul-mono soul-index-label">YONGKANG / INDEX</p>

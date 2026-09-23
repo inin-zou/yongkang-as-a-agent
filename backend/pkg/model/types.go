@@ -99,6 +99,7 @@ type ContactRequest struct {
 
 // BlogPost represents a blog entry in MEMORY.md.
 type BlogPost struct {
+	Archived    bool   `json:"archived"`
 	ID          string `json:"id"`
 	Slug        string `json:"slug"`
 	Title       string `json:"title"`
@@ -106,7 +107,7 @@ type BlogPost struct {
 	Preview     string `json:"preview"`
 	Category    string `json:"category"`
 	PublishedAt string `json:"publishedAt"`
-	UpdatedAt  string `json:"updatedAt,omitempty"`
+	UpdatedAt   string `json:"updatedAt,omitempty"`
 }
 
 // Feedback represents a visitor note/feedback entry.

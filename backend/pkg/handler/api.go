@@ -428,6 +428,7 @@ func (h *APIHandler) HandleDeleteMusicTrack(w http.ResponseWriter, r *http.Reque
 
 // blogPostRequest is the JSON body for create/update blog post requests.
 type blogPostRequest struct {
+	Archived    *bool  `json:"archived,omitempty"`
 	Slug        string `json:"slug"`
 	Title       string `json:"title"`
 	Content     string `json:"content"`
@@ -482,7 +483,7 @@ func (h *APIHandler) HandleUpdateBlogPost(w http.ResponseWriter, r *http.Request
 	if updateCategory == "" {
 		updateCategory = "technical"
 	}
-	post, err := h.svc.UpdateBlogPost(id, req.Slug, req.Title, req.Content, req.Preview, updateCategory, req.PublishedAt, req.UpdatedAt)
+	post, err := h.svc.UpdateBlogPost(id, req.Slug, req.Title, req.Content, req.Preview, updateCategory, req.PublishedAt, req.UpdatedAt, req.Archived)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			writeError(w, http.StatusNotFound, err.Error())
@@ -509,6 +510,27 @@ func (h *APIHandler) HandleDeleteBlogPost(w http.ResponseWriter, r *http.Request
 	}
 
 	writeJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
+}
+
+// HandleArchiveBlogPost sets a post's archive flag (admin only).
+func (h *APIHandler) HandleArchiveBlogPost(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	var req struct {
+		Archived *bool `json:"archived"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Archived == nil {
+		writeError(w, http.StatusBadRequest, "archived (boolean) is required")
+		return
+	}
+	if err := h.svc.SetBlogPostArchived(id, *req.Archived); err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			writeError(w, http.StatusNotFound, err.Error())
+			return
+		}
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]bool{"archived": *req.Archived})
 }
 
 // HandleGetFeedback returns all feedback entries (admin only).

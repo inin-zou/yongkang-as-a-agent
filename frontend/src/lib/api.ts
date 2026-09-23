@@ -108,12 +108,21 @@ export async function createBlogPost(
   return res.json();
 }
 
+export async function setPostArchived(token: string, id: string, archived: boolean): Promise<void> {
+  const res = await fetch(`${BASE_URL}/admin/posts/${id}/archive?_t=${Date.now()}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ archived }),
+  });
+  if (!res.ok) throw new Error(`API error: ${res.status}`);
+}
+
 export async function updateBlogPost(
   token: string,
   id: string,
-  data: { slug: string; title: string; content: string; preview: string; category: string; publishedAt?: string; updatedAt?: string },
+  data: { slug: string; title: string; content: string; preview: string; category: string; publishedAt?: string; updatedAt?: string; archived?: boolean },
 ): Promise<BlogPost> {
-  const res = await fetch(`${BASE_URL}/admin/posts/${id}`, {
+  const res = await fetch(`${BASE_URL}/admin/posts/${id}?_t=${Date.now()}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',

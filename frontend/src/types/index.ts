@@ -77,6 +77,7 @@ export interface ContactRequest {
 }
 
 export interface BlogPost {
+  archived?: boolean;
   id: string;
   slug: string;
   title: string;

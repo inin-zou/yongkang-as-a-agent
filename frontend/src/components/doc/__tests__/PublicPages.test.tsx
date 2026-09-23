@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import MusicPage from '../../../pages/MusicPage'
 import MusicPlayerBar from '../../global/MusicPlayerBar'
 import ContactPage from '../../../pages/ContactPage'
-import { submitContact } from '../../../lib/api'
+import { submitContact, fetchBlogPost } from '../../../lib/api'
 import MemoryPage from '../../../pages/MemoryPage'
 import SkillsView from '../../skill/SkillsView'
 import ResumeView from '../../skill/ResumeView'
@@ -18,6 +18,7 @@ vi.mock('../../../lib/AuthContext', () => ({ useAuth: () => ({ user: null }) }))
 vi.mock('../../../lib/api', () => ({
   fetchBlogPosts: vi.fn(async () => [
     { id: 'one', slug: 'first', title: 'First post', category: 'technical', publishedAt: '2026-01-01' },
+    { id: 'archived', slug: 'old', title: 'Archived writing', category: 'old-category', archived: true, publishedAt: '2026-03-01' },
     { id: 'two', slug: 'second', title: 'Second post', category: 'research', publishedAt: '2026-02-01' },
   ]),
   fetchBlogPost: vi.fn(async () => ({ id: 'one', slug: 'first', title: 'First post', category: 'technical', publishedAt: '2026-01-01', content: '<p>Rendered post prose.</p><figure><img src="/photo.jpg" alt="Sample" /></figure>' })),
@@ -64,6 +65,22 @@ describe('paper archive pages', () => {
 
 
 describe('paper writing pages', () => {
+  it('puts archived posts only in a collapsed archive and hides their categories', async () => {
+    const { container } = mount(<MemoryPage />, '/files/memory')
+    await screen.findByRole('link', { name: 'First post' })
+    const archive = container.querySelector('details.dir-archive')
+    expect(archive).not.toBeNull()
+    expect(archive).not.toHaveAttribute('open')
+    expect(within(archive as HTMLElement).getByText('Archived writing').closest('a')).toHaveAttribute('href', '/files/memory/old-category/old')
+    expect(within(screen.getByRole('navigation', { name: 'Writing categories' })).queryByText('old-category')).not.toBeInTheDocument()
+    expect(container.querySelectorAll('article')).toHaveLength(2)
+  })
+  it('keeps archived direct links readable with a quiet marker', async () => {
+    vi.mocked(fetchBlogPost).mockResolvedValueOnce({ id: 'archived', slug: 'old', title: 'Archived writing', category: 'technical', archived: true, publishedAt: '2026-01-01', preview: '', content: '<p>Preserved prose.</p>' })
+    mount(<MemoryPage />, '/files/memory/technical/old')
+    expect(await screen.findByText('Preserved prose.')).toBeInTheDocument()
+    expect(screen.getByText('archived')).toBeInTheDocument()
+  })
   it('filters writing through category links and returns to all posts', async () => {
     mount(<MemoryPage />, '/files/memory')
     expect(await screen.findByRole('link', { name: 'First post' })).toBeInTheDocument()

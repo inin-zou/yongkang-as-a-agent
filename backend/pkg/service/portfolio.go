@@ -153,11 +153,19 @@ func (s *PortfolioService) CreateBlogPost(slug, title, content, preview, categor
 }
 
 // UpdateBlogPost updates an existing blog post.
-func (s *PortfolioService) UpdateBlogPost(id, slug, title, content, preview, category, publishedAt, updatedAt string) (*model.BlogPost, error) {
+func (s *PortfolioService) UpdateBlogPost(id, slug, title, content, preview, category, publishedAt, updatedAt string, archived *bool) (*model.BlogPost, error) {
 	if s.supabase == nil {
 		return nil, fmt.Errorf("database not configured")
 	}
-	return s.supabase.UpdateBlogPost(id, slug, title, content, preview, category, publishedAt, updatedAt)
+	return s.supabase.UpdateBlogPost(id, slug, title, content, preview, category, publishedAt, updatedAt, archived)
+}
+
+// SetBlogPostArchived archives or restores a blog post.
+func (s *PortfolioService) SetBlogPostArchived(id string, archived bool) error {
+	if s.supabase == nil {
+		return fmt.Errorf("database not configured")
+	}
+	return s.supabase.SetBlogPostArchived(id, archived)
 }
 
 // DeleteBlogPost deletes a blog post by ID.

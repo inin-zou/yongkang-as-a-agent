@@ -19,6 +19,7 @@ vi.mock('../../global/NoiseOverlay', () => ({ default: () => <div data-testid="o
 vi.mock('../../../lib/api', () => ({
   fetchPage: vi.fn(async () => ({ subtitle: 'AI Engineer · Paris', bio: ['A saved biography.', 'A second paragraph.'], currently: 'Building something real.', customField: 'preserve me' })),
   fetchBlogPosts: vi.fn(async () => [
+    { id: 'archived', slug: 'archived', title: 'Archived writing', category: 'archived-only', content: '', preview: '', publishedAt: '2026-09-01', archived: true },
     { id: 'oldest', slug: 'oldest', title: 'Oldest writing', category: 'technical', content: '', preview: '', publishedAt: '2024-01-01' },
     { id: 'third', slug: 'third', title: 'Third writing', category: 'technical', content: '', preview: '', publishedAt: '2025-01-01' },
     { id: 'older', slug: 'older', title: 'Older writing', category: 'technical', content: '', preview: '', publishedAt: '2026-01-01' },
@@ -86,6 +87,12 @@ describe('SOUL document boundary', () => {
     expect(within(directory).getByRole('link', { name: label })).toHaveAttribute('aria-current', 'page')
     expect(directory.querySelectorAll('[aria-current="page"]')).toHaveLength(1)
   })
+  it('excludes categories containing only archived posts from the directory', async () => {
+    mount('/files/memory')
+    const directory = screen.getByRole('navigation', { name: 'Directory' })
+    await within(directory).findByRole('link', { name: 'research' })
+    expect(within(directory).queryByText('archived-only')).not.toBeInTheDocument()
+  })
   it('marks a post category active in the directory', async () => {
     mount('/files/memory/research/newer')
     const directory = screen.getByRole('navigation', { name: 'Directory' })
@@ -137,6 +144,7 @@ describe('SOUL pages', () => {
     const posts = screen.getAllByRole('link', { name: /Latest writing|Older writing|Third writing/ })
     expect(posts.map(post => post.textContent)).toEqual(['Latest writing', 'Older writing', 'Third writing'])
     expect(screen.queryByText('Oldest writing')).not.toBeInTheDocument()
+    expect(screen.queryByText('Archived writing')).not.toBeInTheDocument()
     expect(screen.getByText('A writing preview.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Older writing' }).closest('article')).toHaveTextContent('technical')
     expect(posts[0]).toHaveAttribute('href', '/files/memory/research/newer')

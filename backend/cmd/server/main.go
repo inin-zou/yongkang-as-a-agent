@@ -94,6 +94,7 @@ func main() {
 			r.Use(middleware.AdminOnly(supabaseURL, anonKey, adminEmail))
 			r.Post("/posts", h.HandleCreateBlogPost)
 			r.Put("/posts/{id}", h.HandleUpdateBlogPost)
+			r.Put("/posts/{id}/archive", h.HandleArchiveBlogPost)
 			r.Delete("/posts/{id}", h.HandleDeleteBlogPost)
 			r.Get("/feedback", h.HandleGetFeedback)
 			r.Delete("/feedback/{id}", h.HandleDeleteFeedback)

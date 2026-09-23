@@ -14,6 +14,7 @@ import {
 import { useAuth } from '../lib/AuthContext'
 import { useAdminEdit } from '../hooks/useAdminEdit'
 import AdminBar from '../components/admin/AdminBar'
+import PostArchiveToggle from '../components/admin/PostArchiveToggle'
 import PostEditor from '../components/admin/PostEditor'
 import BlogPostContent from '../components/global/BlogPostContent'
 import PostInteractions from '../components/global/PostInteractions'
@@ -115,6 +116,7 @@ function BlogPostView({ slug }: { slug: string }) {
         <>
           <h1 className="editor-title">{post.title}</h1>
           <div className="editor-meta">
+            {post.archived && <><span className="post-archived-marker">archived</span>· </>}
             {post.category} · {post.publishedAt?.split('T')[0]}
             {post.updatedAt && post.updatedAt.split('T')[0] !== post.publishedAt?.split('T')[0] && (
               <span style={{ marginLeft: '8px', color: 'var(--color-ink-faint)' }}>
@@ -125,6 +127,7 @@ function BlogPostView({ slug }: { slug: string }) {
           {isEditMode && (
             <div style={{ display: 'flex', gap: 'var(--space-xs)', marginBottom: 'var(--space-sm)' }}>
               <button className="admin-btn" onClick={() => setEditing(true)}>EDIT</button>
+              <PostArchiveToggle post={post} token={token} />
               <button
                 className="admin-btn admin-btn-danger"
                 onClick={async () => {
@@ -285,9 +288,11 @@ function GuestbookView() {
 /* Writing index uses the same rows as the README. */
 function MemoryLanding({ category }: { category?: string }) {
   const { data: posts, isLoading } = useQuery({ queryKey: ['posts'], queryFn: fetchBlogPosts })
-  const categories = [...new Set(posts?.map(post => post.category) ?? [])]
-  const visible = (posts ?? []).filter(post => !category || post.category === category)
+  const categories = [...new Set(posts?.filter(post => !post.archived).map(post => post.category) ?? [])]
+  const visible = (posts ?? []).filter(post => !post.archived && (!category || post.category === category))
     .slice().sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+  const archived = (posts ?? []).filter(post => post.archived && (!category || post.category === category))
+    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
 
   return <div className="editor-page">
     <h1>Writing</h1>
@@ -301,6 +306,13 @@ function MemoryLanding({ category }: { category?: string }) {
       <div><h3><Link to={`/files/memory/${post.category}/${post.slug}`}>{post.title}</Link></h3><p className="soul-mono">{post.category}</p></div>
       <time className="soul-mono" dateTime={post.publishedAt}>{post.publishedAt?.split('T')[0]}</time>
     </article>)}
+    {archived.length > 0 && <details className="dir-archive memory-archive">
+      <summary className="soul-mono">ARCHIVE</summary>
+      <ul>{archived.map(post => <li key={post.id}>
+        <Link to={`/files/memory/${encodeURIComponent(post.category)}/${encodeURIComponent(post.slug)}`}>{post.title}</Link>
+        <time className="soul-mono" dateTime={post.publishedAt}>{post.publishedAt?.split('T')[0]}</time>
+      </li>)}</ul>
+    </details>}
   </div>
 }
 

@@ -34,7 +34,7 @@ export default function SoulReadmeContent({ bio, currently }: { bio: string[]; c
   useEffect(() => {
     if (hash) document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'instant', block: 'start' })
   }, [hash, key])
-  const latest = [...(posts.data ?? [])].sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt)).slice(0, 3)
+  const latest = (posts.data ?? []).filter(post => !post.archived).sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt)).slice(0, 3)
 
   return <>
     <SoulReveal><header id="hero" className="soul-hero soul-readme-hero">
