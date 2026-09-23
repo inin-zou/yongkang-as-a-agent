@@ -198,6 +198,20 @@ func (t *PageTemplate) Load() (string, error) {
 			return t.cached, nil
 		}
 	}
+	if !t.logged {
+		// TEMP diagnostics: where does the function run and what was bundled?
+		wd, _ := os.Getwd()
+		for _, dir := range []string{wd, "frontend", "frontend/dist", "/var/task", "/var/task/frontend"} {
+			entries, err := os.ReadDir(dir)
+			names := []string{}
+			for i, e := range entries {
+				if i < 25 {
+					names = append(names, e.Name())
+				}
+			}
+			log.Printf("page template diag: wd=%s dir=%s err=%v entries=%v", wd, dir, err, names)
+		}
+	}
 	if t.cached != "" && time.Since(t.fetchedAt) < t.ttl {
 		return t.cached, nil
 	}
