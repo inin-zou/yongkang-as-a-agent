@@ -118,6 +118,31 @@ html:has(.intro-root), body:has(.intro-root), .intro-root { overflow-anchor: non
 .intro-hud :is(button, a) { min-height: 32px; display: inline-flex; align-items: center; white-space: nowrap; }
 .intro-root :is(a, button):focus-visible { outline: 2px solid var(--accent); outline-offset: 5px; }
 
+.intro-root .intro-skip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  box-sizing: border-box;
+  padding: 2.8px 8.4px;
+  border: 1px solid var(--accent);
+  /* Near-opaque so accent text keeps contrast over the blue figure and dark bands. */
+  background: rgb(242 239 231 / 92%);
+  color: var(--accent);
+  font: inherit;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.intro-skip:hover, .intro-skip:focus-visible {
+  background-image: linear-gradient(rgb(35 72 196 / 8%), rgb(35 72 196 / 8%));
+}
+.intro-skip-arrow { margin-left: 1ch; transition: transform 160ms ease; }
+.intro-skip:is(:hover, :focus-visible) .intro-skip-arrow { transform: translateX(2px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-skip-arrow { transition: none; }
+  .intro-skip:is(:hover, :focus-visible) .intro-skip-arrow { transform: none; }
+}
+
 .intro-static { min-height: 100vh; padding: 24px clamp(16px, 5vw, 80px) 64px; }
 .intro-static-nav { position: static; justify-content: space-between; margin-bottom: 36px; }
 .intro-static figure { margin: 0 auto 48px; max-width: 1120px; }
@@ -132,6 +157,7 @@ html:has(.intro-root), body:has(.intro-root), .intro-root { overflow-anchor: non
   .intro-hud { flex-wrap: wrap; justify-content: flex-end; row-gap: 8px; }
   .intro-caption-unit { flex-basis: 100%; }
   .intro-hud button { padding: 2.4px 7.2px; }
+  .intro-root .intro-skip { padding: 2.4px 7.2px; }
 }
 
 @media (max-width: 420px) {

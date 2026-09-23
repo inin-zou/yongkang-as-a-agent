@@ -142,7 +142,7 @@ function EndCard() {
 
 function StaticIntro() {
   return <main className="intro-root intro-static">
-    <nav className="intro-static-nav"><span>Nanjing → Paris</span><a href="/files/soul">skip to work →</a></nav>
+    <nav className="intro-static-nav"><span>Nanjing → Paris</span><a className="intro-skip" href="/files/soul">skip to work <span className="intro-skip-arrow">→</span></a></nav>
     {shots.map((shot, index) => <figure key={shot}>
       <div className="intro-keyframe"><Scene shot={shotNumbers[index]} still /></div>
       <figcaption><span>{shot}</span><p>{captions[index]}</p></figcaption>
@@ -431,7 +431,7 @@ function AnimatedIntro() {
           if (shotLabelRef.current) shotLabelRef.current.textContent = shotsByLang[next][index]
           if (captionRef.current) captionRef.current.textContent = captionsByLang[next][Math.min(index, 6)]
         }}>{lang === 'en' ? 'EN / 中' : '中 / EN'}</button>
-        <a href="/files/soul">skip to work →</a>
+        <a className="intro-skip" href="/files/soul">skip to work <span className="intro-skip-arrow">→</span></a>
       </nav>
     </div>
   </main>
