@@ -321,3 +321,20 @@
   .document-layout .soul-post-row time { margin-top: 0; font-size: 10px; }
   .document-layout .soul-footer-right { text-align: left; }
 }
+
+/* Directory as one file tree: top-level .md files share one mono style,
+   children share one indented sans style; the active entry gets ink + accent bar. */
+.document-layout .soul-directory .dir-tree, .document-layout .soul-directory .dir-children { list-style: none; margin: 0; padding: 0; }
+.document-layout .soul-directory .dir-tree > li { margin-bottom: 6px; }
+.document-layout .soul-directory a.dir-file,
+.document-layout .soul-directory summary.dir-file { display: block; padding: 4px 0 4px 10px; border-left: 2px solid transparent; font: 13px/1.5 var(--font-mono); color: var(--color-ink-muted); text-decoration: none; }
+.document-layout .soul-directory .dir-children { margin: 2px 0 8px 10px; }
+.document-layout .soul-directory a.dir-child { display: block; padding: 3px 0 3px 12px; border-left: 2px solid transparent; font: 14px/1.5 var(--font-sans); color: var(--color-ink-muted); text-decoration: none; }
+.document-layout .soul-directory a.dir-file:hover, .document-layout .soul-directory a.dir-child:hover, .document-layout .soul-directory summary.dir-file:hover { color: var(--color-ink); }
+.document-layout .soul-directory a.dir-file[aria-current='page'], .document-layout .soul-directory a.dir-child[aria-current='page'] { border-left-color: var(--soul-accent); color: var(--color-ink); }
+.document-layout .soul-directory .dir-archive { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--soul-line); }
+.document-layout .soul-directory .dir-archive summary { list-style: none; cursor: pointer; }
+.document-layout .soul-directory .dir-archive summary::-webkit-details-marker { display: none; }
+.document-layout .soul-directory .dir-archive summary::before { content: '+ '; }
+.document-layout .soul-directory .dir-archive[open] summary::before { content: '− '; }
+.document-layout .soul-directory .auth-button { padding-left: 12px; font: 12px var(--font-mono); }

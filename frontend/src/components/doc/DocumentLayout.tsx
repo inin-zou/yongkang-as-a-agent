@@ -13,23 +13,24 @@ function Directory() {
   const { pathname } = useLocation()
   const { data: posts } = useQuery({ queryKey: ['posts'], queryFn: fetchBlogPosts, enabled: tab === 'memory' })
   const categories = [...new Set(posts?.map(post => post.category) ?? [])]
+  const archiveOpen = tab === 'skill' || tab === 'contact' || item === 'guestbook' || item === 'graph' || item === 'commits'
   return <nav aria-label="Directory" className="soul-directory">
     <p className="soul-mono soul-index-label">YONGKANG / INDEX</p>
-    <div className="soul-directory-group"><NavLink end to="/files/soul">SOUL.md</NavLink></div>
-    <div className="soul-directory-group"><p><Link to="/files/memory">MEMORY/</Link></p><NavLink end to="/files/memory">Writing</NavLink>
-      {tab === 'memory' && categories.map(category => <NavLink key={category} className="document-category" to={`/files/memory/${category}`}>{category}</NavLink>)}
-    </div>
-    <NavLink className="soul-mono" to="/files/music">MUSIC.md</NavLink>
-    <details className="soul-archive" open={tab === 'skill' || tab === 'contact' || item === 'guestbook' || item === 'graph' || item === 'commits' || undefined}>
-      <summary className="soul-mono">+ MORE / ARCHIVE</summary>
-      <NavLink end to="/files/skill">Skills</NavLink>
-      <NavLink to="/files/skill/experience">Experience</NavLink>
-      <NavLink to="/files/skill/cv">CV</NavLink>
-      <NavLink to="/files/skill/hackathons">Hackathons</NavLink>
-      <NavLink to="/files/soul/graph">Graph</NavLink>
-      <NavLink to="/files/soul/commits">Commits</NavLink>
-      <NavLink to="/files/contact">Contact</NavLink>
-      <NavLink to="/files/memory/guestbook">Guestbook</NavLink>
+    <ul className="dir-tree">
+      <li><NavLink className="dir-file" end to="/files/soul">SOUL.md</NavLink></li>
+      <li><NavLink className="dir-file" end to="/files/memory">MEMORY.md</NavLink>
+        {tab === 'memory' && categories.length > 0 && <ul className="dir-children">
+          {categories.map(category => <li key={category}><NavLink className="dir-child" to={`/files/memory/${category}`}>{category}</NavLink></li>)}
+        </ul>}
+      </li>
+      <li><NavLink className="dir-file" to="/files/music">MUSIC.md</NavLink></li>
+    </ul>
+    <details className="dir-archive" open={archiveOpen || undefined}>
+      <summary className="dir-file">MORE / ARCHIVE</summary>
+      <ul className="dir-children">
+        {[['/files/skill', 'Skills', true], ['/files/skill/experience', 'Experience'], ['/files/skill/cv', 'CV'], ['/files/skill/hackathons', 'Hackathons'], ['/files/soul/graph', 'Graph'], ['/files/soul/commits', 'Commits'], ['/files/contact', 'Contact'], ['/files/memory/guestbook', 'Guestbook']].map(([to, label, end]) =>
+          <li key={to as string}><NavLink className="dir-child" end={Boolean(end)} to={to as string}>{label}</NavLink></li>)}
+      </ul>
     </details>
     {user && <div className="soul-directory-group"><p>ADMIN/</p>{['posts', 'music', 'feedback', 'notifications'].map(section => <Link key={section} aria-current={tab === 'admin' && (item === section || (section === 'posts' && pathname === '/files/admin')) ? 'page' : undefined} to={`/files/admin/${section}`}>{section}</Link>)}</div>}
     <AuthButton />

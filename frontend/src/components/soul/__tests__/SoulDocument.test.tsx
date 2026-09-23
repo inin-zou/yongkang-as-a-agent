@@ -80,7 +80,7 @@ describe('SOUL document boundary', () => {
     fireEvent.click(within(screen.getByRole('navigation', { name: 'Directory' })).getByRole('link', { name: 'MUSIC.md' }))
     expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, left: 0, behavior: 'instant' })
   })
-  it.each([['soul', 'SOUL.md'], ['skill', 'Skills'], ['skill/experience', 'Experience'], ['skill/hackathons', 'Hackathons'], ['contact', 'Contact'], ['memory', 'Writing'], ['memory/guestbook', 'Guestbook'], ['music', 'MUSIC.md']])('marks only the current directory entry at %s', (segment, label) => {
+  it.each([['soul', 'SOUL.md'], ['skill', 'Skills'], ['skill/experience', 'Experience'], ['skill/hackathons', 'Hackathons'], ['contact', 'Contact'], ['memory', 'MEMORY.md'], ['memory/guestbook', 'Guestbook'], ['music', 'MUSIC.md']])('marks only the current directory entry at %s', (segment, label) => {
     mount(`/files/${segment}`)
     const directory = screen.getByRole('navigation', { name: 'Directory' })
     expect(within(directory).getByRole('link', { name: label })).toHaveAttribute('aria-current', 'page')
@@ -104,9 +104,9 @@ describe('SOUL document boundary', () => {
   })
   it('exposes archive destinations with a keyboard-native disclosure', () => {
     mount('/files/soul')
-    expect(screen.getByText('+ MORE / ARCHIVE').closest('details')).not.toHaveAttribute('open')
-    fireEvent.click(screen.getByText('+ MORE / ARCHIVE'))
-    expect(screen.getByText('+ MORE / ARCHIVE').closest('details')).toHaveAttribute('open')
+    expect(screen.getByText('MORE / ARCHIVE').closest('details')).not.toHaveAttribute('open')
+    fireEvent.click(screen.getByText('MORE / ARCHIVE'))
+    expect(screen.getByText('MORE / ARCHIVE').closest('details')).toHaveAttribute('open')
     expect(screen.getByRole('link', { name: 'Graph' })).toHaveAttribute('href', '/files/soul/graph')
   })
 })
