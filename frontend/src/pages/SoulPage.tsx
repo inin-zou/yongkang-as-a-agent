@@ -1,13 +1,10 @@
 import { useState, lazy, Suspense } from 'react'
-import { useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchPage, updatePage } from '../lib/api'
 import { useAdminEdit } from '../hooks/useAdminEdit'
 import AdminBar from '../components/admin/AdminBar'
 import SoulReadmeContent from '../components/soul/SoulReadmeContent'
-import { SelectedProjectsPage } from '../components/soul/selectedWork'
-import SoulJourney from '../components/soul/SoulJourney'
-import ProjectsView from '../components/soul/ProjectsView'
 import '../styles/skill.css'
 
 const KnowledgeGraph = lazy(() => import('../components/soul/KnowledgeGraph'))
@@ -33,8 +30,8 @@ const DEFAULT_STATS = { hackathons: 24, wins: 9, domains: '8+', languages: 3 }
 export default function SoulPage() {
   const { item } = useParams<{ item?: string }>()
 
-  if (item === 'projects') return <SelectedProjectsPage />
-  if (item === 'in-progress') return <ProjectsView />
+  if (item === 'projects') return <Navigate to="/files/soul#work" replace />
+  if (item === 'in-progress' || item === 'journey') return <Navigate to="/files/soul" replace />
 
   if (item === 'graph') {
     return <Suspense fallback={null}><KnowledgeGraph /></Suspense>
@@ -44,7 +41,6 @@ export default function SoulPage() {
     return <Suspense fallback={null}><ContributionGraph /></Suspense>
   }
 
-  if (item === 'journey') return <SoulJourney />
 
   return <SoulReadme />
 }
@@ -266,7 +262,7 @@ function SoulReadme() {
 
           </div>
         ) : (
-          <SoulReadmeContent subtitle={subtitle} bio={bio} currently={currently} />
+          <SoulReadmeContent bio={bio} currently={currently} />
         )}
     </article>
   )

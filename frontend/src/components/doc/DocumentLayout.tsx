@@ -15,14 +15,7 @@ function Directory() {
   const categories = [...new Set(posts?.map(post => post.category) ?? [])]
   return <nav aria-label="Directory" className="soul-directory">
     <p className="soul-mono soul-index-label">YONGKANG / INDEX</p>
-    <div className="soul-directory-group"><p><Link to="/files/soul">SOUL.md</Link></p>
-      <NavLink end to="/files/soul">README</NavLink>
-      <NavLink to="/files/soul/journey">JOURNEY</NavLink>
-    </div>
-    <div className="soul-directory-group"><p><Link to="/files/soul/projects">WORK/</Link></p>
-      <NavLink to="/files/soul/projects">Selected projects</NavLink>
-      <NavLink to="/files/soul/in-progress">In progress</NavLink>
-    </div>
+    <div className="soul-directory-group"><NavLink end to="/files/soul">SOUL.md</NavLink></div>
     <div className="soul-directory-group"><p><Link to="/files/memory">MEMORY/</Link></p><NavLink end to="/files/memory">Writing</NavLink>
       {tab === 'memory' && categories.map(category => <NavLink key={category} className="document-category" to={`/files/memory/${category}`}>{category}</NavLink>)}
     </div>
@@ -53,10 +46,14 @@ function IndexDisclosure() {
 
 export default function DocumentLayout() {
   const { tab, item, sub } = useParams()
-  const { pathname } = useLocation()
+  const { pathname, hash, key } = useLocation()
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
-  }, [pathname])
+    if (hash) {
+      document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'instant', block: 'start' })
+    } else {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+    }
+  }, [pathname, hash, key])
 
   return <div className="document-layout">
     <div className="soul-paper" aria-hidden="true" />
@@ -65,7 +62,7 @@ export default function DocumentLayout() {
       <header className="soul-topbar">
         <Link to="/files/soul" className="soul-brand"><svg width="25" height="32" viewBox="0 0 25 32" aria-hidden="true"><path d="M19 0 25 25 0 32Z" fill="currentColor" /></svg>yongkang.dev</Link>
         <nav aria-label="Main navigation">
-          <Link to="/files/soul/projects">work</Link><Link to="/files/memory">writing</Link><Link to="/files/music">music</Link><Link to="/files/soul/journey">about</Link><a href="https://github.com/inin-zou" target="_blank" rel="noreferrer">github ↗</a>
+          <Link to="/files/soul#work">work</Link><Link to="/files/memory">writing</Link><Link to="/files/music">music</Link><Link to="/files/soul#background">about</Link><a href="https://github.com/inin-zou" target="_blank" rel="noreferrer">github ↗</a>
         </nav>
       </header>
       <div className="soul-columns">
@@ -75,9 +72,12 @@ export default function DocumentLayout() {
         <main id="document-main" tabIndex={-1}>
           <div className="soul-breadcrumb soul-mono">~/yongkang/<span>{item ? [tab?.toUpperCase(), item, sub].filter(Boolean).join(' / ') : `${tab?.toUpperCase()}.md`}</span></div>
           <div className={`soul-page-content${item === 'graph' ? ' soul-graph-page' : ''}${item === 'graph' || item === 'commits' ? ' soul-canvas-page' : ''}`} key={pathname}><Outlet /></div>
+          <footer className="soul-footer">
+            <div><p>Say hello.</p><a href="mailto:yongkang.zou.ai@gmail.com">yongkang.zou.ai@gmail.com</a></div>
+            <div className="soul-footer-right"><nav aria-label="Footer"><Link to="/">my story ↗</Link><Link to="/files/memory/guestbook">guestbook ↗</Link></nav><p>© Yongkang Zou</p></div>
+          </footer>
         </main>
       </div>
-      <footer className="soul-footer soul-mono"><span>© YONGKANG ZOU / PARIS</span><nav aria-label="Footer"><Link to="/files/contact">contact ↗</Link><Link to="/files/memory/guestbook">guestbook ↗</Link><Link to="/">my story ↗</Link></nav></footer>
       <MusicPlayerBar />
     </div>
   </div>
