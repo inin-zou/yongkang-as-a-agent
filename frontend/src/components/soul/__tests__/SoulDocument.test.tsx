@@ -77,7 +77,7 @@ describe('SOUL document boundary', () => {
     fireEvent.click(within(screen.getByRole('navigation', { name: 'Directory' })).getByRole('link', { name: 'JOURNEY' }))
     expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, left: 0, behavior: 'instant' })
   })
-  it.each([['soul', 'README'], ['soul/journey', 'JOURNEY'], ['soul/projects', 'Selected projects'], ['soul/in-progress', 'In progress'], ['skill', 'Skills'], ['skill/resume', 'Resume'], ['skill/hackathons', 'Hackathons'], ['contact', 'Contact'], ['memory', 'Writing'], ['memory/guestbook', 'Guestbook'], ['music', 'MUSIC.md']])('marks only the current directory entry at %s', (segment, label) => {
+  it.each([['soul', 'README'], ['soul/journey', 'JOURNEY'], ['soul/projects', 'Selected projects'], ['soul/in-progress', 'In progress'], ['skill', 'Skills'], ['skill/experience', 'Experience'], ['skill/hackathons', 'Hackathons'], ['contact', 'Contact'], ['memory', 'Writing'], ['memory/guestbook', 'Guestbook'], ['music', 'MUSIC.md']])('marks only the current directory entry at %s', (segment, label) => {
     mount(`/files/${segment}`)
     const directory = screen.getByRole('navigation', { name: 'Directory' })
     expect(within(directory).getByRole('link', { name: label })).toHaveAttribute('aria-current', 'page')
@@ -122,9 +122,9 @@ describe('SOUL pages', () => {
   it('presents projects as a minimal list and preserves the full edit form', async () => {
     vi.mocked(useAdminEdit).mockReturnValue({ isAdmin: true, token: '' })
     vi.mocked(fetchProjectStatuses).mockResolvedValueOnce([{ id: 'project', name: 'Editable project', status: 'ACTIVE', description: 'Description', nextStep: 'Release', links: '', sortOrder: 7 }])
-    const { container } = mount('/files/soul/projects', true)
+    const { container } = mount('/files/soul/in-progress', true)
     await screen.findByText('Editable project')
-    expect(screen.getByRole('heading', { name: 'Projects' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'In progress' })).toBeInTheDocument()
     expect(screen.queryByText('ACTIVE')).not.toBeInTheDocument()
     expect(screen.getByText('Next: Release')).toBeInTheDocument()
     expect(container.querySelector('.cli-block, .cli-status-row')).not.toBeInTheDocument()
@@ -155,6 +155,14 @@ describe('SOUL pages', () => {
     expect(await screen.findByText('Updated lead.', { selector: 'p' })).toBeInTheDocument()
     expect(screen.getByText('New experiments.')).toBeInTheDocument()
     expect(updatePage).toHaveBeenCalledWith('', 'soul', expect.objectContaining({ customField: 'preserve me', bio: ['Updated lead.', 'A second paragraph.'] }))
+  })
+  it('lists the hand-picked projects under Selected projects', async () => {
+    mount('/files/soul/projects', true)
+    expect(await screen.findByRole('heading', { name: 'Selected projects' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Codex Privacy HUD' })).toHaveAttribute('href', 'https://github.com/inin-zou/codex-privacy-hud')
+    expect(screen.getByRole('link', { name: 'Clio' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'KernelGen' })).toBeInTheDocument()
+    expect(screen.queryByText('Editable project')).not.toBeInTheDocument()
   })
   it('renders JOURNEY and the story link', () => {
     mount('/files/soul/journey', true)

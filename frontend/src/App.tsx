@@ -59,7 +59,7 @@ function TabRouter() {
   const { pathname } = useLocation()
 
   // Use pathname as key so React remounts the page component
-  // when navigating between index (/files/skill) and sub-item (/files/skill/resume)
+  // when navigating between index (/files/skill) and sub-item (/files/skill/experience)
   const page = (() => {
     switch (tab) {
       case 'soul': return <SoulPage key={pathname} />

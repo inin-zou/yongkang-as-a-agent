@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { useParams } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 import SkillsView from '../components/skill/SkillsView'
 import ResumeView from '../components/skill/ResumeView'
 
@@ -11,8 +11,11 @@ export default function SkillPage() {
   switch (item || '') {
     case '':
       return <SkillsView />
-    case 'resume':
+    case 'experience':
       return <ResumeView />
+    case 'resume':
+      // Old URL kept working after the rename to /experience.
+      return <Navigate to="/files/skill/experience" replace />
     case 'hackathons':
       return <Suspense fallback={null}><HackathonsView /></Suspense>
     default:

@@ -169,7 +169,7 @@ export default function SkillsView() {
             <div className="skill-nav-card-title">HACKATHONS</div>
             <div className="skill-nav-card-stat">26 missions · 11 wins</div>
           </Link>
-          <Link to="/files/skill/resume" className="skill-nav-card" data-interactive>
+          <Link to="/files/skill/experience" className="skill-nav-card" data-interactive>
             <div className="skill-nav-card-title">RESUME</div>
             <div className="skill-nav-card-stat">6 roles · 3 years</div>
           </Link>

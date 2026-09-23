@@ -5,6 +5,7 @@ import { fetchPage, updatePage } from '../lib/api'
 import { useAdminEdit } from '../hooks/useAdminEdit'
 import AdminBar from '../components/admin/AdminBar'
 import SoulReadmeContent from '../components/soul/SoulReadmeContent'
+import { SelectedProjectsPage } from '../components/soul/selectedWork'
 import SoulJourney from '../components/soul/SoulJourney'
 import ProjectsView from '../components/soul/ProjectsView'
 import '../styles/skill.css'
@@ -32,9 +33,8 @@ const DEFAULT_STATS = { hackathons: 24, wins: 9, domains: '8+', languages: 3 }
 export default function SoulPage() {
   const { item } = useParams<{ item?: string }>()
 
-  if (item === 'projects' || item === 'in-progress') {
-    return <ProjectsView />
-  }
+  if (item === 'projects') return <SelectedProjectsPage />
+  if (item === 'in-progress') return <ProjectsView />
 
   if (item === 'graph') {
     return <Suspense fallback={null}><KnowledgeGraph /></Suspense>

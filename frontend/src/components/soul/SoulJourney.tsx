@@ -14,7 +14,7 @@ export default function SoulJourney() {
     </ol></SoulReveal>
     <SoulReveal><div className="soul-bottom-blocks">
       <p>Reading, experimenting, and showing up again.</p>
-      <p className="soul-journey-links"><Link to="/files/skill/resume">Experience &amp; education ↗</Link> <Link to="/files/contact">Contact ↗</Link> <Link to="/lab/intro">Watch the story →</Link></p>
+      <p className="soul-journey-links"><Link to="/files/skill/experience">Experience &amp; education ↗</Link> <Link to="/files/contact">Contact ↗</Link> <Link to="/lab/intro">Watch the story →</Link></p>
     </div></SoulReveal>
   </article>
 }

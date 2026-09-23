@@ -164,7 +164,7 @@ export default function ProjectsView() {
 
   return (
     <div className="editor-page soul-projects">
-      <h1>Projects</h1>
+      <h1>In progress</h1>
 
       <div className="editor-content">
         {isAdmin && (

@@ -95,7 +95,7 @@ describe('paper writing pages', () => {
 describe('paper contact page', () => {
   it('shows links and submits the existing form with live status feedback', async () => {
     mount(<ContactPage />, '/files/contact')
-    expect(await screen.findByRole('link', { name: 'CV ↗' })).toHaveAttribute('href', '/files/skill/resume')
+    expect(await screen.findByRole('link', { name: 'CV ↗' })).toHaveAttribute('href', '/files/skill/experience')
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Visitor' } })
     fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'visitor@example.com' } })
     fireEvent.change(screen.getByLabelText('Message'), { target: { value: 'Hello' } })

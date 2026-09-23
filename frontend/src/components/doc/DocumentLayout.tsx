@@ -15,22 +15,22 @@ function Directory() {
   const categories = [...new Set(posts?.map(post => post.category) ?? [])]
   return <nav aria-label="Directory" className="soul-directory">
     <p className="soul-mono soul-index-label">YONGKANG / INDEX</p>
-    <div className="soul-directory-group"><p>SOUL.md</p>
+    <div className="soul-directory-group"><p><Link to="/files/soul">SOUL.md</Link></p>
       <NavLink end to="/files/soul">README</NavLink>
       <NavLink to="/files/soul/journey">JOURNEY</NavLink>
     </div>
-    <div className="soul-directory-group"><p>WORK/</p>
+    <div className="soul-directory-group"><p><Link to="/files/soul/projects">WORK/</Link></p>
       <NavLink to="/files/soul/projects">Selected projects</NavLink>
       <NavLink to="/files/soul/in-progress">In progress</NavLink>
     </div>
-    <div className="soul-directory-group"><p>MEMORY/</p><NavLink end to="/files/memory">Writing</NavLink>
+    <div className="soul-directory-group"><p><Link to="/files/memory">MEMORY/</Link></p><NavLink end to="/files/memory">Writing</NavLink>
       {tab === 'memory' && categories.map(category => <NavLink key={category} className="document-category" to={`/files/memory/${category}`}>{category}</NavLink>)}
     </div>
     <NavLink className="soul-mono" to="/files/music">MUSIC.md</NavLink>
     <details className="soul-archive" open={tab === 'skill' || tab === 'contact' || item === 'guestbook' || item === 'graph' || item === 'commits' || undefined}>
       <summary className="soul-mono">+ MORE / ARCHIVE</summary>
       <NavLink end to="/files/skill">Skills</NavLink>
-      <NavLink to="/files/skill/resume">Resume</NavLink>
+      <NavLink to="/files/skill/experience">Experience</NavLink>
       <NavLink to="/files/skill/hackathons">Hackathons</NavLink>
       <NavLink to="/files/soul/graph">Graph</NavLink>
       <NavLink to="/files/soul/commits">Commits</NavLink>

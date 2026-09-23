@@ -5,7 +5,7 @@ export interface SidebarItem {
   date?: string
   /** Short preview text shown below the title */
   preview?: string
-  /** Route segment appended to the tab route: /files/skill/resume */
+  /** Route segment appended to the tab route: /files/skill/experience */
   routeSegment: string
 }
 
@@ -41,7 +41,7 @@ export const FILE_TABS: TabConfig[] = [
     basePath: '/files/skill',
     sidebarItems: [
       { id: 'skills', label: 'SKILLS', preview: 'Agent skill manifest — 10 domains', routeSegment: '' },
-      { id: 'resume', label: 'RESUME', preview: 'Experience + education', routeSegment: 'resume' },
+      { id: 'experience', label: 'EXPERIENCE', preview: 'Experience + education', routeSegment: 'experience' },
       { id: 'hackathons', label: 'HACKATHONS', preview: '26 missions · 11 wins', routeSegment: 'hackathons' },
     ],
     defaultItem: 'skills',

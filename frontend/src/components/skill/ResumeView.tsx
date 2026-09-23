@@ -36,7 +36,7 @@ export default function ResumeView() {
   return (
     <div className="editor-page">
       <div className="editor-meta">Every role assembled a new skill</div>
-      <h1>Resume</h1>
+      <h1>Experience</h1>
 
       {isAdmin && (
         <AdminBar
