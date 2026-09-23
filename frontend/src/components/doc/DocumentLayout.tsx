@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, Outlet, useLocation, useParams } from 'react-router-dom'
+import { Link, Navigate, NavLink, Outlet, useLocation, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { fetchBlogPosts } from '../../lib/api'
 import { useAuth } from '../../lib/AuthContext'
@@ -51,6 +51,12 @@ function IndexDisclosure() {
 }
 
 export default function DocumentLayout() {
+  const { tab } = useParams()
+  if (!['soul', 'skill', 'memory', 'contact', 'music', 'admin'].includes(tab ?? '')) return <Navigate to="/files/soul" replace />
+  return <DocumentContent />
+}
+
+function DocumentContent() {
   const { tab, item, sub } = useParams()
   const { pathname, hash, key } = useLocation()
   useEffect(() => {

@@ -2,8 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import FileSystemLayout from '../../global/FileSystemLayout'
-import Layout from '../../global/Layout'
+import DocumentLayout from '../../doc/DocumentLayout'
 import SoulPage from '../../../pages/SoulPage'
 import { useAdminEdit } from '../../../hooks/useAdminEdit'
 import { updatePage } from '../../../lib/api'
@@ -14,8 +13,6 @@ vi.mock('../../../hooks/useAdminEdit', () => ({ useAdminEdit: vi.fn(() => ({ isA
 vi.mock('../../../lib/AuthContext', () => ({ useAuth: () => ({ user: null }) }))
 vi.mock('../../global/AuthButton', () => ({ default: () => null }))
 vi.mock('../../global/MusicPlayerBar', () => ({ default: () => <div data-testid="player" /> }))
-vi.mock('../../global/PrismaticBackground', () => ({ default: () => <div data-testid="old-background" /> }))
-vi.mock('../../global/NoiseOverlay', () => ({ default: () => <div data-testid="old-noise" /> }))
 vi.mock('../../../lib/api', () => ({
   fetchPage: vi.fn(async () => ({ subtitle: 'AI Engineer · Paris', bio: ['A saved biography.', 'A second paragraph.'], currently: 'Building something real.', customField: 'preserve me' })),
   fetchBlogPosts: vi.fn(async () => [
@@ -35,7 +32,7 @@ function Location() { const location = useLocation(); return <output data-testid
 function mount(path: string, soul = false) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(<QueryClientProvider client={client}><MemoryRouter initialEntries={[path]}>
-    <Location /><Routes><Route path="/files/:tab" element={<Layout><FileSystemLayout /></Layout>}>
+    <Location /><Routes><Route path="/files/:tab" element={<DocumentLayout />}>
       <Route index element={soul ? <SoulPage /> : <p>Existing page</p>} />
       <Route path=":item" element={soul ? <SoulPage /> : <p>Existing page</p>} />
       <Route path=":item/:sub" element={<p>Existing post</p>} />
@@ -47,13 +44,18 @@ afterEach(cleanup)
 beforeEach(() => { vi.mocked(useAdminEdit).mockReturnValue({ isAdmin: false, token: '' }); vi.clearAllMocks(); window.scrollTo = vi.fn(); Element.prototype.scrollIntoView = vi.fn(); player.currentTrack = null; player.playing = false })
 
 describe('SOUL document boundary', () => {
+  it.each(['/files/unknown', '/files/unknown/item', '/files/unknown/item/sub'])('redirects invalid tabs at %s to SOUL', async path => {
+    mount(path)
+    expect(await screen.findByTestId('location')).toHaveTextContent('/files/soul')
+    expect(screen.getByText('Existing page')).toBeInTheDocument()
+    expect(screen.getAllByTestId('player')).toHaveLength(1)
+  })
   it('uses the open document shell for SOUL', () => {
     const { container } = mount('/files/soul')
     expect(container.querySelector('.document-layout')).toBeInTheDocument()
     expect(screen.getByTestId('player')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Scroll down' })).not.toBeInTheDocument()
     expect(container.querySelector('.app-window')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('old-background')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'my story ↗' })).toHaveAttribute('href', '/')
   })
   it.each(['skill', 'memory', 'contact', 'music', 'admin'])('uses the document for %s', tab => {
@@ -61,7 +63,6 @@ describe('SOUL document boundary', () => {
     expect(container.querySelector('.app-window')).not.toBeInTheDocument()
     expect(container.querySelector('.document-layout')).toBeInTheDocument()
     expect(screen.getByTestId('player')).toBeInTheDocument()
-    expect(screen.queryByTestId('old-background')).not.toBeInTheDocument()
   })
   it('keeps the shared shell when leaving SOUL', () => {
     const { container } = mount('/files/soul')
@@ -69,11 +70,9 @@ describe('SOUL document boundary', () => {
     expect(container.querySelector('.document-layout')).toBeInTheDocument()
     expect(screen.getByTestId('player')).toBeInTheDocument()
     expect(container.querySelector('.app-window')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('old-background')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('link', { name: 'SOUL.md' }))
     expect(container.querySelector('.document-layout')).toBeInTheDocument()
     expect(screen.getByTestId('player')).toBeInTheDocument()
-    expect(screen.queryByTestId('old-background')).not.toBeInTheDocument()
   })
   it('starts each SOUL destination at the top', () => {
     mount('/files/soul')
