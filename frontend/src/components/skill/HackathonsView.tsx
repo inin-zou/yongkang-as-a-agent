@@ -1,3 +1,4 @@
+import { queryKeys } from '../../lib/queryKeys'
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchHackathons, createHackathon, updateHackathon, deleteHackathon } from '../../lib/api'
@@ -82,7 +83,7 @@ export default function HackathonsView() {
   const [creating, setCreating] = useState(false)
 
   const { data: hackathons, isLoading } = useQuery({
-    queryKey: ['hackathons'],
+    queryKey: queryKeys.hackathons(),
     queryFn: fetchHackathons,
   })
 
@@ -115,7 +116,7 @@ export default function HackathonsView() {
         <HackathonEditor
           onSave={async (data) => {
             await createHackathon(token, data)
-            queryClient.invalidateQueries({ queryKey: ['hackathons'] })
+            queryClient.invalidateQueries({ queryKey: queryKeys.hackathons() })
             setCreating(false)
           }}
           onCancel={() => setCreating(false)}
@@ -133,11 +134,11 @@ export default function HackathonsView() {
           onDelete={async (h) => {
             if (!confirm(`Delete "${h.name}"?`)) return
             await deleteHackathon(token, h.id!)
-            queryClient.invalidateQueries({ queryKey: ['hackathons'] })
+            queryClient.invalidateQueries({ queryKey: queryKeys.hackathons() })
           }}
           onSaveEdit={async (h, data) => {
             await updateHackathon(token, h.id!, data)
-            queryClient.invalidateQueries({ queryKey: ['hackathons'] })
+            queryClient.invalidateQueries({ queryKey: queryKeys.hackathons() })
             setEditingHackathon(null)
           }}
           onCancelEdit={() => setEditingHackathon(null)}

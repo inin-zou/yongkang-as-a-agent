@@ -1,3 +1,4 @@
+import { queryKeys } from '../../lib/queryKeys'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
@@ -26,11 +27,11 @@ export default function CvView() {
   const [sourceFile, setSourceFile] = useState<SourceFile>('tex')
 
   const pdf = useQuery({
-    queryKey: ['cv-pdf', lang],
+    queryKey: queryKeys.cvPdf(lang),
     queryFn: async () => (await fetchPublished(pdfPath(lang))) !== null,
   })
   const sourceQuery = useQuery({
-    queryKey: ['cv-source', lang, sourceFile],
+    queryKey: queryKeys.cvSource(lang, sourceFile),
     queryFn: async () => { const res = await fetchPublished(sourcePath(lang, sourceFile)); return res ? res.text() : '' },
     enabled: showSource,
   })

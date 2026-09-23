@@ -1,3 +1,4 @@
+import { queryKeys } from '../../lib/queryKeys'
 import { useState, type FormEvent } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -7,6 +8,7 @@ import {
   createPostComment,
 } from '../../lib/api'
 import { useAuth } from '../../lib/auth'
+import { ApiError } from '../../lib/api/request'
 import type { PostComment } from '../../types/index'
 
 function HeartOutline() {
@@ -60,12 +62,18 @@ export default function PostInteractions({ slug }: { slug: string }) {
   const [liking, setLiking] = useState(false)
 
   const { data: stats } = useQuery({
-    queryKey: ['post-stats', slug, githubUsername],
+    queryKey: queryKeys.postStats(slug, githubUsername),
     queryFn: () => fetchPostStats(slug, githubUsername || undefined),
+    retry: slug.startsWith('music-')
+      ? (failureCount, error) => {
+          if (error instanceof ApiError && error.status >= 400 && error.status < 500) return false
+          return failureCount < 3
+        }
+      : undefined,
   })
 
   const { data: comments, isLoading: commentsLoading } = useQuery({
-    queryKey: ['post-comments', slug],
+    queryKey: queryKeys.postComments(slug),
     queryFn: () => fetchPostComments(slug),
   })
 
@@ -75,7 +83,7 @@ export default function PostInteractions({ slug }: { slug: string }) {
     setLiking(true)
     try {
       await togglePostLike(slug, { githubUsername })
-      queryClient.invalidateQueries({ queryKey: ['post-stats', slug] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.postStats(slug) })
     } catch { /* */ } finally { setLiking(false) }
   }
 
@@ -86,8 +94,8 @@ export default function PostInteractions({ slug }: { slug: string }) {
     try {
       await createPostComment(slug, { githubUsername, githubAvatarUrl: githubAvatar, githubProfileUrl, message: message.trim() })
       setMessage('')
-      queryClient.invalidateQueries({ queryKey: ['post-comments', slug] })
-      queryClient.invalidateQueries({ queryKey: ['post-stats', slug] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.postComments(slug) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.postStats(slug) })
     } catch { /* */ } finally { setSubmitting(false) }
   }
 

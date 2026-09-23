@@ -1,3 +1,4 @@
+import { queryKeys } from '../../lib/queryKeys'
 import { useEffect, useState } from 'react'
 import { Link, Navigate, NavLink, Outlet, useLocation, useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
@@ -11,7 +12,7 @@ function Directory() {
   const { tab, item } = useParams()
   const { user } = useAuth()
   const { pathname } = useLocation()
-  const { data: posts } = useQuery({ queryKey: ['posts'], queryFn: fetchBlogPosts, enabled: tab === 'memory' })
+  const { data: posts } = useQuery({ queryKey: queryKeys.posts(), queryFn: fetchBlogPosts, enabled: tab === 'memory' })
   const categories = [...new Set(posts?.filter(post => !post.archived).map(post => post.category) ?? [])]
   const archiveOpen = tab === 'skill' || tab === 'contact' || item === 'guestbook' || item === 'graph' || item === 'commits'
   return <nav aria-label="Directory" className="soul-directory">

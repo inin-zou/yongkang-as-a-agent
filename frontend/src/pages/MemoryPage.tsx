@@ -1,3 +1,4 @@
+import { queryKeys } from '../lib/queryKeys'
 import { useState, type FormEvent } from 'react'
 import { Link, NavLink, useParams } from 'react-router-dom'
 import '../styles/skill.css'
@@ -33,7 +34,7 @@ function BlogPostView({ slug }: { slug: string }) {
   const [creating, setCreating] = useState(false)
 
   const { data: post, isLoading, error } = useQuery({
-    queryKey: ['post', slug],
+    queryKey: queryKeys.post(slug),
     queryFn: () => fetchBlogPost(slug),
   })
 
@@ -62,7 +63,7 @@ function BlogPostView({ slug }: { slug: string }) {
                 token={token}
                 onSave={async (data) => {
                   await createBlogPost(token, data)
-                  queryClient.invalidateQueries({ queryKey: ['posts'] })
+                  queryClient.invalidateQueries({ queryKey: queryKeys.posts() })
                   setCreating(false)
                 }}
                 onCancel={() => setCreating(false)}
@@ -92,8 +93,8 @@ function BlogPostView({ slug }: { slug: string }) {
           token={token}
           onSave={async (data) => {
             await createBlogPost(token, data)
-            queryClient.invalidateQueries({ queryKey: ['posts'] })
-            queryClient.invalidateQueries({ queryKey: ['post', slug] })
+            queryClient.invalidateQueries({ queryKey: queryKeys.posts() })
+            queryClient.invalidateQueries({ queryKey: queryKeys.post(slug) })
             setCreating(false)
           }}
           onCancel={() => setCreating(false)}
@@ -106,8 +107,8 @@ function BlogPostView({ slug }: { slug: string }) {
           initial={post}
           onSave={async (data) => {
             await updateBlogPost(token, post.id, data)
-            queryClient.invalidateQueries({ queryKey: ['posts'] })
-            queryClient.invalidateQueries({ queryKey: ['post', slug] })
+            queryClient.invalidateQueries({ queryKey: queryKeys.posts() })
+            queryClient.invalidateQueries({ queryKey: queryKeys.post(slug) })
             setEditing(false)
           }}
           onCancel={() => setEditing(false)}
@@ -133,7 +134,7 @@ function BlogPostView({ slug }: { slug: string }) {
                 onClick={async () => {
                   if (!confirm(`Delete "${post.title}"?`)) return
                   await deleteBlogPost(token, post.id)
-                  queryClient.invalidateQueries({ queryKey: ['posts'] })
+                  queryClient.invalidateQueries({ queryKey: queryKeys.posts() })
                 }}
               >
                 DELETE
@@ -197,7 +198,7 @@ function GuestbookView() {
   const [submitting, setSubmitting] = useState(false)
 
   const { data: entries, isLoading } = useQuery({
-    queryKey: ['guestbook'],
+    queryKey: queryKeys.guestbook(),
     queryFn: fetchGuestbook,
   })
 
@@ -213,7 +214,7 @@ function GuestbookView() {
         message: message.trim(),
       })
       setMessage('')
-      queryClient.invalidateQueries({ queryKey: ['guestbook'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.guestbook() })
     } catch {
       // silently fail
     } finally {
@@ -287,7 +288,7 @@ function GuestbookView() {
 
 /* Writing index uses the same rows as the README. */
 function MemoryLanding({ category }: { category?: string }) {
-  const { data: posts, isLoading } = useQuery({ queryKey: ['posts'], queryFn: fetchBlogPosts })
+  const { data: posts, isLoading } = useQuery({ queryKey: queryKeys.posts(), queryFn: fetchBlogPosts })
   const categories = [...new Set(posts?.filter(post => !post.archived).map(post => post.category) ?? [])]
   const visible = (posts ?? []).filter(post => !post.archived && (!category || post.category === category))
     .slice().sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
@@ -318,7 +319,7 @@ function MemoryLanding({ category }: { category?: string }) {
 
 export default function MemoryPage() {
   const { item, sub } = useParams<{ item?: string; sub?: string }>()
-  const { data: posts, isLoading } = useQuery({ queryKey: ['posts'], queryFn: fetchBlogPosts, enabled: !!item && !sub && item !== 'guestbook' && item !== 'feedback' })
+  const { data: posts, isLoading } = useQuery({ queryKey: queryKeys.posts(), queryFn: fetchBlogPosts, enabled: !!item && !sub && item !== 'guestbook' && item !== 'feedback' })
   if (!item) return <MemoryLanding />
   if (item === 'guestbook' || item === 'feedback') return <GuestbookView />
   if (sub) return <BlogPostView slug={sub} />

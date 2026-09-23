@@ -1,3 +1,4 @@
+import { queryKeys } from '../../lib/queryKeys'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { setPostArchived } from '../../lib/api'
 import type { BlogPost } from '../../types'
@@ -9,9 +10,9 @@ export default function PostArchiveToggle({ post, token }: { post: BlogPost; tok
     mutationFn: () => setPostArchived(token, post.id, !post.archived),
     onSuccess: async () => {
       await Promise.all([
-        client.invalidateQueries({ queryKey: ['posts'] }),
-        client.invalidateQueries({ queryKey: ['admin-posts'] }),
-        client.invalidateQueries({ queryKey: ['post', post.slug] }),
+        client.invalidateQueries({ queryKey: queryKeys.posts() }),
+        client.invalidateQueries({ queryKey: queryKeys.adminPosts() }),
+        client.invalidateQueries({ queryKey: queryKeys.post(post.slug) }),
       ])
     },
   })

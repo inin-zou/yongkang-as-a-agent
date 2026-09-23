@@ -1,3 +1,4 @@
+import { queryKeys } from '../../lib/queryKeys'
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchExperience, createExperience, updateExperience, deleteExperience } from '../../lib/api'
@@ -17,7 +18,7 @@ export default function ResumeView() {
   const [creating, setCreating] = useState(false)
 
   const { data: experience, isLoading } = useQuery({
-    queryKey: ['experience'],
+    queryKey: queryKeys.experience(),
     queryFn: fetchExperience,
   })
 
@@ -50,7 +51,7 @@ export default function ResumeView() {
         <ExperienceEditor
           onSave={async (data) => {
             await createExperience(token, data)
-            queryClient.invalidateQueries({ queryKey: ['experience'] })
+            queryClient.invalidateQueries({ queryKey: queryKeys.experience() })
             setCreating(false)
           }}
           onCancel={() => setCreating(false)}
@@ -65,7 +66,7 @@ export default function ResumeView() {
               initial={exp}
               onSave={async (data) => {
                 await updateExperience(token, exp.id!, data)
-                queryClient.invalidateQueries({ queryKey: ['experience'] })
+                queryClient.invalidateQueries({ queryKey: queryKeys.experience() })
                 setEditingExp(null)
               }}
               onCancel={() => setEditingExp(null)}
@@ -78,7 +79,7 @@ export default function ResumeView() {
               onDelete={async () => {
                 if (!confirm(`Delete "${exp.role} at ${exp.company}"?`)) return
                 await deleteExperience(token, exp.id!)
-                queryClient.invalidateQueries({ queryKey: ['experience'] })
+                queryClient.invalidateQueries({ queryKey: queryKeys.experience() })
               }}
               isFirst={i === 0}
               isLast={i === sorted.length - 1}
@@ -89,7 +90,7 @@ export default function ResumeView() {
                   updateExperience(token, exp.id!, { ...exp, sortOrder: prev.sortOrder ?? i - 1 }),
                   updateExperience(token, prev.id!, { ...prev, sortOrder: exp.sortOrder ?? i }),
                 ])
-                queryClient.invalidateQueries({ queryKey: ['experience'] })
+                queryClient.invalidateQueries({ queryKey: queryKeys.experience() })
               }}
               onMoveDown={async () => {
                 if (i >= sorted.length - 1) return
@@ -98,7 +99,7 @@ export default function ResumeView() {
                   updateExperience(token, exp.id!, { ...exp, sortOrder: next.sortOrder ?? i + 1 }),
                   updateExperience(token, next.id!, { ...next, sortOrder: exp.sortOrder ?? i }),
                 ])
-                queryClient.invalidateQueries({ queryKey: ['experience'] })
+                queryClient.invalidateQueries({ queryKey: queryKeys.experience() })
               }}
             >
               <ExperienceBlock experience={exp} />

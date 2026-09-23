@@ -1,3 +1,4 @@
+import { queryKeys } from '../../lib/queryKeys'
 import { useRef, useEffect, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { fetchGitHubContributions } from '../../lib/api'
@@ -26,7 +27,7 @@ export default function ContributionGraph() {
   const tooltipRef = useRef<HTMLDivElement>(null)
 
   const { data: calendar, isLoading } = useQuery({
-    queryKey: ['github-contributions'],
+    queryKey: queryKeys.githubContributions(),
     queryFn: fetchGitHubContributions,
   })
 

@@ -1,3 +1,4 @@
+import { queryKeys } from '../../lib/queryKeys'
 import { useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
@@ -7,7 +8,7 @@ import SoulReveal from './SoulReveal'
 import { SelectedWorkList } from './selectedWork'
 
 function FeaturedTrack() {
-  const tracks = useQuery({ queryKey: ['music-tracks'], queryFn: fetchMusicTracks })
+  const tracks = useQuery({ queryKey: queryKeys.musicTracks(), queryFn: fetchMusicTracks })
   const player = useMusicPlayer()
   const track = tracks.data?.[0]
   if (tracks.isPending) return <p role="status">Loading music…</p>
@@ -29,7 +30,7 @@ function FeaturedTrack() {
 
 export default function SoulReadmeContent({ bio, currently }: { bio: string[]; currently: string }) {
   const { hash, key } = useLocation()
-  const posts = useQuery({ queryKey: ['posts'], queryFn: fetchBlogPosts })
+  const posts = useQuery({ queryKey: queryKeys.posts(), queryFn: fetchBlogPosts })
   // The page can mount after the shell's scroll effect when its chunk is lazy-loaded.
   useEffect(() => {
     if (hash) document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'instant', block: 'start' })

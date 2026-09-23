@@ -1,3 +1,4 @@
+import { queryKeys } from '../lib/queryKeys'
 import { useState, lazy, Suspense } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -51,7 +52,7 @@ function SoulReadme() {
   const queryClient = useQueryClient()
 
   const { data: pageData } = useQuery({
-    queryKey: ['pages', 'soul'],
+    queryKey: queryKeys.page('soul'),
     queryFn: () => fetchPage('soul'),
   })
 
@@ -120,7 +121,7 @@ function SoulReadme() {
         speed: editSpeed,
         languages: editLanguages,
       })
-      queryClient.setQueryData(['pages', 'soul'], updated)
+      queryClient.setQueryData(queryKeys.page('soul'), updated)
       setIsEditing(false)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Save failed')
