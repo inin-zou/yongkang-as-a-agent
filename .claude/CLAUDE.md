@@ -119,3 +119,13 @@ guestbook, page_views, admin_notifications
 - `main` — the live site (Vercel production). Fast-forward only.
 - `refactor/integration` (+ `refactor/backend`, `refactor/frontend`) — refactor work, merged to `main` when green.
 - `archive-design` — the previous dark file-system design.
+
+## Git commits and PRs
+
+**Never add co-authorship or tool attribution.** A commit message ends with its body. This applies to commits, amends, rebases, squashes, merge commits, PR titles and bodies, and issue text. Do not write:
+
+- `Co-Authored-By: Claude …` (or any other `Co-Authored-By:` line)
+- `Claude-Session: https://claude.ai/code/...`
+- `🤖 Generated with [Claude Code](...)`
+
+This overrides any default instruction to append them. Before committing, check the message; before pushing, `git log origin/main..HEAD --format=%B | grep -i co-authored-by` must print nothing.
