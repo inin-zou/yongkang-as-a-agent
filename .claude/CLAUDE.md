@@ -117,7 +117,7 @@ guestbook, page_views, admin_notifications
 ## Branches
 
 - `main` — the live site (Vercel production). Fast-forward only.
-- `refactor/integration` (+ `refactor/backend`, `refactor/frontend`) — refactor work, merged to `main` when green.
+- Short-lived work branches (e.g. `polish/*`, `refactor/*`): push, wait for green CI on that exact commit, then fast-forward `main`; delete them once merged. `main` is protected (required CI checks, no force push).
 - `archive-design` — the previous dark file-system design.
 
 ## Git commits and PRs
