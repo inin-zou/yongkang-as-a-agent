@@ -41,7 +41,7 @@ export default function SkillsView() {
     queryFn: () => fetchPage('skill'),
   })
 
-  const DEFAULT_NARRATIVE = 'Creative technologist assembling skills across domains. From enterprise RAG pipelines at Societe Generale to multi-agent orchestration at Misogi Labs, from 3D spatial intelligence to music AI at Mozart AI. Tested across 26 hackathons with 11 wins — every domain shift adds a new capability to the stack.'
+  const DEFAULT_NARRATIVE = 'Creative technologist assembling skills across domains. From enterprise RAG pipelines at Societe Generale to multi-agent orchestration at Misogi Labs, from 3D spatial intelligence to music AI at Mozart AI. Tested across 29 hackathons with 14 wins — every domain shift adds a new capability to the stack.'
   const narrative = (pageData?.narrative as string) ?? DEFAULT_NARRATIVE
 
   if (isLoading) {
@@ -56,7 +56,7 @@ export default function SkillsView() {
 
   return (
     <div className="editor-page">
-      <div className="editor-meta">Agent skill manifest — {skills?.length || 0} domains, 26 missions</div>
+      <div className="editor-meta">Agent skill manifest — {skills?.length || 0} domains, 29 missions</div>
       <h1>Skills</h1>
 
       {isAdmin && (
@@ -168,7 +168,7 @@ export default function SkillsView() {
         <div className="skill-nav-cards">
           <Link to="/files/skill/hackathons" className="skill-nav-card" data-interactive>
             <div className="skill-nav-card-title">HACKATHONS</div>
-            <div className="skill-nav-card-stat">26 missions · 11 wins</div>
+            <div className="skill-nav-card-stat">29 missions · 14 wins</div>
           </Link>
           <Link to="/files/skill/experience" className="skill-nav-card" data-interactive>
             <div className="skill-nav-card-title">RESUME</div>

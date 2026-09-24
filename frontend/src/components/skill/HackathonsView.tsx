@@ -102,7 +102,7 @@ export default function HackathonsView() {
 
   return (
     <div className="editor-page">
-      <div className="editor-meta">26 missions. 11 wins. Always shipping.</div>
+      <div className="editor-meta">29 missions. 14 wins. Always shipping.</div>
       <h1>Hackathons</h1>
 
       {isAdmin && (

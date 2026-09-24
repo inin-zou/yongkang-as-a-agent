@@ -378,26 +378,26 @@
 .document-layout .hackathon-atlas-heading, .document-layout .hackathon-atlas-events-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 8px 20px; flex-wrap: wrap; }
 .document-layout .hackathon-atlas-heading h2 { margin: 0; font-size: 20px; }
 .document-layout .hackathon-atlas-heading > span, .document-layout .hackathon-atlas-events-heading > span { font: 11px/1.6 var(--font-mono); color: var(--color-ink-muted); }
-.document-layout .hackathon-atlas-map { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 24px; align-items: end; margin-top: 24px; }
-.document-layout .hackathon-atlas-geography { min-width: 0; }
-.document-layout .hackathon-atlas-geography:only-child { grid-column: 1 / -1; max-width: 540px; width: 100%; }
-.document-layout .hackathon-atlas-map-label { display: block; margin-bottom: 12px; color: var(--color-ink-muted); font: 11px/1.6 var(--font-mono); }
-.document-layout .hackathon-atlas-map-frame { position: relative; width: 100%; }
-.document-layout .hackathon-atlas-map-frame svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.document-layout .hackathon-atlas-land { fill: var(--color-ink-muted); opacity: .4; }
-.document-layout .hackathon-atlas-marker line { stroke: var(--color-ink-muted); stroke-width: .7px; vector-effect: non-scaling-stroke; }
-.document-layout .hackathon-atlas-marker circle { fill: var(--color-void); stroke: var(--soul-accent); stroke-width: 1.2px; vector-effect: non-scaling-stroke; }
-.document-layout .hackathon-atlas-marker.is-selected circle { fill: var(--soul-accent); }
-.document-layout .hackathon-atlas-context-pin { fill: var(--soul-accent); }
-.document-layout .hackathon-atlas-place { display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: max-content; min-height: 44px; padding: 4px 7px; background: var(--color-void); border: 0; border-radius: 0; color: var(--color-ink); cursor: pointer; font: 500 13px/1.4 var(--font-sans); white-space: nowrap; overflow-wrap: normal; word-break: normal; }
+.document-layout .hackathon-atlas-views { display: flex; flex-wrap: wrap; gap: 4px; margin: 20px 0 12px; }
+.document-layout .hackathon-atlas-views button { min-height: 44px; padding: 8px 16px; border: 1px solid var(--soul-line); background: transparent; color: var(--color-ink-muted); font: 12px var(--font-mono); cursor: pointer; }
+.document-layout .hackathon-atlas-views button[aria-pressed='true'] { color: var(--soul-accent); border-color: var(--soul-accent); background: var(--color-surface-0); }
+.document-layout .hackathon-atlas-map-frame { position: relative; width: 100%; overflow: hidden; }
+.document-layout .hackathon-atlas-geography { display: block; width: 100%; }
+.document-layout .hackathon-atlas-dot { fill: var(--color-ink-muted); opacity: .65; }
+.document-layout .hackathon-atlas-pin-target { cursor: pointer; }
+.document-layout .hackathon-atlas-geographic-pin { fill: var(--color-void); stroke: var(--soul-accent); stroke-width: 1.4px; vector-effect: non-scaling-stroke; }
+.document-layout .hackathon-atlas-geographic-pin.is-selected, .document-layout .hackathon-atlas-context-pin { fill: var(--soul-accent); }
+.document-layout .hackathon-atlas-leaders { position: absolute; inset: 0; pointer-events: none; }
+.document-layout .hackathon-atlas-leaders line { stroke: var(--color-ink-muted); stroke-width: .7; opacity: .65; }
+.document-layout .hackathon-atlas-place { display: inline-flex; align-items: center; justify-content: center; gap: 7px; max-width: 100%; min-height: 44px; padding: 4px 7px; background: var(--color-void); border: 0; border-radius: 0; color: var(--color-ink); cursor: pointer; font: 500 13px/1.4 var(--font-sans); white-space: nowrap; overflow-wrap: normal; word-break: normal; }
+.document-layout .hackathon-atlas-place > span:first-child { overflow: hidden; text-overflow: ellipsis; }
 .document-layout .hackathon-atlas-label { position: absolute; transform: translate(-50%, -50%); }
 .document-layout .hackathon-atlas-place[aria-pressed='true'] { color: var(--soul-accent); text-decoration: underline; text-underline-offset: 4px; }
 .document-layout .hackathon-atlas-place:hover { color: var(--soul-accent); }
 .document-layout .hackathon-atlas-place:focus-visible { z-index: 1; outline: 2px solid var(--soul-accent); outline-offset: 2px; }
-.document-layout .hackathon-atlas-count { font: 11px var(--font-mono); color: var(--color-ink-muted); }
-.document-layout .hackathon-atlas-europe-caption { position: absolute; left: 49%; top: 5%; font: 10px var(--font-mono); color: var(--color-ink-muted); }
-.document-layout .hackathon-atlas-other { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 16px; }
-.document-layout .hackathon-atlas-caption { margin: 16px 0 20px; color: var(--color-ink-muted); font: 10px/1.6 var(--font-mono); }
+.document-layout .hackathon-atlas-count { flex-shrink: 0; font: 11px var(--font-mono); color: var(--color-ink-muted); }
+.document-layout .hackathon-atlas-other { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 12px 0 20px; }
+.document-layout .hackathon-atlas-caption { margin: 12px 0 20px; color: var(--color-ink-muted); font: 10px/1.6 var(--font-mono); }
 .document-layout .hackathon-atlas-events { padding: 16px 0; border-block: 1px solid var(--soul-line); }
 .document-layout .hackathon-atlas-events-heading h3 { font-size: 18px; }
 .document-layout .hackathon-atlas-events-heading h3 span { font: 11px var(--font-mono); color: var(--color-ink-muted); margin-left: 8px; }
@@ -407,7 +407,3 @@
 .document-layout .hackathon-atlas-events small { display: block; }
 .document-layout .hackathon-atlas-events small.hackathon-atlas-win { color: var(--soul-accent); }
 .document-layout .hackathon-atlas-status { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-@media (max-width: 720px) {
-  .document-layout .hackathon-atlas-map { grid-template-columns: minmax(0, 1fr); gap: 20px; }
-  .document-layout .hackathon-atlas-world { width: 100%; max-width: 360px; justify-self: end; }
-}

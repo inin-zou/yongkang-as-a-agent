@@ -46,7 +46,7 @@ describe('paper archive pages', () => {
     expect(await screen.findByRole('heading', { name: 'Engineering' })).toBeInTheDocument()
     expect(screen.getByText('Go · React')).toBeInTheDocument()
     expect(container.querySelector('.cli-prompt')).toBeNull()
-    expect(screen.getByText('26 missions · 11 wins')).toBeInTheDocument()
+    expect(screen.getByText('29 missions · 14 wins')).toBeInTheDocument()
   })
   it('shows role and company together with experience bullets', async () => {
     mount(<ResumeView />)
@@ -58,7 +58,7 @@ describe('paper archive pages', () => {
     const { container } = mount(<HackathonsView />)
     expect(await screen.findByRole('heading', { name: '2026' })).toBeInTheDocument()
     expect(within(container.querySelector('.document-year') as HTMLElement).getByText('Paris')).toBeInTheDocument()
-    expect(screen.getByText('26 missions. 11 wins. Always shipping.')).toBeInTheDocument()
+    expect(screen.getByText('29 missions. 14 wins. Always shipping.')).toBeInTheDocument()
     expect(container.querySelector('.cli-prompt')).toBeNull()
   })
 })
