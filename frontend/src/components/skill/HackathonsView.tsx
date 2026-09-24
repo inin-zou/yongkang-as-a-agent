@@ -6,6 +6,7 @@ import { useAdminEdit } from '../../hooks/useAdminEdit'
 import AdminBar from '../admin/AdminBar'
 import EditableItem from '../admin/EditableItem'
 import HackathonEditor from '../admin/HackathonEditor'
+import HackathonMap from './HackathonMap'
 import type { Hackathon } from '../../types'
 import '../../styles/skill.css'
 
@@ -122,6 +123,8 @@ export default function HackathonsView() {
           onCancel={() => setCreating(false)}
         />
       )}
+
+      <HackathonMap hackathons={all} />
 
       <div className="editor-content">
         {[...new Set(all.map(h => h.date.slice(0, 4)))].sort().reverse().map(year => <section className="document-year" key={year}>

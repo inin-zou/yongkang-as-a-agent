@@ -57,7 +57,7 @@ describe('paper archive pages', () => {
   it('groups hackathons by year and retains the curated counts', async () => {
     const { container } = mount(<HackathonsView />)
     expect(await screen.findByRole('heading', { name: '2026' })).toBeInTheDocument()
-    expect(screen.getByText('Paris')).toBeInTheDocument()
+    expect(within(container.querySelector('.document-year') as HTMLElement).getByText('Paris')).toBeInTheDocument()
     expect(screen.getByText('26 missions. 11 wins. Always shipping.')).toBeInTheDocument()
     expect(container.querySelector('.cli-prompt')).toBeNull()
   })
