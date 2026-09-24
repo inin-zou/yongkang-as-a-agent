@@ -85,7 +85,6 @@ frontend/
     global/                 BlogPostContent, PostInteractions, MusicPlayerBar, ErrorBoundary
   src/lib/                  api.ts (?_t= cache busting), auth, MusicPlayerContext, markdown
   src/styles/document.css   The paper design system for every /files page
-docs/superpowers/specs/     Design specs, storyboards and references
 ```
 
 ### The journey intro

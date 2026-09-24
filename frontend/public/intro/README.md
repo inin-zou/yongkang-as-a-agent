@@ -1,7 +1,7 @@
 # Journey intro assets
 
 The localhost `/lab/intro` sample uses the 11 WebP layers in [shots](shots/README.md),
-derived from the storyboard crops in `docs/superpowers/specs/assets/frames/`.
+derived from the storyboard crops of the original design doc.
 All environments, hands, and arms are raster layers; SVG groups position them.
 The four superseded flat/arrival environment experiments were removed after
 checking that no runtime code referenced them.

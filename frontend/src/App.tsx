@@ -97,7 +97,7 @@ const router = createBrowserRouter([
     element: <Navigate to="/files/admin" replace />,
   },
   {
-    // Redesign experiment: 03→04→05 intro sample (see docs/superpowers/specs)
+    // The journey intro, kept at its original lab URL.
     path: '/lab/intro',
     element: <Suspense fallback={<PageLoader />}><IntroLab /></Suspense>,
   },

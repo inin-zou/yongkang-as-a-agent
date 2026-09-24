@@ -4,7 +4,7 @@ Local experiment on `redesign/journey-intro`, route `/lab/intro`. No deployment.
 
 ## Current 06/07 composition
 
-The owner reference `docs/superpowers/specs/assets/06-07-reference.png` is the
+The owner's 06/07 reference image is the
 composition authority. Both matching `frames-v3/06-turn.png` and
 `frames-v3/07-continue.png` style crops were viewed, along with all three
 `.playwright-mcp/books-{16_4,17_9,20_6}.jpg` comparison captures.
