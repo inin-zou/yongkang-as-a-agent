@@ -11,6 +11,8 @@ describe('PostEditor', () => {
     content: 'This is my first post.',
     preview: 'A brief intro',
     category: 'technical',
+    tags: ['Agents', 'Tauri'],
+    result: '3rd place, solo',
     publishedAt: '2024-01-01',
   }
 
@@ -29,6 +31,8 @@ describe('PostEditor', () => {
     expect(screen.getByLabelText('Title')).toHaveValue('Hello World')
     expect(screen.getByLabelText('Preview')).toHaveValue('A brief intro')
     expect(screen.getByLabelText('Content (Markdown)')).toHaveValue('This is my first post.')
+    expect(screen.getByLabelText('Tags')).toHaveValue('Agents, Tauri')
+    expect(screen.getByLabelText('Result')).toHaveValue('3rd place, solo')
     expect(screen.getByText('UPDATE')).toBeInTheDocument()
   })
 
@@ -50,11 +54,22 @@ describe('PostEditor', () => {
           title: 'My Post',
           preview: 'Quick preview',
           category: 'technical',
+          tags: [],
+          result: '',
         })
       )
       // content is converted from markdown to HTML
       expect(onSave.mock.calls[0][0].content).toContain('Full content here.')
     })
+  })
+
+  it('sends empty strings to clear existing metadata', async () => {
+    const onSave = vi.fn().mockResolvedValue(undefined)
+    render(<PostEditor token="test-token" initial={mockInitial} onSave={onSave} onCancel={vi.fn()} />)
+    fireEvent.change(screen.getByLabelText('Tags'), { target: { value: '' } })
+    fireEvent.change(screen.getByLabelText('Result'), { target: { value: '' } })
+    fireEvent.click(screen.getByText('UPDATE'))
+    await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ tags: [], result: '' })))
   })
 
   it('calls onCancel when cancel clicked', () => {

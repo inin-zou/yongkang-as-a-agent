@@ -84,6 +84,8 @@ export interface BlogPost {
   content: string;
   preview: string;
   category: string;
+  tags?: string[];
+  result?: string;
   publishedAt: string;
   updatedAt?: string;
 }

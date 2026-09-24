@@ -21,8 +21,8 @@ type PortfolioDataStore interface {
 type PostStore interface {
 	GetBlogPosts() ([]model.BlogPost, error)
 	GetBlogPostBySlug(slug string) (*model.BlogPost, error)
-	CreateBlogPost(slug, title, content, preview, category, publishedAt string) (*model.BlogPost, error)
-	UpdateBlogPost(id, slug, title, content, preview, category, publishedAt, updatedAt string, archived *bool) (*model.BlogPost, error)
+	CreateBlogPost(slug, title, content, preview, category, publishedAt, result string, tags []string) (*model.BlogPost, error)
+	UpdateBlogPost(id, slug, title, content, preview, category, publishedAt, updatedAt string, archived *bool, tags *[]string, result *string) (*model.BlogPost, error)
 	SetBlogPostArchived(id string, archived bool) error
 	DeleteBlogPost(id string) error
 }

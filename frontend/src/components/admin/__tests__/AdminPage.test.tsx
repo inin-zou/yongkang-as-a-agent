@@ -76,7 +76,7 @@ describe('extracted admin routes and forms', () => {
     expect(await screen.findByRole('button', { name: '+ NEW POST' })).toBeInTheDocument()
     expect(requests).toContainEqual({ path: '/api/admin/generate-draft', method: 'POST', body: { title: 'New title', category: 'technical', roughIdea: 'A rough idea' } })
     expect(requests).toContainEqual({ path: '/api/admin/refine-draft', method: 'POST', body: { title: 'New title', category: 'technical', existingContent: 'Generated prose' } })
-    expect(requests).toContainEqual({ path: '/api/admin/posts', method: 'POST', body: { title: 'New title', slug: 'refined', category: 'technical', content: '<p>Refined prose</p>', preview: 'Refined preview' } })
+    expect(requests).toContainEqual({ path: '/api/admin/posts', method: 'POST', body: { title: 'New title', slug: 'refined', category: 'technical', tags: [], result: '', content: '<p>Refined prose</p>', preview: 'Refined preview' } })
     expect(requests.filter(r => r.path === '/api/posts')).toHaveLength(2)
   })
 
@@ -87,7 +87,7 @@ describe('extracted admin routes and forms', () => {
     fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Updated title' } })
     fireEvent.click(screen.getByRole('button', { name: 'UPDATE' }))
     expect(await screen.findByRole('button', { name: '+ NEW POST' })).toBeInTheDocument()
-    expect(requests).toContainEqual({ path: '/api/admin/posts/one', method: 'PUT', body: { title: 'Updated title', slug: 'first', category: 'technical', content: '<p>Original prose</p>', preview: 'Preview' } })
+    expect(requests).toContainEqual({ path: '/api/admin/posts/one', method: 'PUT', body: { title: 'Updated title', slug: 'first', category: 'technical', tags: [], result: '', content: '<p>Original prose</p>', preview: 'Preview' } })
   })
 
   it('edits music through the existing upload-capable admin form', async () => {

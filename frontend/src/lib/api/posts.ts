@@ -11,7 +11,7 @@ export function fetchBlogPost(slug: string): Promise<BlogPost> {
 
 export async function createBlogPost(
   token: string,
-  data: { slug: string; title: string; content: string; preview: string; category: string; publishedAt?: string },
+  data: { slug: string; title: string; content: string; preview: string; category: string; tags?: string[]; result?: string; publishedAt?: string },
 ): Promise<BlogPost> {
   return request<BlogPost>('POST', `/admin/posts`, { token, body: data });
 }
@@ -23,7 +23,7 @@ export async function setPostArchived(token: string, id: string, archived: boole
 export async function updateBlogPost(
   token: string,
   id: string,
-  data: { slug: string; title: string; content: string; preview: string; category: string; publishedAt?: string; updatedAt?: string; archived?: boolean },
+  data: { slug: string; title: string; content: string; preview: string; category: string; tags?: string[]; result?: string; publishedAt?: string; updatedAt?: string; archived?: boolean },
 ): Promise<BlogPost> {
   return request<BlogPost>('PUT', `/admin/posts/${id}`, { token, body: data });
 }

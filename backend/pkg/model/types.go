@@ -99,15 +99,17 @@ type ContactRequest struct {
 
 // BlogPost represents a blog entry in MEMORY.md.
 type BlogPost struct {
-	Archived    bool   `json:"archived"`
-	ID          string `json:"id"`
-	Slug        string `json:"slug"`
-	Title       string `json:"title"`
-	Content     string `json:"content"`
-	Preview     string `json:"preview"`
-	Category    string `json:"category"`
-	PublishedAt string `json:"publishedAt"`
-	UpdatedAt   string `json:"updatedAt,omitempty"`
+	Archived    bool     `json:"archived"`
+	ID          string   `json:"id"`
+	Slug        string   `json:"slug"`
+	Title       string   `json:"title"`
+	Content     string   `json:"content"`
+	Preview     string   `json:"preview"`
+	Category    string   `json:"category"`
+	Tags        []string `json:"tags"`
+	Result      string   `json:"result"`
+	PublishedAt string   `json:"publishedAt"`
+	UpdatedAt   string   `json:"updatedAt,omitempty"`
 }
 
 // Feedback represents a visitor note/feedback entry.

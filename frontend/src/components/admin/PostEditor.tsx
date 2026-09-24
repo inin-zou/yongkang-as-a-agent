@@ -1,3 +1,5 @@
+import PostMetadataFields from './PostMetadataFields'
+import { formatTags, parseTags } from '../../lib/postTags'
 import { useState, type FormEvent } from 'react'
 import type { BlogPost } from '../../types/index'
 import { htmlToMarkdown, markdownToHtml } from '../../lib/markdown'
@@ -10,7 +12,7 @@ import '../../styles/memory.css'
 interface PostEditorProps {
   initial?: BlogPost
   token: string
-  onSave: (data: { slug: string; title: string; content: string; preview: string; category: string; publishedAt?: string; updatedAt?: string }) => Promise<void>
+  onSave: (data: { slug: string; title: string; content: string; preview: string; category: string; tags: string[]; result: string; publishedAt?: string; updatedAt?: string }) => Promise<void>
   onCancel: () => void
 }
 
@@ -21,6 +23,8 @@ export default function PostEditor({ initial, token, onSave, onCancel }: PostEdi
   const [content, setContent] = useState(() =>
     initial?.content ? htmlToMarkdown(initial.content) : ''
   )
+  const [tags, setTags] = useState(formatTags(initial?.tags))
+  const [result, setResult] = useState(initial?.result ?? '')
   const [category, setCategory] = useState(initial?.category ?? 'technical')
   const [publishedAt, setPublishedAt] = useState(initial?.publishedAt?.split('T')[0] ?? '')
   const [updatedAt, setUpdatedAt] = useState(initial?.updatedAt?.split('T')[0] ?? '')
@@ -36,7 +40,7 @@ export default function PostEditor({ initial, token, onSave, onCancel }: PostEdi
     setError('')
     try {
       await onSave({
-        slug, title, content: markdownToHtml(content), preview, category,
+        slug, title, content: markdownToHtml(content), preview, category, tags: parseTags(tags), result,
         publishedAt: publishedAt || undefined,
         updatedAt: updatedAt || undefined,
       })
@@ -109,19 +113,11 @@ export default function PostEditor({ initial, token, onSave, onCancel }: PostEdi
         />
       </div>
 
-      <div>
-        <label htmlFor="post-category" className="memory-feedback-label">Category</label>
-        <select
-          id="post-category"
-          className="memory-feedback-input"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-        >
-          <option value="technical">Technical Blog</option>
-          <option value="hackathon">Hackathon Journey</option>
-          <option value="research">Research Reading</option>
-        </select>
-      </div>
+      <PostMetadataFields
+        idPrefix="post"
+        category={category} tags={tags} result={result}
+        onCategoryChange={setCategory} onTagsChange={setTags} onResultChange={setResult}
+      />
 
       {initial && (
         <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>

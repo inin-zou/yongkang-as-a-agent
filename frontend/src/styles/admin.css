@@ -633,3 +633,12 @@
   font-size: 0.65rem;
   color: var(--color-ink-faint);
 }
+
+/* Keep category and domain aligned without intrinsic select widths overflowing. */
+.admin-editor > .admin-post-classification {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+.admin-post-classification > div { min-width: 0; }
+.admin-post-classification select { width: 100%; min-width: 0; }

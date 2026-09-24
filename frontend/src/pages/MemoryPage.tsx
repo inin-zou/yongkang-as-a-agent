@@ -1,3 +1,4 @@
+import { stripLeadingEmoji } from '../lib/stripLeadingEmoji'
 import { queryKeys } from '../lib/queryKeys'
 import { useState, type FormEvent } from 'react'
 import { Link, NavLink, useParams } from 'react-router-dom'
@@ -292,7 +293,13 @@ function GuestbookView() {
   )
 }
 
-/* Writing index uses the same rows as the README. */
+function WritingMeta({ post, category }: { post: { category: string; tags?: string[]; result?: string }; category?: string }) {
+  const meta = [category ? '' : post.category, post.tags?.join(', '), post.result]
+    .map(part => part?.trim()).filter(Boolean).join(' · ')
+  return meta ? <div className="memory-index-meta">{meta}</div> : null
+}
+
+/* A quiet chronological index, independent of the README's writing rows. */
 function MemoryLanding({ category }: { category?: string }) {
   const { data: posts, isLoading } = useQuery({ queryKey: queryKeys.posts(), queryFn: fetchBlogPosts })
   const categories = [...new Set(posts?.filter(post => !post.archived).map(post => post.category) ?? [])]
@@ -300,23 +307,33 @@ function MemoryLanding({ category }: { category?: string }) {
     .slice().sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
   const archived = (posts ?? []).filter(post => post.archived && (!category || post.category === category))
     .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
+  const years = [...new Set(visible.map(post => post.publishedAt.slice(0, 4)))]
 
-  return <div className="editor-page">
+  return <div className="editor-page memory-index">
     <h1>Writing</h1>
-    <nav className="document-filters" aria-label="Writing categories">
+    <nav className="memory-index-filters" aria-label="Writing categories">
       <NavLink end to="/files/memory">All</NavLink>
       {categories.map(value => <NavLink key={value} to={`/files/memory/${value}`}>{value}</NavLink>)}
     </nav>
     {isLoading && <p>Loading writing...</p>}
     {!isLoading && visible.length === 0 && <p>No entries yet.</p>}
-    {visible.map(post => <article className="soul-post-row" key={post.id}>
-      <div><h3><Link to={`/files/memory/${post.category}/${post.slug}`}>{post.title}</Link></h3><p className="soul-mono">{post.category}</p></div>
-      <time className="soul-mono" dateTime={post.publishedAt}>{post.publishedAt?.split('T')[0]}</time>
-    </article>)}
+    {years.map(year => <section className="memory-index-year" key={year} aria-labelledby={`memory-year-${year}`}>
+      <h2 id={`memory-year-${year}`}>{year}</h2>
+      {visible.filter(post => post.publishedAt.startsWith(year)).map(post => <article className="memory-index-row" key={post.id}>
+        <time dateTime={post.publishedAt}>{post.publishedAt.slice(5, 10)}</time>
+        <div className="memory-index-entry">
+          <h3><Link to={`/files/memory/${post.category}/${post.slug}`}>{stripLeadingEmoji(post.title)}</Link></h3>
+          <WritingMeta post={post} category={category} />
+        </div>
+      </article>)}
+    </section>)}
     {archived.length > 0 && <details className="dir-archive memory-archive">
       <summary className="soul-mono">ARCHIVE</summary>
       <ul>{archived.map(post => <li key={post.id}>
-        <Link to={`/files/memory/${encodeURIComponent(post.category)}/${encodeURIComponent(post.slug)}`}>{post.title}</Link>
+        <div className="memory-index-entry">
+          <Link to={`/files/memory/${encodeURIComponent(post.category)}/${encodeURIComponent(post.slug)}`}>{stripLeadingEmoji(post.title)}</Link>
+          <WritingMeta post={post} category={category} />
+        </div>
         <time className="soul-mono" dateTime={post.publishedAt}>{post.publishedAt?.split('T')[0]}</time>
       </li>)}</ul>
     </details>}

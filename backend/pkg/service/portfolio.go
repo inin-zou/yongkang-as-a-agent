@@ -89,19 +89,19 @@ func (s *PortfolioService) CreateContactSubmission(name, email, message string) 
 }
 
 // CreateBlogPost creates a new blog post.
-func (s *PortfolioService) CreateBlogPost(slug, title, content, preview, category, publishedAt string) (*model.BlogPost, error) {
+func (s *PortfolioService) CreateBlogPost(slug, title, content, preview, category, publishedAt, result string, tags []string) (*model.BlogPost, error) {
 	if s.stores.Posts == nil {
 		return nil, fmt.Errorf("database not configured")
 	}
-	return s.stores.Posts.CreateBlogPost(slug, title, content, preview, category, publishedAt)
+	return s.stores.Posts.CreateBlogPost(slug, title, content, preview, category, publishedAt, result, tags)
 }
 
 // UpdateBlogPost updates an existing blog post.
-func (s *PortfolioService) UpdateBlogPost(id, slug, title, content, preview, category, publishedAt, updatedAt string, archived *bool) (*model.BlogPost, error) {
+func (s *PortfolioService) UpdateBlogPost(id, slug, title, content, preview, category, publishedAt, updatedAt string, archived *bool, tags *[]string, result *string) (*model.BlogPost, error) {
 	if s.stores.Posts == nil {
 		return nil, fmt.Errorf("database not configured")
 	}
-	return s.stores.Posts.UpdateBlogPost(id, slug, title, content, preview, category, publishedAt, updatedAt, archived)
+	return s.stores.Posts.UpdateBlogPost(id, slug, title, content, preview, category, publishedAt, updatedAt, archived, tags, result)
 }
 
 // SetBlogPostArchived archives or restores a blog post.

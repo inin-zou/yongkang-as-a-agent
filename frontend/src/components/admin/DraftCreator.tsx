@@ -1,3 +1,5 @@
+import PostMetadataFields from './PostMetadataFields'
+import { formatTags, parseTags } from '../../lib/postTags'
 import { queryKeys } from '../../lib/queryKeys'
 import { useState, useRef, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
@@ -18,6 +20,8 @@ export default function DraftCreator({ onDone, initial }: { onDone: () => void; 
 
   // Step 1: Input rough idea
   const [title, setTitle] = useState(initial?.title ?? '')
+  const [tags, setTags] = useState(formatTags(initial?.tags))
+  const [result, setResult] = useState(initial?.result ?? '')
   const [category, setCategory] = useState(initial?.category ?? 'technical')
   const [publishedAt, setPublishedAt] = useState(initial?.publishedAt?.split('T')[0] ?? '')
   const [roughIdea, setRoughIdea] = useState(initial ? '' : '')
@@ -118,6 +122,8 @@ export default function DraftCreator({ onDone, initial }: { onDone: () => void; 
           content: htmlContent,
           preview: editPreview,
           category,
+          tags: parseTags(tags),
+          result,
         })
       } else {
         await createBlogPost(token, {
@@ -126,6 +132,8 @@ export default function DraftCreator({ onDone, initial }: { onDone: () => void; 
           content: htmlContent,
           preview: editPreview,
           category,
+          tags: parseTags(tags),
+          result,
           publishedAt: publishedAt || undefined,
         })
       }
@@ -180,19 +188,11 @@ export default function DraftCreator({ onDone, initial }: { onDone: () => void; 
           />
         </div>
 
-        <div>
-          <label htmlFor="draft-category" className="memory-feedback-label">Category</label>
-          <select
-            id="draft-category"
-            className="memory-feedback-input"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          >
-            <option value="technical">Technical Blog</option>
-            <option value="hackathon">Hackathon Journey</option>
-            <option value="research">Research Reading</option>
-          </select>
-        </div>
+        <PostMetadataFields
+          idPrefix="draft"
+          category={category} tags={tags} result={result}
+          onCategoryChange={setCategory} onTagsChange={setTags} onResultChange={setResult}
+        />
 
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
@@ -280,19 +280,11 @@ export default function DraftCreator({ onDone, initial }: { onDone: () => void; 
         />
       </div>
 
-      <div>
-        <label htmlFor="idea-category" className="memory-feedback-label">Category</label>
-        <select
-          id="idea-category"
-          className="memory-feedback-input"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-        >
-          <option value="technical">Technical Blog</option>
-          <option value="hackathon">Hackathon Journey</option>
-          <option value="research">Research Reading</option>
-        </select>
-      </div>
+      <PostMetadataFields
+        idPrefix="idea"
+        category={category} tags={tags} result={result}
+        onCategoryChange={setCategory} onTagsChange={setTags} onResultChange={setResult}
+      />
 
       <div>
         <label htmlFor="idea-published" className="memory-feedback-label">Published Date</label>

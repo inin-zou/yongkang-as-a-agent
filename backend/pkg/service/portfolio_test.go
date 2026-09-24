@@ -22,7 +22,7 @@ func (f *postFake) SetBlogPostArchived(id string, archived bool) error {
 	f.archived = &archived
 	return f.err
 }
-func (f *postFake) UpdateBlogPost(id, _, _, _, _, _, _, _ string, archived *bool) (*model.BlogPost, error) {
+func (f *postFake) UpdateBlogPost(id, _, _, _, _, _, _, _ string, archived *bool, _ *[]string, _ *string) (*model.BlogPost, error) {
 	f.id = id
 	f.archived = archived
 	return &model.BlogPost{ID: id}, f.err
@@ -62,7 +62,7 @@ func TestPortfolioArchiveAndAdminStores(t *testing.T) {
 		}
 	}
 	for _, archived := range []*bool{nil, new(bool)} {
-		if _, err := s.UpdateBlogPost("post", "slug", "title", "content", "preview", "category", "date", "updated", archived); err != nil || posts.archived != archived {
+		if _, err := s.UpdateBlogPost("post", "slug", "title", "content", "preview", "category", "date", "updated", archived, nil, nil); err != nil || posts.archived != archived {
 			t.Fatalf("archive patch changed: %v", err)
 		}
 	}

@@ -17,7 +17,7 @@ vi.mock('../../../lib/musicPlayer', () => ({ useMusicPlayer: () => player }))
 vi.mock('../../../lib/auth', () => ({ useAuth: () => ({ user: null }) }))
 vi.mock('../../../lib/api', () => ({
   fetchBlogPosts: vi.fn(async () => [
-    { id: 'one', slug: 'first', title: 'First post', category: 'technical', publishedAt: '2026-01-01' },
+    { id: 'one', slug: 'first', title: '🥉First post', category: 'technical', tags: ['Agents', 'Tauri'], result: '3rd place, solo', publishedAt: '2026-01-01' },
     { id: 'archived', slug: 'old', title: 'Archived writing', category: 'old-category', archived: true, publishedAt: '2026-03-01' },
     { id: 'two', slug: 'second', title: 'Second post', category: 'research', publishedAt: '2026-02-01' },
   ]),
@@ -74,6 +74,16 @@ describe('paper writing pages', () => {
     expect(within(archive as HTMLElement).getByText('Archived writing').closest('a')).toHaveAttribute('href', '/files/memory/old-category/old')
     expect(within(screen.getByRole('navigation', { name: 'Writing categories' })).queryByText('old-category')).not.toBeInTheDocument()
     expect(container.querySelectorAll('article')).toHaveLength(2)
+  })
+  it('shows metadata under the title and omits category when filtered', async () => {
+    const { container } = mount(<MemoryPage />, '/files/memory')
+    await screen.findByRole('link', { name: 'First post' })
+    expect(screen.getByText('technical · Agents, Tauri · 3rd place, solo')).toBeInTheDocument()
+    fireEvent.click(within(screen.getByRole('navigation')).getByRole('link', { name: 'technical' }))
+    expect(await screen.findByText('Agents, Tauri · 3rd place, solo')).toBeInTheDocument()
+    fireEvent.click(within(screen.getByRole('navigation')).getByRole('link', { name: 'research' }))
+    await screen.findByRole('link', { name: 'Second post' })
+    expect(container.querySelector('.memory-index-meta')).toBeNull()
   })
   it('keeps archived direct links readable with a quiet marker', async () => {
     vi.mocked(fetchBlogPost).mockResolvedValueOnce({ id: 'archived', slug: 'old', title: 'Archived writing', category: 'technical', archived: true, publishedAt: '2026-01-01', preview: '', content: '<p>Preserved prose.</p>' })

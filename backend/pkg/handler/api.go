@@ -419,14 +419,32 @@ func (h *APIHandler) HandleDeleteMusicTrack(w http.ResponseWriter, r *http.Reque
 
 // blogPostRequest is the JSON body for create/update blog post requests.
 type blogPostRequest struct {
-	Archived    *bool  `json:"archived,omitempty"`
-	Slug        string `json:"slug"`
-	Title       string `json:"title"`
-	Content     string `json:"content"`
-	Preview     string `json:"preview"`
-	Category    string `json:"category"`
-	PublishedAt string `json:"publishedAt,omitempty"`
-	UpdatedAt   string `json:"updatedAt,omitempty"`
+	Archived    *bool     `json:"archived,omitempty"`
+	Slug        string    `json:"slug"`
+	Title       string    `json:"title"`
+	Content     string    `json:"content"`
+	Preview     string    `json:"preview"`
+	Category    string    `json:"category"`
+	Tags        *[]string `json:"tags,omitempty"`
+	Result      *string   `json:"result,omitempty"`
+	PublishedAt string    `json:"publishedAt,omitempty"`
+	UpdatedAt   string    `json:"updatedAt,omitempty"`
+}
+
+// deref returns the pointed-to string, or "" for nil.
+func deref(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
+// derefTags returns the pointed-to tags, or nil.
+func derefTags(t *[]string) []string {
+	if t == nil {
+		return nil
+	}
+	return *t
 }
 
 // HandleCreateBlogPost creates a new blog post (admin only).
@@ -446,7 +464,7 @@ func (h *APIHandler) HandleCreateBlogPost(w http.ResponseWriter, r *http.Request
 	if category == "" {
 		category = "technical"
 	}
-	post, err := h.svc.CreateBlogPost(req.Slug, req.Title, req.Content, req.Preview, category, req.PublishedAt)
+	post, err := h.svc.CreateBlogPost(req.Slug, req.Title, req.Content, req.Preview, category, req.PublishedAt, deref(req.Result), derefTags(req.Tags))
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -474,7 +492,7 @@ func (h *APIHandler) HandleUpdateBlogPost(w http.ResponseWriter, r *http.Request
 	if updateCategory == "" {
 		updateCategory = "technical"
 	}
-	post, err := h.svc.UpdateBlogPost(id, req.Slug, req.Title, req.Content, req.Preview, updateCategory, req.PublishedAt, req.UpdatedAt, req.Archived)
+	post, err := h.svc.UpdateBlogPost(id, req.Slug, req.Title, req.Content, req.Preview, updateCategory, req.PublishedAt, req.UpdatedAt, req.Archived, req.Tags, req.Result)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			writeError(w, http.StatusNotFound, err.Error())
