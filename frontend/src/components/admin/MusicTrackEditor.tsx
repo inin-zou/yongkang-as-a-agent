@@ -18,7 +18,7 @@ export default function MusicTrackEditor({
   const [name, setName] = useState(initial?.name ?? '')
   const [slug, setSlug] = useState(initial?.slug ?? '')
   const [genre, setGenre] = useState(initial?.genre ?? '')
-  const [original, setOriginal] = useState(initial?.original ?? 'true')
+  const [original, setOriginal] = useState(initial?.original === 'true' ? '' : initial?.original ?? '')
   const [notes, setNotes] = useState(initial?.notes ?? '')
   const [fileUrl, setFileUrl] = useState(initial?.fileUrl ?? '')
   const [sortOrder, setSortOrder] = useState(initial?.sortOrder ?? 0)
@@ -87,11 +87,8 @@ export default function MusicTrackEditor({
       </div>
 
       <div>
-        <label htmlFor="track-original" className="memory-feedback-label">Type</label>
-        <select id="track-original" className="memory-feedback-input" value={original} onChange={(e) => setOriginal(e.target.value)}>
-          <option value="true">Original</option>
-          <option value="false">Cover</option>
-        </select>
+        <label htmlFor="track-original" className="memory-feedback-label">Original artist</label>
+        <input id="track-original" type="text" className="memory-feedback-input" placeholder="Leave empty for your own song" value={original} onChange={(e) => setOriginal(e.target.value)} />
       </div>
 
       <div>

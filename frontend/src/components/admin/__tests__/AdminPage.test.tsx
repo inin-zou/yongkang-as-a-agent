@@ -98,7 +98,7 @@ describe('extracted admin routes and forms', () => {
     fireEvent.change(screen.getByLabelText('Track Name'), { target: { value: 'Updated song' } })
     fireEvent.click(screen.getByRole('button', { name: 'UPDATE' }))
     expect(await screen.findByRole('button', { name: '+ NEW TRACK' })).toBeInTheDocument()
-    expect(requests).toContainEqual({ path: '/api/admin/music-tracks/song', method: 'PUT', body: { ...track, name: 'Updated song' } })
+    expect(requests).toContainEqual({ path: '/api/admin/music-tracks/song', method: 'PUT', body: { ...track, name: 'Updated song', original: '' } })
   })
 
   it('deletes feedback and refetches its tab', async () => {

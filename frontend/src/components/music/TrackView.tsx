@@ -1,4 +1,5 @@
 import { queryKeys } from '../../lib/queryKeys'
+import { trackCredit } from '../../lib/trackCredit'
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { updateMusicTrack, deleteMusicTrack } from '../../lib/api'
@@ -65,7 +66,7 @@ export default function TrackView({ track, allTracks }: { track: MusicTrack; all
         ) : (
           <>
             <div className="music-track-meta">
-              <span>Original: {track.original}</span>
+              <span>{trackCredit(track.original)}</span>
               <span>Genre: {track.genre}</span>
             </div>
 
