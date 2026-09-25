@@ -26,7 +26,7 @@ func (r *SupabaseRepository) UpdatePage(id string, content json.RawMessage) (jso
 	var updated json.RawMessage
 	err := r.db.QueryRow(`
 		UPDATE pages SET content = $1, updated_at = now() WHERE id = $2 RETURNING content
-	`, content, id).Scan(&updated)
+	`, string(content), id).Scan(&updated)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("page with id %q not found", id)
 	}

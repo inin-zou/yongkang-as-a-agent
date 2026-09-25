@@ -71,7 +71,7 @@ func (r *SupabaseRepository) CreateSkill(title, slug string, skills, battleTeste
 		INSERT INTO skills (title, slug, skills, battle_tested, sort_order)
 		VALUES ($1, $2, $3, $4, $5)
 		RETURNING id, title, slug, skills, battle_tested, sort_order
-	`, title, slug, skillsJSON, battleTestedJSON, sortOrder).Scan(&d.ID, &d.Title, &slugNull, &skillsRaw, &battleTestedRaw, &d.SortOrder)
+	`, title, slug, string(skillsJSON), string(battleTestedJSON), sortOrder).Scan(&d.ID, &d.Title, &slugNull, &skillsRaw, &battleTestedRaw, &d.SortOrder)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create skill: %w", err)
 	}
@@ -123,7 +123,7 @@ func (r *SupabaseRepository) UpdateSkill(id, title, slug string, skills, battleT
 		SET title = $2, slug = $3, skills = $4, battle_tested = $5, sort_order = $6
 		WHERE id = $1
 		RETURNING id, title, slug, skills, battle_tested, sort_order
-	`, id, title, slug, skillsJSON, battleTestedJSON, sortOrder).Scan(&d.ID, &d.Title, &slugNull, &skillsRaw, &battleTestedRaw, &d.SortOrder)
+	`, id, title, slug, string(skillsJSON), string(battleTestedJSON), sortOrder).Scan(&d.ID, &d.Title, &slugNull, &skillsRaw, &battleTestedRaw, &d.SortOrder)
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("skill with id %q not found", id)
 	}

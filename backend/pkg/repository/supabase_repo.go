@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	_ "github.com/lib/pq"
 )
@@ -14,7 +15,7 @@ type SupabaseRepository struct {
 
 // NewSupabaseRepository connects to Supabase and returns a repository.
 func NewSupabaseRepository(databaseURL string) (*SupabaseRepository, error) {
-	db, err := sql.Open("postgres", databaseURL)
+	db, err := sql.Open("postgres", withBinaryParameters(databaseURL))
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
@@ -32,4 +33,23 @@ func NewSupabaseRepository(databaseURL string) (*SupabaseRepository, error) {
 // Close closes the database connection.
 func (r *SupabaseRepository) Close() error {
 	return r.db.Close()
+}
+
+// withBinaryParameters makes lib/pq send each parameterized query as one
+// Parse/Bind/Execute batch. Supabase's pooler (port 6543) runs in transaction
+// mode and can move a connection between lib/pq's default prepare and execute
+// round trips, failing concurrent queries with "unnamed prepared statement
+// does not exist". Side effect: []byte arguments are sent in binary format, so
+// JSON for jsonb columns must be passed as a string.
+func withBinaryParameters(dsn string) string {
+	if strings.Contains(dsn, "binary_parameters=") {
+		return dsn
+	}
+	if !strings.Contains(dsn, "://") {
+		return dsn + " binary_parameters=yes" // key=value DSN
+	}
+	if strings.Contains(dsn, "?") {
+		return dsn + "&binary_parameters=yes"
+	}
+	return dsn + "?binary_parameters=yes"
 }

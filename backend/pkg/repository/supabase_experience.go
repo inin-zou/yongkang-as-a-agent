@@ -63,7 +63,7 @@ func (r *SupabaseRepository) CreateExperience(e model.Experience) (*model.Experi
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		RETURNING id, role, company, location, start_date, end_date, skill_assembled, highlights, note, sort_order
 	`, e.Role, e.Company, e.Location, e.StartDate, nullStr(e.EndDate),
-		e.SkillAssembled, highlightsJSON, nullStr(e.Note), e.SortOrder,
+		e.SkillAssembled, string(highlightsJSON), nullStr(e.Note), e.SortOrder,
 	).Scan(
 		&result.ID, &result.Role, &result.Company, &result.Location, &result.StartDate,
 		&endDate, &result.SkillAssembled, &highlightsRaw, &note, &result.SortOrder,
@@ -102,7 +102,7 @@ func (r *SupabaseRepository) UpdateExperience(id string, e model.Experience) (*m
 		WHERE id = $1
 		RETURNING id, role, company, location, start_date, end_date, skill_assembled, highlights, note, sort_order
 	`, id, e.Role, e.Company, e.Location, e.StartDate, nullStr(e.EndDate),
-		e.SkillAssembled, highlightsJSON, nullStr(e.Note), e.SortOrder,
+		e.SkillAssembled, string(highlightsJSON), nullStr(e.Note), e.SortOrder,
 	).Scan(
 		&result.ID, &result.Role, &result.Company, &result.Location, &result.StartDate,
 		&endDate, &result.SkillAssembled, &highlightsRaw, &note, &result.SortOrder,
