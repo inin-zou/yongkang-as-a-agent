@@ -3,6 +3,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 import type { ReactNode } from 'react'
 
 vi.mock('./lib/AuthContext', () => ({ AuthProvider: ({ children }: { children: ReactNode }) => children }))
+vi.mock('./lib/auth', () => ({ useAuth: () => ({ user: null, loading: false }) }))
 vi.mock('./lib/MusicPlayerContext', () => ({ MusicPlayerProvider: ({ children }: { children: ReactNode }) => children }))
 vi.mock('./components/intro/IntroLab', () => ({ default: () => <h1>Journey intro</h1> }))
 

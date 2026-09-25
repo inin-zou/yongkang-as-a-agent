@@ -29,6 +29,7 @@ beforeEach(() => {
     if (parsed.pathname === '/api/music-tracks') return Response.json([{ id: 'song', ...track }])
     if (parsed.pathname === '/api/admin/feedback') return Response.json([{ id: 'note', name: 'Reader', message: 'Feedback message', createdAt: '2026-01-01' }])
     if (parsed.pathname === '/api/admin/notifications') return Response.json([{ id: 'notice', type: 'comment', message: 'New comment', postId: 'one', isRead: false, createdAt: new Date().toISOString() }])
+    if (parsed.pathname === '/api/admin/traffic') return Response.json({ days: 30, views: 0, visitors: 0, visits: 0, daily: [], referrers: [], campaigns: [], pages: [], countries: [], devices: [], bots: [], botPages: [] })
     if (parsed.pathname === '/api/admin/generate-draft') return Response.json({ slug: 'generated', content: '<p>Generated prose</p>', preview: 'Generated preview' })
     if (parsed.pathname === '/api/admin/refine-draft') return Response.json({ slug: 'refined', content: 'Refined prose', preview: 'Refined preview' })
     return Response.json(body ?? {})
@@ -47,6 +48,13 @@ function mount(path = '/files/admin') {
 }
 
 describe('extracted admin routes and forms', () => {
+  it('opens the traffic route with its report', async () => {
+    mount('/files/admin/traffic')
+    expect(screen.getByRole('heading', { name: 'Traffic' })).toBeInTheDocument()
+    expect(await screen.findByText(/No traffic recorded/)).toBeInTheDocument()
+    expect(requests).toContainEqual({ path: '/api/admin/traffic', method: 'GET', body: undefined })
+  })
+
   it('preserves loading and login gates without fetching tab data', () => {
     auth.loading = true
     mount()

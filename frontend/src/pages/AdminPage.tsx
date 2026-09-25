@@ -7,6 +7,7 @@ import PostsManager from '../components/admin/tabs/PostsManager'
 import MusicManager from '../components/admin/tabs/MusicManager'
 import FeedbackTab from '../components/admin/tabs/FeedbackTab'
 import NotificationsTab from '../components/admin/tabs/NotificationsTab'
+import TrafficTab from '../components/admin/tabs/TrafficTab'
 import { usePageMeta } from '../lib/seo'
 
 /* ─── Main admin page ─── */
@@ -36,6 +37,7 @@ export default function AdminPage() {
     music: { label: 'Music' },
     feedback: { label: 'Feedback' },
     notifications: { label: 'Notifications' },
+    traffic: { label: 'Traffic' },
   }
 
   const section = item || ''
@@ -43,6 +45,7 @@ export default function AdminPage() {
 
   const content = (() => {
     switch (section) {
+      case 'traffic': return <TrafficTab />
       case 'notifications': return <NotificationsTab />
       case 'music': return <MusicManager />
       case 'feedback': return <FeedbackTab />

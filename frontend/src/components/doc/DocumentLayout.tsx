@@ -36,7 +36,7 @@ function Directory() {
     {user && <div className="dir-admin">
       <NavLink className="dir-file" end to="/files/admin">ADMIN.md</NavLink>
       <ul className="dir-children">
-        {['posts', 'music', 'feedback', 'notifications'].map(section => <li key={section}><Link className="dir-child" aria-current={tab === 'admin' && (item === section || (section === 'posts' && pathname === '/files/admin')) ? 'page' : undefined} to={`/files/admin/${section}`}>{section}</Link></li>)}
+        {['posts', 'music', 'feedback', 'notifications', 'traffic'].map(section => <li key={section}><Link className="dir-child" aria-current={tab === 'admin' && (item === section || (section === 'posts' && pathname === '/files/admin')) ? 'page' : undefined} to={`/files/admin/${section}`}>{section}</Link></li>)}
       </ul>
     </div>}
     <AuthButton />

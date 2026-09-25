@@ -279,6 +279,39 @@
 .document-layout .soul-archive { border-top: 1px solid var(--soul-line); padding-top: 16px; }
 .document-layout .soul-index-disclosure { scrollbar-color: var(--soul-line) transparent; }
 .document-layout .admin-error { background: none; border: 0; border-radius: 0; padding: 0; color: #9b3232; }
+
+/* Traffic reads like a report on the same paper as the admin document. */
+.document-layout .admin-traffic-meta { margin: 8px 0; color: var(--color-ink-muted); font: 11px/1.65 var(--font-mono); }
+.document-layout .admin-traffic-range { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.document-layout .admin-traffic-range .admin-btn[aria-pressed='true'] { color: var(--soul-accent); border-color: var(--soul-accent); background: none; }
+.document-layout .admin-traffic-summary { display: flex; flex-wrap: wrap; gap: 12px 28px; margin: 24px 0 8px; }
+.document-layout .admin-traffic-summary > div { display: flex; align-items: baseline; gap: 6px; }
+.document-layout .admin-traffic-summary dd { margin: 0; font-size: 24px; font-variant-numeric: tabular-nums; }
+.document-layout .admin-traffic-summary dt { color: var(--color-ink-muted); font: 11px var(--font-mono); }
+.document-layout .admin-traffic-section { border-top: 1px solid var(--soul-line); margin-top: 24px; padding-top: 20px; }
+.document-layout .admin-traffic-section h2, .document-layout .admin-traffic-empty h2 { margin: 0 0 12px; font-size: 16px; }
+.document-layout .admin-traffic-empty { border-left: 2px solid var(--soul-accent); margin-top: 24px; padding: 8px 16px; }
+.document-layout .admin-traffic-chart { display: block; width: 100%; height: auto; overflow: visible; }
+.document-layout .admin-traffic-chart polyline { fill: none; stroke-width: 1.5; stroke-linejoin: round; }
+.document-layout .admin-traffic-chart polyline, .document-layout .admin-traffic-chart line { vector-effect: non-scaling-stroke; }
+.document-layout .admin-traffic-baseline { stroke: var(--soul-line); }
+.document-layout .admin-traffic-visitors { stroke: var(--soul-accent); fill: var(--soul-accent); }
+.document-layout .admin-traffic-views { stroke: var(--color-ink-muted); fill: var(--color-ink-muted); stroke-dasharray: 4 4; }
+.document-layout .admin-traffic-legend { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.document-layout .admin-traffic-legend span:first-child { color: var(--soul-accent); }
+.document-layout .admin-traffic-dates { display: flex; justify-content: space-between; gap: 12px; }
+.document-layout .admin-traffic-table { width: 100%; border-collapse: collapse; margin: 0; font-size: 13px; }
+.document-layout .admin-traffic-table th, .document-layout .admin-traffic-table td { padding: 8px 0 8px 12px; border: 0; border-bottom: 1px solid var(--soul-line); background: none; text-align: right; font-weight: 400; }
+.document-layout .admin-traffic-table th:first-child { text-align: left; padding-left: 0; overflow-wrap: anywhere; }
+.document-layout .admin-traffic-table thead th { color: var(--color-ink-muted); font: 11px/1.65 var(--font-mono); }
+.document-layout .admin-traffic-table thead th:not(:first-child) { white-space: nowrap; }
+.document-layout .admin-traffic-table td { width: 1%; white-space: nowrap; font: 11px/1.65 var(--font-mono); font-variant-numeric: tabular-nums; }
+.document-layout .admin-traffic-table tbody tr:last-child > * { border-bottom: 0; }
+.document-layout .admin-traffic-bot { margin-top: 20px; }
+.document-layout .admin-traffic-bot-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+.document-layout .admin-traffic-bot-heading h3 { font: 13px/1.65 var(--font-mono); overflow-wrap: anywhere; }
+.document-layout .admin-traffic-bot-heading > :last-child { margin-left: auto; }
+.document-layout .admin-traffic-ai { color: var(--soul-accent); border-bottom: 1px solid var(--soul-accent); }
 .document-layout .media-upload-count { background: none; border: 0; border-radius: 0; font-size: 11px; }
 .document-layout .media-upload-actions { flex-wrap: wrap; }
 @media (max-width: 400px) {
