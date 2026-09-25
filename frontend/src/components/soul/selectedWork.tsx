@@ -1,4 +1,5 @@
-// Hand-picked from the CV (owner-provided). Update here when the selection changes.
+// Hand-picked from the CV (owner-provided). Update here when the selection changes,
+// and in backend/pkg/service/content.go (crawler copy and /llms.txt).
 const SELECTED_WORK = [
   {
     title: 'Codex Privacy HUD',

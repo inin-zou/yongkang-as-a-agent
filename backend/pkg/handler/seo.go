@@ -21,6 +21,8 @@ import (
 type SEOPages interface {
 	Resolve(path string) service.PageResolution
 	Sitemap() ([]byte, error)
+	Body(path string) string
+	LLMs() []byte
 }
 
 // SEOHandler serves sitemap.xml and every SPA page URL with its own <head>.
@@ -48,6 +50,14 @@ func (h *SEOHandler) HandleSitemap(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(body)
 }
 
+// HandleLLMs serves /llms.txt, a Markdown summary of the site for AI agents.
+func (h *SEOHandler) HandleLLMs(w http.ResponseWriter, r *http.Request) {
+	setCDNCache(w, 3600, 600)
+	w.Header().Set("Content-Type", "text/markdown; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(h.pages.LLMs())
+}
+
 // HandlePage answers a page URL: 301 for the SPA's legacy redirects, otherwise
 // the SPA shell with that page's title, description, canonical, Open Graph,
 // Twitter and JSON-LD, and 404 for paths the app does not have.
@@ -63,6 +73,9 @@ func (h *SEOHandler) HandlePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if res.Status == http.StatusOK && !res.Meta.NoIndex && r.Method != http.MethodHead {
+		res.Meta.Body = h.pages.Body(r.URL.Path)
+	}
 	tpl, err := h.template.Load(r)
 	var body string
 	if err != nil {
@@ -96,19 +109,27 @@ func setCDNCache(w http.ResponseWriter, sMaxAge, swr int) {
 }
 
 const (
-	seoStart = "<!-- seo:start -->"
-	seoEnd   = "<!-- seo:end -->"
+	seoStart     = "<!-- seo:start -->"
+	seoEnd       = "<!-- seo:end -->"
+	contentStart = "<!-- content:start -->"
+	contentEnd   = "<!-- content:end -->"
 )
 
 // RenderPage replaces the block between the seo markers in the SPA shell with
-// the page's head tags. A shell without markers is returned unchanged.
+// the page's head tags, and the block between the content markers (inside
+// #root) with its crawler-readable body. Missing markers are left alone.
 func RenderPage(tpl string, meta service.PageMeta) string {
-	start := strings.Index(tpl, seoStart)
-	end := strings.Index(tpl, seoEnd)
+	tpl = replaceBetween(tpl, seoStart, seoEnd, "\n"+HeadTags(meta)+"    ")
+	return replaceBetween(tpl, contentStart, contentEnd, meta.Body)
+}
+
+func replaceBetween(s, startMarker, endMarker, with string) string {
+	start := strings.Index(s, startMarker)
+	end := strings.Index(s, endMarker)
 	if start < 0 || end < start {
-		return tpl
+		return s
 	}
-	return tpl[:start+len(seoStart)] + "\n" + HeadTags(meta) + "    " + tpl[end:]
+	return s[:start+len(startMarker)] + with + s[end:]
 }
 
 // HeadTags renders the per-page head block. Every value is HTML-escaped; JSON-LD
@@ -155,7 +176,7 @@ func HeadTags(meta service.PageMeta) string {
 func loaderShell(meta service.PageMeta) string {
 	return "<!doctype html>\n<html lang=\"en\">\n  <head>\n    <meta charset=\"UTF-8\" />\n" +
 		HeadTags(meta) +
-		"  </head>\n  <body>\n    <script>fetch('/index.html',{cache:'no-store'}).then(function(r){return r.text()}).then(function(t){document.open();document.write(t);document.close()})</script>\n  </body>\n</html>\n"
+		"  </head>\n  <body>\n" + meta.Body + "\n    <script>fetch('/index.html',{cache:'no-store'}).then(function(r){return r.text()}).then(function(t){document.open();document.write(t);document.close()})</script>\n  </body>\n</html>\n"
 }
 
 // PageTemplate loads the built SPA shell (frontend/dist/index.html).

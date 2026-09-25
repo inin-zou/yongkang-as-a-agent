@@ -34,6 +34,10 @@ func (seoContent) GetBlogPosts() ([]model.BlogPost, error) {
 		Preview: `a & b <i>`, PublishedAt: "2025-01-28T00:00:00Z"}}, nil
 }
 func (seoContent) GetMusicTracks() ([]model.MusicTrack, error) { return nil, nil }
+func (seoContent) GetHackathons() ([]model.Hackathon, error)   { return nil, nil }
+func (seoContent) GetExperience() ([]model.Experience, error)  { return nil, nil }
+func (seoContent) GetSkills() ([]model.SkillDomain, error)     { return nil, nil }
+func (seoContent) GetPage(string) (json.RawMessage, error)     { return nil, nil }
 
 func seoServer(tpl *PageTemplate) *SEOHandler {
 	return NewSEOHandler(service.NewSEOService(seoContent{}), tpl)
@@ -200,5 +204,50 @@ func TestHandleSitemap(t *testing.T) {
 	if w.Code != 200 || !strings.HasPrefix(w.Header().Get("Content-Type"), "application/xml") ||
 		!strings.Contains(w.Body.String(), "<loc>https://yongkang.dev/files/memory/hackathon/jam</loc>") {
 		t.Fatalf("sitemap: %d %s\n%s", w.Code, w.Header().Get("Content-Type"), w.Body.String())
+	}
+}
+
+const shellWithContent = `<!doctype html>
+<html lang="en">
+  <head>
+    <!-- seo:start -->
+    <title>Default</title>
+    <!-- seo:end -->
+  </head>
+  <body><div id="root"><!-- content:start --><!-- content:end --></div><script type="module" src="/assets/index-abc.js"></script></body>
+</html>`
+
+func TestHandlePagePutsContentInRoot(t *testing.T) {
+	h := seoServer(NewStaticPageTemplate(shellWithContent))
+	get := func(path string) string {
+		w := httptest.NewRecorder()
+		h.HandlePage(w, httptest.NewRequest(http.MethodGet, path, nil))
+		return w.Body.String()
+	}
+
+	body := get("/files/memory/hackathon/jam")
+	root := regexp.MustCompile(`(?s)<div id="root"><!-- content:start -->(.*)<!-- content:end --></div>`).FindStringSubmatch(body)
+	if root == nil || !strings.Contains(root[1], `<div class="prerender">`) {
+		t.Fatalf("post content not inside #root:\n%s", body)
+	}
+	if strings.Contains(root[1], "<script>alert(1)</script>") || !strings.Contains(root[1], "<h1>Say &#34;hi&#34; &lt;/title&gt;&lt;script&gt;") {
+		t.Fatalf("post title not escaped in content:\n%s", root[1])
+	}
+
+	for _, path := range []string{"/definitely/not/here", "/files/admin"} {
+		if b := get(path); !strings.Contains(b, `<div id="root"><!-- content:start --><!-- content:end --></div>`) {
+			t.Fatalf("%s: 404 and noindex pages must not carry content:\n%s", path, b)
+		}
+	}
+}
+
+func TestHandleLLMs(t *testing.T) {
+	w := httptest.NewRecorder()
+	seoServer(NewStaticPageTemplate(shell)).HandleLLMs(w, httptest.NewRequest(http.MethodGet, "/llms.txt", nil))
+	if w.Code != 200 || w.Header().Get("Content-Type") != "text/markdown; charset=utf-8" {
+		t.Fatalf("llms.txt: %d %q", w.Code, w.Header().Get("Content-Type"))
+	}
+	if !strings.HasPrefix(w.Body.String(), "# Yongkang Zou\n") || !strings.Contains(w.Body.String(), "https://yongkang.dev/files/memory/hackathon/jam") {
+		t.Fatalf("llms.txt body:\n%s", w.Body.String())
 	}
 }

@@ -28,6 +28,8 @@ function FeaturedTrack() {
   </div>
 }
 
+// The hard-coded profile lines below (previously, background, education) are
+// mirrored in backend/pkg/service/content.go for crawlers and /llms.txt.
 export default function SoulReadmeContent({ bio, currently }: { bio: string[]; currently: string }) {
   const { hash, key } = useLocation()
   const posts = useQuery({ queryKey: queryKeys.posts(), queryFn: fetchBlogPosts })

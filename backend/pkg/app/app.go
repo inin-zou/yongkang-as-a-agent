@@ -61,6 +61,7 @@ func New(cfg Config) (http.Handler, func()) {
 	// Every non-API path is a page of the SPA: served with its own head, or a
 	// real 301/404 (vercel.json sends page URLs here; static files win first).
 	r.Get("/sitemap.xml", seo.HandleSitemap)
+	r.Get("/llms.txt", seo.HandleLLMs)
 	r.Get("/*", seo.HandlePage)
 	r.Head("/*", seo.HandlePage)
 

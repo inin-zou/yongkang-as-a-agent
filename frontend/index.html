@@ -46,6 +46,10 @@
       }
     </script>
 
+    <!-- Readable without JS, visually hidden until React replaces it. -->
+    <style>.prerender { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }</style>
+    <noscript><style>.prerender { position: static; width: auto; height: auto; overflow: visible; clip-path: none; max-width: 42rem; margin: 2rem auto; padding: 0 1rem; font: 16px/1.6 system-ui, sans-serif; }</style></noscript>
+
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="48x48" href="/favicon.png" />
@@ -57,7 +61,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   </head>
   <body>
-    <div id="root"></div>
+    <!-- The server fills the content markers with a plain-HTML copy of the
+         page for clients that don't run JS (crawlers, AI agents); React
+         replaces it on mount. -->
+    <div id="root"><!-- content:start --><!-- content:end --></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

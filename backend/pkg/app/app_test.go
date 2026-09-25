@@ -42,6 +42,7 @@ var wantRoutes = []string{
 	"GET /api/projects/{slug}",
 	"GET /api/skills",
 	"GET /api/views",
+	"GET /llms.txt",
 	"GET /sitemap.xml",
 	"HEAD /*",
 	"POST /api/admin/experience",

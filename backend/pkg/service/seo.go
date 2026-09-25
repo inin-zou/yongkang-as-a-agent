@@ -2,6 +2,7 @@ package service
 
 import (
 	"bytes"
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"net/http"
@@ -33,10 +34,15 @@ var Person = map[string]any{
 	"url":           SiteURL,
 }
 
-// SEOContent is what the SEO layer needs to know which pages exist.
+// SEOContent is what the SEO layer reads: which pages exist, and the facts
+// their crawler-readable content and /llms.txt show.
 type SEOContent interface {
 	GetBlogPosts() ([]model.BlogPost, error)
 	GetMusicTracks() ([]model.MusicTrack, error)
+	GetHackathons() ([]model.Hackathon, error)
+	GetExperience() ([]model.Experience, error)
+	GetSkills() ([]model.SkillDomain, error)
+	GetPage(id string) (json.RawMessage, error)
 }
 
 // PageMeta is the head of one page.
@@ -48,6 +54,7 @@ type PageMeta struct {
 	Type        string // "website" or "article"
 	NoIndex     bool
 	JSONLD      map[string]any // optional page-specific structured data
+	Body        string         // crawler-readable HTML for #root; see Body
 }
 
 // PageResolution says how the server should answer a page URL.

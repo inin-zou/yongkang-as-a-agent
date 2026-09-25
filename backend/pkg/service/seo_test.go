@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"net/http"
@@ -11,13 +12,21 @@ import (
 )
 
 type seoFake struct {
-	posts  []model.BlogPost
-	tracks []model.MusicTrack
-	err    error
+	posts      []model.BlogPost
+	tracks     []model.MusicTrack
+	hackathons []model.Hackathon
+	experience []model.Experience
+	skills     []model.SkillDomain
+	soul       json.RawMessage
+	err        error
 }
 
 func (f seoFake) GetBlogPosts() ([]model.BlogPost, error)     { return f.posts, f.err }
 func (f seoFake) GetMusicTracks() ([]model.MusicTrack, error) { return f.tracks, f.err }
+func (f seoFake) GetHackathons() ([]model.Hackathon, error)   { return f.hackathons, f.err }
+func (f seoFake) GetExperience() ([]model.Experience, error)  { return f.experience, f.err }
+func (f seoFake) GetSkills() ([]model.SkillDomain, error)     { return f.skills, f.err }
+func (f seoFake) GetPage(string) (json.RawMessage, error)     { return f.soul, f.err }
 
 var seoPosts = []model.BlogPost{
 	{Slug: "game-jam", Title: `Game "Jam" <Edition>`, Category: "hackathon", Preview: "We built a debate game.",
