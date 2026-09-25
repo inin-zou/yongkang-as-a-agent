@@ -16,6 +16,9 @@ const pinVh = 12
 const lastStart = (predicate: (value: number) => boolean) => starts.reduce((last, value, index) => predicate(value) ? index : last, 0)
 import { VIEW_W, VIEW_H } from './palette'
 
+// These tests remount the whole intro several times; CI runners are ~5x slower.
+const PHONE_REMOUNT_TIMEOUT = 20_000
+
 vi.hoisted(() => {
   window.scrollTo = () => {}
   window.matchMedia = (() => ({ matches: false, addListener() {}, removeListener() {} })) as unknown as typeof window.matchMedia
@@ -172,7 +175,7 @@ it('cleans phone drivers on mode changes, rotation and unmount, restoring the se
   unmount()
   expect(Observer.getById('journey-panels')).toBeUndefined()
   expect(gsap.getById('journey-panel-tween')).toBeUndefined()
-})
+}, PHONE_REMOUNT_TIMEOUT)
 
 it('discards canceled, pinching, and held-during-animation gestures', async () => {
   phoneMedia()
@@ -236,7 +239,7 @@ it('autoplays whole panels, holds at 24, and cancels scheduled advances on mode 
   expect(ScrollTrigger.getAll()).toHaveLength(0)
   unmount()
   expect(gsap.getById('journey-panel-auto')).toBeUndefined()
-})
+}, PHONE_REMOUNT_TIMEOUT)
 
 it('replaces the driver cleanly when toggling play and scroll', async () => {
   const { container } = await renderReady(<StrictMode><IntroLab /></StrictMode>)
