@@ -10,6 +10,7 @@ export const queryKeys = {
   adminNotifications: () => ['admin-notifications'] as const,
   adminUnread: () => ['admin-unread'] as const,
   adminMusicTracks: () => ['admin-music-tracks'] as const,
+  adminTraffic: (days: number) => ['admin-traffic', days] as const,
   music: () => ['music'] as const,
   musicTracks: () => ['music-tracks'] as const,
   page: (id: string) => ['pages', id] as const,

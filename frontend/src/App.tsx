@@ -1,10 +1,13 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { createBrowserRouter, RouterProvider, Navigate, useParams, useLocation } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider } from './lib/AuthContext'
 import { MusicPlayerProvider } from './lib/MusicPlayerContext'
 import DocumentLayout from './components/doc/DocumentLayout'
 import ErrorBoundary from './components/global/ErrorBoundary'
+import { useAuth } from './lib/auth'
+import { trackPageView } from './lib/api'
+import { createPageTracker, isTrackedHost } from './lib/pageTracking'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -103,12 +106,28 @@ const router = createBrowserRouter([
   },
 ])
 
+// One tracker per page load, so the landing view is sent once even if the
+// effect below re-subscribes.
+const trackPage = createPageTracker(view => { trackPageView(view).catch(() => {}) }, document.referrer)
+
+/** Counts page views for ADMIN.md → traffic. Signed-in visits (you) are not counted. */
+function PageTracking() {
+  const { user, loading } = useAuth()
+  useEffect(() => {
+    if (loading || user || !isTrackedHost(window.location.hostname)) return
+    trackPage(router.state.location)
+    return router.subscribe(state => trackPage(state.location))
+  }, [loading, user])
+  return null
+}
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <MusicPlayerProvider>
         <AuthProvider>
           <ErrorBoundary>
+            <PageTracking />
             <RouterProvider router={router} />
           </ErrorBoundary>
         </AuthProvider>

@@ -52,7 +52,14 @@ func New(cfg Config) (http.Handler, func()) {
 	svc := service.NewPortfolioService(repository.WithFallback(primary, fallback), stores)
 	h := handler.NewAPIHandler(svc, service.NewGitHubService(cfg.GitHubToken), service.NewGeminiService(cfg.GeminiAPIKey))
 
-	seo := handler.NewSEOHandler(service.NewSEOService(svc), handler.NewPageTemplate(cfg.IndexHTMLFiles, cfg.ShellHosts))
+	var trafficStore service.TrafficStore
+	if supabase != nil {
+		trafficStore = supabase
+	}
+	traffic := service.NewTrafficService(trafficStore, cfg.TrafficSalt)
+	th := handler.NewTrafficHandler(traffic)
+
+	seo := handler.NewSEOHandler(service.NewSEOService(svc), handler.NewPageTemplate(cfg.IndexHTMLFiles, cfg.ShellHosts)).RecordCrawlsTo(traffic)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -82,6 +89,7 @@ func New(cfg Config) (http.Handler, func()) {
 		r.With(middleware.RateLimit(10, time.Hour)).Post("/feedback", h.HandleCreateFeedback)
 		r.Get("/health", h.HandleHealth)
 		r.Get("/views", h.HandleGetViews)
+		r.With(middleware.RateLimit(600, time.Hour)).Post("/track", th.HandleTrack)
 		r.Get("/guestbook", h.HandleGetGuestbook)
 		r.With(middleware.RateLimit(10, time.Hour)).Post("/guestbook", h.HandleCreateGuestbookEntry)
 		r.Get("/pages/{id}", h.HandleGetPage)
@@ -99,6 +107,7 @@ func New(cfg Config) (http.Handler, func()) {
 			r.Delete("/feedback/{id}", h.HandleDeleteFeedback)
 			r.Delete("/comments/{id}", h.HandleDeleteComment)
 			r.Get("/notifications", h.HandleGetNotifications)
+			r.Get("/traffic", th.HandleGetTraffic)
 			r.Get("/notifications/unread", h.HandleGetUnreadCount)
 			r.Put("/notifications/{id}/read", h.HandleMarkNotificationRead)
 			r.Put("/notifications/read-all", h.HandleMarkAllNotificationsRead)

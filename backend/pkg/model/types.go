@@ -195,3 +195,59 @@ type AdminNotification struct {
 	IsRead    bool    `json:"isRead"`
 	CreatedAt string  `json:"createdAt"`
 }
+
+// PageVisit is one page view by a person, or one page fetched by a crawler.
+type PageVisit struct {
+	Path        string
+	Landing     bool
+	Referrer    string
+	UTMSource   string
+	UTMMedium   string
+	UTMCampaign string
+	Country     string
+	Device      string
+	Visitor     string
+	Bot         string
+}
+
+// TrackRequest is what the SPA sends on every page view.
+type TrackRequest struct {
+	Path        string `json:"path"`
+	Landing     bool   `json:"landing"`
+	Referrer    string `json:"referrer"`
+	UTMSource   string `json:"utmSource"`
+	UTMMedium   string `json:"utmMedium"`
+	UTMCampaign string `json:"utmCampaign"`
+}
+
+// TrafficCount is one row of a traffic breakdown. Visitors is 0 where it
+// doesn't apply (crawlers).
+type TrafficCount struct {
+	Key      string `json:"key"`
+	Bot      string `json:"bot,omitempty"` // crawler name, for BotPages
+	Views    int64  `json:"views"`
+	Visitors int64  `json:"visitors"`
+}
+
+// TrafficDay is one day of the human traffic series (Europe/Paris days).
+type TrafficDay struct {
+	Date     string `json:"date"` // YYYY-MM-DD
+	Views    int64  `json:"views"`
+	Visitors int64  `json:"visitors"`
+}
+
+// TrafficReport is the ADMIN.md traffic tab for the last Days days.
+type TrafficReport struct {
+	Days      int            `json:"days"`
+	Views     int64          `json:"views"`
+	Visitors  int64          `json:"visitors"`
+	Visits    int64          `json:"visits"` // landing views
+	Daily     []TrafficDay   `json:"daily"`
+	Referrers []TrafficCount `json:"referrers"` // "" = direct / unknown
+	Campaigns []TrafficCount `json:"campaigns"` // "source / medium / campaign"
+	Pages     []TrafficCount `json:"pages"`
+	Countries []TrafficCount `json:"countries"`
+	Devices   []TrafficCount `json:"devices"`
+	Bots      []TrafficCount `json:"bots"`     // views = pages fetched
+	BotPages  []TrafficCount `json:"botPages"` // key = path, with Bot
+}

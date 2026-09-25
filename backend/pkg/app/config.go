@@ -21,6 +21,9 @@ type Config struct {
 	SupabaseAnonKey string
 	GeminiAPIKey    string
 	GitHubToken     string
+	// TrafficSalt keys the daily visitor hash (TRAFFIC_SALT, else the secret
+	// DATABASE_URL), so hashes can't be reversed to IP addresses.
+	TrafficSalt string
 	// Where the built SPA shell (frontend/dist/index.html) comes from for
 	// server-rendered page heads: local files first, then /index.html on the
 	// request's host when it matches ShellHosts (path.Match patterns).
@@ -39,6 +42,7 @@ func LoadConfig(mode Mode) Config {
 		SupabaseAnonKey: os.Getenv("SUPABASE_ANON_KEY"),
 		GeminiAPIKey:    os.Getenv("GEMINI_API_KEY"),
 		GitHubToken:     os.Getenv("GITHUB_TOKEN"),
+		TrafficSalt:     envOrDefault("TRAFFIC_SALT", os.Getenv("DATABASE_URL")),
 	}
 	if mode == Vercel {
 		cfg.FrontendURL = envOrDefault("FRONTEND_URL", "*")

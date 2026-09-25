@@ -151,3 +151,33 @@ export interface MusicTrack {
   fileUrl: string;
   sortOrder?: number;
 }
+
+/** One row of a traffic breakdown; visitors is 0 for crawlers. */
+export interface TrafficCount {
+  key: string
+  bot?: string
+  views: number
+  visitors: number
+}
+
+/** ADMIN.md → traffic: people via POST /api/track, crawlers via the page handler. */
+export interface TrafficReport {
+  days: number
+  views: number
+  visitors: number
+  /** Landing views: visits that started on the site. */
+  visits: number
+  daily: { date: string; views: number; visitors: number }[]
+  /** Landing views by source; key "" = direct / unknown. */
+  referrers: TrafficCount[]
+  /** "source / medium / campaign". */
+  campaigns: TrafficCount[]
+  pages: TrafficCount[]
+  /** ISO country code; "" = unknown. */
+  countries: TrafficCount[]
+  devices: TrafficCount[]
+  /** Crawlers by name; views = pages fetched (a lower bound: CDN hits aren't seen). */
+  bots: TrafficCount[]
+  /** key = path, with bot. */
+  botPages: TrafficCount[]
+}

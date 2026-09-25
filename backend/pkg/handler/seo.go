@@ -25,10 +25,32 @@ type SEOPages interface {
 	LLMs() []byte
 }
 
+// CrawlRecorder counts pages served to known crawlers.
+type CrawlRecorder interface {
+	RecordCrawl(path, userAgent, country string) error
+}
+
 // SEOHandler serves sitemap.xml and every SPA page URL with its own <head>.
 type SEOHandler struct {
 	pages    SEOPages
 	template *PageTemplate
+	crawls   CrawlRecorder
+}
+
+// RecordCrawlsTo counts every page, sitemap and llms.txt served to a crawler.
+// People are counted by the SPA instead (POST /api/track).
+func (h *SEOHandler) RecordCrawlsTo(c CrawlRecorder) *SEOHandler {
+	h.crawls = c
+	return h
+}
+
+func (h *SEOHandler) recordCrawl(r *http.Request) {
+	if h.crawls == nil || r.Method != http.MethodGet {
+		return
+	}
+	if err := h.crawls.RecordCrawl(r.URL.Path, r.UserAgent(), r.Header.Get("X-Vercel-Ip-Country")); err != nil {
+		log.Printf("record crawl: %v", err)
+	}
 }
 
 // NewSEOHandler creates the SEO handler.
@@ -38,6 +60,7 @@ func NewSEOHandler(pages SEOPages, template *PageTemplate) *SEOHandler {
 
 // HandleSitemap serves /sitemap.xml.
 func (h *SEOHandler) HandleSitemap(w http.ResponseWriter, r *http.Request) {
+	h.recordCrawl(r)
 	body, err := h.pages.Sitemap()
 	if err != nil {
 		log.Printf("sitemap: %v", err)
@@ -52,6 +75,7 @@ func (h *SEOHandler) HandleSitemap(w http.ResponseWriter, r *http.Request) {
 
 // HandleLLMs serves /llms.txt, a Markdown summary of the site for AI agents.
 func (h *SEOHandler) HandleLLMs(w http.ResponseWriter, r *http.Request) {
+	h.recordCrawl(r)
 	setCDNCache(w, 3600, 600)
 	w.Header().Set("Content-Type", "text/markdown; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
@@ -63,6 +87,9 @@ func (h *SEOHandler) HandleLLMs(w http.ResponseWriter, r *http.Request) {
 // Twitter and JSON-LD, and 404 for paths the app does not have.
 func (h *SEOHandler) HandlePage(w http.ResponseWriter, r *http.Request) {
 	res := h.pages.Resolve(r.URL.Path)
+	if !res.Meta.NoIndex || res.Status == http.StatusNotFound {
+		h.recordCrawl(r)
+	}
 	if res.Status == http.StatusMovedPermanently {
 		to := res.Location
 		if r.URL.RawQuery != "" && !strings.Contains(to, "#") {
