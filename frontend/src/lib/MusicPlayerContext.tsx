@@ -150,6 +150,39 @@ export function MusicPlayerProvider({ children }: { children: ReactNode }) {
     }
   }, [next])
 
+  // OS / browser media controls: show "track — inhibitor" instead of the page title.
+  useEffect(() => {
+    if (!('mediaSession' in navigator) || typeof MediaMetadata === 'undefined') return
+    navigator.mediaSession.metadata = currentTrack
+      ? new MediaMetadata({ title: currentTrack.name, artist: 'inhibitor', album: currentTrack.genre || undefined })
+      : null
+  }, [currentTrack])
+
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return
+    navigator.mediaSession.playbackState = currentTrack ? (playing ? 'playing' : 'paused') : 'none'
+  }, [currentTrack, playing])
+
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return
+    const session = navigator.mediaSession
+    const handlers: [MediaSessionAction, MediaSessionActionHandler][] = [
+      ['play', () => { audioRef.current?.play().catch(() => {}) }],
+      ['pause', () => audioRef.current?.pause()],
+      ['previoustrack', prev],
+      ['nexttrack', next],
+      ['seekto', details => { if (details.seekTime !== undefined) seek(details.seekTime) }],
+    ]
+    for (const [action, handler] of handlers) {
+      try { session.setActionHandler(action, handler) } catch { /* unsupported action */ }
+    }
+    return () => {
+      for (const [action] of handlers) {
+        try { session.setActionHandler(action, null) } catch { /* unsupported action */ }
+      }
+    }
+  }, [next, prev, seek])
+
   return (
     <MusicPlayerContext.Provider
       value={{
