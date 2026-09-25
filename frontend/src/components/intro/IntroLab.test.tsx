@@ -3,6 +3,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { Observer } from 'gsap/all'
 import IntroLab from './IntroLab'
 import { sceneImages } from './sceneTextures'
 
@@ -61,6 +62,8 @@ it('maps the full pin distance linearly to the complete timeline, including back
   expect(ScrollTrigger.getAll()).toHaveLength(1)
   const stage = container.querySelector<HTMLElement>('.intro-stage')!
   expect(trigger.pin).toBe(stage)
+  expect(Observer.getById('journey-panels')).toBeUndefined()
+  expect(container.querySelector('.intro-pagination, .intro-frame-controls')).toBeNull()
   expect(trigger.vars.scrub).toBe(true)
   expect(trigger.animation?.duration()).toBe(duration)
   expect(trigger.end - trigger.start).toBeCloseTo(window.innerHeight * pinVh, 1)
@@ -79,6 +82,160 @@ it('maps the full pin distance linearly to the complete timeline, including back
   unmount()
   expect(ScrollTrigger.getAll()).toHaveLength(0)
   expect(document.querySelector('.pin-spacer')).toBeNull()
+})
+
+const phoneQuery = '(max-width: 600px) and (orientation: portrait)'
+function phoneMedia() {
+  const phone = Object.assign(new EventTarget(), { matches: true })
+  vi.stubGlobal('matchMedia', (query: string) => query === phoneQuery
+    ? phone : { matches: false, addEventListener() {}, removeEventListener() {} })
+  return phone
+}
+function swipe(direction = -1, axis = 'x') {
+  const observer = Observer.getById('journey-panels')!
+  const gesture = { axis, startX: 200, x: 200 + direction * 100, event: { touches: [{}], target: document.querySelector('.intro-art'), type: 'touchend' } } as unknown as Observer
+  observer.vars.onPress?.(gesture)
+  observer.vars.onRelease?.(gesture)
+}
+function finishFlip() {
+  const tween = gsap.getById('journey-panel-tween') as gsap.core.Tween
+  expect(tween).toBeDefined()
+  act(() => { tween.progress(1) })
+}
+
+it('accepts one horizontal swipe per panel, ignores repeats while playing, and reverses', async () => {
+  phoneMedia()
+  const { container } = await renderReady(<IntroLab />)
+  expect(ScrollTrigger.getAll()).toHaveLength(0)
+  const observer = Observer.getById('journey-panels')!
+  expect(observer.vars.preventDefault).toBe(false)
+  act(() => { swipe(-1, 'y') })
+  expect(gsap.getById('journey-panel-tween')).toBeUndefined()
+  act(() => { swipe() })
+  const tween = gsap.getById('journey-panel-tween') as gsap.core.Tween
+  act(() => { tween.progress(0.8); swipe(); swipe() })
+  expect(screen.getByLabelText('Panel position')).toHaveTextContent('1 / 8')
+  expect(container.querySelector('.intro-cap')).toHaveTextContent('1999 · Nanjing')
+  finishFlip()
+  expect(screen.getByLabelText('Panel position')).toHaveTextContent('2 / 8')
+  expect(container.querySelector('.intro-stage')).toHaveAttribute('data-time', '4.000')
+  act(() => { swipe(1) })
+  finishFlip()
+  expect(container.querySelector('.intro-stage')).toHaveAttribute('data-time', '0.000')
+  expect(screen.getByRole('button', { name: 'Previous panel' })).toBeDisabled()
+})
+
+it('stops Cross with visible hands and finishes panel eight at 24 without navigating', async () => {
+  phoneMedia()
+  const { container } = await renderReady(<IntroLab />)
+  for (const stop of [4, 6, 9.6, 12.5, 15.4, 18.4, 24]) {
+    fireEvent.click(screen.getByRole('button', { name: 'Next panel' }))
+    finishFlip()
+    expect(Number(container.querySelector<HTMLElement>('.intro-stage')!.dataset.time)).toBe(stop)
+    if (stop === 9.6) {
+      for (const side of ['left', 'right']) expect(Number(gsap.getProperty(container.querySelector(`.intro-hand04-${side}`)!, 'opacity'))).toBeGreaterThan(0.9)
+    }
+  }
+  expect(screen.getByLabelText('Panel position')).toHaveTextContent('8 / 8')
+  expect(screen.getByRole('button', { name: 'Next panel' })).toBeDisabled()
+  expect(container.querySelector('.intro-end')).toHaveStyle({ visibility: 'visible', opacity: '1' })
+  expect(screen.getByRole('link', { name: 'explore my work →' })).toHaveAttribute('href', '/files/soul')
+  fireEvent.keyDown(container.querySelector('.intro-stage')!, { key: 'ArrowLeft' })
+  finishFlip()
+  expect(container.querySelector('.intro-stage')).toHaveAttribute('data-time', '18.400')
+  expect(container.querySelector('.intro-end')).toHaveStyle({ visibility: 'hidden' })
+})
+
+it('cleans phone drivers on mode changes, rotation and unmount, restoring the settled panel', async () => {
+  const phone = phoneMedia()
+  const { container, unmount } = await renderReady(<StrictMode><IntroLab /></StrictMode>)
+  act(() => { swipe() })
+  finishFlip()
+  act(() => { swipe() })
+  const pending = gsap.getById('journey-panel-tween') as gsap.core.Tween
+  const observer = Observer.getById('journey-panels')!
+  fireEvent.click(screen.getByRole('button', { name: /^(pages \/ auto|auto \/ pages)$/ }))
+  expect(observer.isEnabled).toBe(false)
+  expect(pending.parent).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: /^(pages \/ auto|auto \/ pages)$/ }))
+  expect(container.querySelector('.intro-stage')).toHaveAttribute('data-time', '4.000')
+  expect(Observer.getAll().filter(item => item.vars.id === 'journey-panels')).toHaveLength(1)
+  act(() => { phone.matches = false; phone.dispatchEvent(new Event('change')) })
+  expect(Observer.getById('journey-panels')).toBeUndefined()
+  const trigger = ScrollTrigger.getById('journey-intro')!
+  expect(trigger.end - trigger.start).toBeCloseTo(window.innerHeight * 12, 1)
+  expect(container.querySelector('.intro-pagination')).toBeNull()
+  act(() => { phone.matches = true; phone.dispatchEvent(new Event('change')) })
+  expect(ScrollTrigger.getAll()).toHaveLength(0)
+  expect(container.querySelector('.pin-spacer')).toBeNull()
+  expect(container.querySelector('.intro-stage')).toHaveAttribute('data-time', '4.000')
+  unmount()
+  expect(Observer.getById('journey-panels')).toBeUndefined()
+  expect(gsap.getById('journey-panel-tween')).toBeUndefined()
+})
+
+it('discards canceled, pinching, and held-during-animation gestures', async () => {
+  phoneMedia()
+  const { container } = await renderReady(<IntroLab />)
+  const observer = Observer.getById('journey-panels')!
+  const gesture = { axis: 'x', startX: 250, x: 100, event: {
+    type: 'touchend', touches: [{}], target: container.querySelector('.intro-art'),
+  } } as unknown as Observer
+  act(() => { swipe() })
+  act(() => { observer.vars.onPress?.(gesture) })
+  finishFlip()
+  act(() => { observer.vars.onRelease?.(gesture) })
+  expect(container.querySelector('.intro-stage')).toHaveAttribute('data-time', '4.000')
+  expect(gsap.getById('journey-panel-tween')).toBeUndefined()
+  act(() => {
+    observer.vars.onPress?.(gesture)
+    Object.assign(gesture, { event: { type: 'touchcancel' } })
+    observer.vars.onRelease?.(gesture)
+  })
+  expect(gsap.getById('journey-panel-tween')).toBeUndefined()
+  Object.assign(gesture, { event: { type: 'touchend', touches: [{}], target: container.querySelector('.intro-art') } })
+  act(() => {
+    observer.vars.onPress?.(gesture)
+    fireEvent.touchStart(container.querySelector('.intro-art')!, { touches: [{ clientX: 250, clientY: 200 }, { clientX: 100, clientY: 200 }], changedTouches: [{ clientX: 100, clientY: 200 }] })
+    observer.vars.onRelease?.(gesture)
+  })
+  expect(gsap.getById('journey-panel-tween')).toBeUndefined()
+})
+
+it('handles a native touch drag through Observer without accumulating moves', async () => {
+  phoneMedia()
+  const { container } = await renderReady(<IntroLab />)
+  const art = container.querySelector('.intro-art')!
+  const touch = (x: number) => ({ identifier: 1, target: art, clientX: x, clientY: 200 })
+  fireEvent.touchStart(art, { touches: [touch(300)], changedTouches: [touch(300)] })
+  for (const x of [270, 230, 180, 100]) fireEvent.touchMove(art, { touches: [touch(x)], changedTouches: [touch(x)] })
+  fireEvent.touchEnd(art, { touches: [], changedTouches: [touch(100)] })
+  finishFlip()
+  expect(screen.getByLabelText('Panel position')).toHaveTextContent('2 / 8')
+  expect(container.querySelector('.intro-stage')).toHaveAttribute('data-time', '4.000')
+})
+
+it('autoplays whole panels, holds at 24, and cancels scheduled advances on mode changes', async () => {
+  phoneMedia()
+  const { container, unmount } = await renderReady(<IntroLab />)
+  const toggle = () => fireEvent.click(screen.getByRole('button', { name: /^(pages \/ auto|auto \/ pages)$/ }))
+  toggle()
+  const pending = gsap.getById('journey-panel-auto') as gsap.core.Tween
+  expect(pending).toBeDefined()
+  expect(Observer.getById('journey-panels')).toBeUndefined()
+  toggle()
+  expect(pending.parent).toBeNull()
+  toggle()
+  for (let panel = 1; panel < 8; panel++) {
+    act(() => { gsap.getById('journey-panel-auto')!.progress(1) })
+    finishFlip()
+    expect(screen.getByLabelText('Panel position')).toHaveTextContent(`${panel + 1} / 8`)
+  }
+  expect(container.querySelector('.intro-stage')).toHaveAttribute('data-time', '24.000')
+  expect(gsap.getById('journey-panel-auto')).toBeUndefined()
+  expect(ScrollTrigger.getAll()).toHaveLength(0)
+  unmount()
+  expect(gsap.getById('journey-panel-auto')).toBeUndefined()
 })
 
 it('replaces the driver cleanly when toggling play and scroll', async () => {

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import { Observer } from 'gsap/all'
 import { VIEW_W, VIEW_H, SLICE_U } from './palette'
 import { sceneImages, loadSceneImages } from './sceneTextures'
 import { createStretchRenderer, rasterize, NOW_RULE_ROWS, sampleCollapseBand, splitEdges } from './pixelStretch'
@@ -10,7 +11,7 @@ import { DEPART_END, DEPART_SPLIT, composeDepartTransition } from './departTrans
 import { DEFAULT_TITLE, usePageMeta } from '../../lib/seo'
 import './intro.css'
 
-gsap.registerPlugin(ScrollTrigger, useGSAP)
+gsap.registerPlugin(ScrollTrigger, Observer, useGSAP)
 
 type Lang = 'en' | 'zh'
 // Short place/time markers, not narration. English is the default.
@@ -30,9 +31,16 @@ const shots = shotsByLang.en.slice(0, 7)
 const captions = captionsByLang.en
 const shotNumbers = [1, 2, 3, 4, 5, 6, 7]
 const shotStarts = [0, DEPART_SPLIT.end, 6, 9, 12.5, 15.4, 18.4, 21.4]
+// Phone compositions are arrival stops, independent of desktop shot boundaries.
+const panelStops = [0, DEPART_SPLIT.end, 6, 9.6, 12.5, 15.4, 18.4, 24]
 const passageOffset = 6
 const identityStart = 22.9
 const motionQuery = '(prefers-reduced-motion: reduce)'
+const phoneQuery = '(max-width: 600px) and (orientation: portrait)'
+const phoneModeLabels: Record<Lang, Record<'scroll' | 'play', string>> = {
+  en: { scroll: 'pages / auto', play: 'auto / pages' },
+  zh: { scroll: '翻页 / 自动', play: '自动 / 翻页' },
+}
 
 // Full-canvas pose images keep the authored crop and shared bottom anchor.
 function PoseLayers({ from, to, className, still }: {
@@ -172,6 +180,18 @@ function AnimatedIntro() {
   const [lang, setLang] = useState<Lang>('en')
   const langRef = useRef<Lang>('en')
   const shotIndexRef = useRef(0)
+  const [phone, setPhone] = useState(() => window.matchMedia(phoneQuery).matches)
+  const panelRef = useRef(0)
+  const [panel, setPanel] = useState(0)
+  const [turning, setTurning] = useState(false)
+  const turnRef = useRef<((direction: number) => void) | null>(null)
+
+  useEffect(() => {
+    const media = window.matchMedia(phoneQuery)
+    const change = () => setPhone(media.matches)
+    media.addEventListener('change', change)
+    return () => media.removeEventListener('change', change)
+  }, [])
 
   useEffect(() => {
     const canvas = canvasRef.current!
@@ -388,7 +408,7 @@ function AnimatedIntro() {
     let lastCaptionVisibility = ''
     const updateFrame = () => {
       const progress = timeline.progress()
-      const labelIndex = shotStarts.reduce((last, start, index) => timeline.time() >= start ? index : last, 0)
+      const labelIndex = phone ? panelRef.current : shotStarts.reduce((last, start, index) => timeline.time() >= start ? index : last, 0)
       const shotIndex = Math.min(labelIndex, shots.length - 1)
       renderRef.current?.()
       // DOM writes only; no layout reads or React commits on the frame path.
@@ -400,15 +420,88 @@ function AnimatedIntro() {
         shotIndexRef.current = labelIndex
         lastShot = labelIndex
       }
-      const visibility = timeline.time() >= identityStart ? 'hidden' : 'visible'
+      const visibility = (phone ? panelRef.current === 7 : timeline.time() >= identityStart) ? 'hidden' : 'visible'
       if (visibility !== lastCaptionVisibility) {
         caption.style.visibility = visibility
+        stage.dataset.identity = String(visibility === 'hidden')
         lastCaptionVisibility = visibility
       }
     }
     timeline.eventCallback('onUpdate', updateFrame)
     timeline.pause(0)
-    if (mode === 'scroll') {
+    let disposePhone: (() => void) | undefined
+    if (phone) {
+      let disposed = false
+      let busy = false
+      let gestureAllowed = false
+      let flip: gsap.core.Tween | undefined
+      let autoplay: gsap.core.Tween | undefined
+      const schedule = () => {
+        if (mode === 'play' && panelRef.current < panelStops.length - 1) {
+          autoplay = gsap.delayedCall(1.2, () => turn(1))
+          autoplay.vars.id = 'journey-panel-auto'
+        }
+      }
+      const turn = (direction: number) => {
+        const from = panelRef.current
+        const next = from + direction
+        if (disposed || busy || next < 0 || next >= panelStops.length) return
+        busy = true
+        setTurning(true)
+        // Depart, Cross and the final collapse already supply their own wipe.
+        const complex = [1, 3, 4, 7].includes(Math.max(from, next))
+        if (complex) delete stage.dataset.flip
+        else stage.dataset.flip = direction > 0 ? 'next' : 'previous'
+        flip = timeline.tweenTo(panelStops[next], {
+          id: 'journey-panel-tween', duration: complex ? 1.4 : 0.85, ease: 'power1.inOut',
+          onComplete: () => {
+            if (disposed) return
+            panelRef.current = next
+            setPanel(next)
+            busy = false
+            setTurning(false)
+            delete stage.dataset.flip
+            updateFrame()
+            schedule()
+          },
+        })
+      }
+      turnRef.current = turn
+      setTurning(false)
+      timeline.time(panelStops[panelRef.current], false)
+      const observer = mode === 'scroll' ? Observer.create({
+        id: 'journey-panels', target: stage, type: 'touch,pointer',
+        // Leave vertical scrolling and pinch zoom to the browser.
+        preventDefault: false, lockAxis: true, dragMinimum: 12,
+        ignore: [root.querySelector('.intro-hud')!, root.querySelector('.intro-identity a')!],
+        onPress: self => {
+          const touches = (self.event as TouchEvent).touches
+          gestureAllowed = !busy && (!touches || touches.length === 1) &&
+            self.event.target instanceof Element && !!self.event.target.closest('.intro-art, .intro-end, .intro-frame-controls')
+        },
+        onRelease: self => {
+          const distance = (self.x ?? 0) - (self.startX ?? 0)
+          if (gestureAllowed && !/cancel$/.test(self.event.type) && self.axis === 'x' && Math.abs(distance) >= 40) {
+            turn(distance < 0 ? 1 : -1)
+          }
+          gestureAllowed = false
+        },
+      }) : undefined
+      const cancelPinch = (event: TouchEvent) => {
+        if (event.touches.length > 1) gestureAllowed = false
+      }
+      stage.addEventListener('touchstart', cancelPinch, { passive: true })
+      schedule()
+      disposePhone = () => {
+        disposed = true
+        turnRef.current = null
+        stage.removeEventListener('touchstart', cancelPinch)
+        observer?.kill()
+        flip?.kill()
+        autoplay?.kill()
+        delete stage.dataset.flip
+      }
+    } else if (mode === 'scroll') {
       const driver = ScrollTrigger.create({
         id: 'journey-intro', trigger: stage, pin: stage,
         start: 'top top', end: () => `+=${window.innerHeight * 12}`,
@@ -424,10 +517,17 @@ function AnimatedIntro() {
     // Initial seeks and refreshes can suppress callbacks; publish once after
     // setup so labels and the GPU also match a restored scroll position.
     updateFrame()
-  }, { scope: rootRef, dependencies: [mode, ready], revertOnUpdate: true })
+    return () => disposePhone?.()
+  }, { scope: rootRef, dependencies: [mode, ready, phone], revertOnUpdate: true })
 
   return <main ref={rootRef} className={`intro-root intro-mode-${mode}`}>
-    <div ref={stageRef} className="intro-stage">
+    <div ref={stageRef} className="intro-stage" onKeyDown={phone ? event => {
+      if (event.altKey || event.ctrlKey || event.metaKey || event.repeat || mode !== 'scroll') return
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        event.preventDefault()
+        turnRef.current?.(event.key === 'ArrowRight' ? 1 : -1)
+      }
+    } : undefined}>
       <div className="intro-art" aria-hidden="true" style={{ visibility: ready ? 'visible' : 'hidden' }}>
         <svg className="intro-scene intro-backdrop" viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}><Environment src={sceneImages.paris} /></svg>
         <canvas ref={canvasRef} className="intro-canvas" />
@@ -437,6 +537,10 @@ function AnimatedIntro() {
       </div>
       <p className="intro-loading" role="status" hidden={ready}>{loadFailed ? 'Images could not load. Reload to retry, or skip to work.' : 'Loading scenes…'}</p>
       <div className="intro-end"><EndCard /></div>
+      {phone && <div className="intro-frame-controls">
+        <button type="button" aria-label="Previous panel edge" disabled={!ready || turning || mode === 'play' || panel === 0} onClick={() => turnRef.current?.(-1)} />
+        <button type="button" aria-label="Next panel edge" disabled={!ready || turning || mode === 'play' || panel === 7} onClick={() => turnRef.current?.(1)} />
+      </div>}
       <nav className="intro-hud" aria-label="Intro controls">
         <div className="intro-caption-unit">
           <div className="intro-caption-chip" lang={lang}>
@@ -445,9 +549,15 @@ function AnimatedIntro() {
             <span className="intro-caption-progress" aria-hidden="true"><i ref={progressBarRef} style={{ width: '100%', transform: 'scaleX(0)', transformOrigin: 'left center' }} /></span>
           </div>
         </div>
-        <button type="button" disabled={!ready} onClick={() => {
+        {phone && <div className="intro-pagination">
+          <button type="button" aria-label="Previous panel" disabled={!ready || turning || mode === 'play' || panel === 0} onClick={() => turnRef.current?.(-1)}>←</button>
+          <span aria-label="Panel position" aria-live="polite" aria-atomic="true">{panel + 1} / 8</span>
+          <button type="button" aria-label="Next panel" disabled={!ready || turning || mode === 'play' || panel === 7} onClick={() => turnRef.current?.(1)}>→</button>
+          {panel === 0 && <small>{lang === 'zh' ? '左滑翻页' : 'Swipe left to turn'}</small>}
+        </div>}
+        <button type="button" aria-pressed={phone ? mode === 'play' : undefined} disabled={!ready} onClick={() => {
           setMode(mode === 'scroll' ? 'play' : 'scroll')
-        }}>{mode === 'scroll' ? 'mode: scroll' : 'mode: play'}</button>
+        }}>{phone ? phoneModeLabels[lang][mode] : mode === 'scroll' ? 'mode: scroll' : 'mode: play'}</button>
         <button type="button" aria-label="Caption language" onClick={() => {
           const next: Lang = lang === 'en' ? 'zh' : 'en'
           langRef.current = next
@@ -457,7 +567,7 @@ function AnimatedIntro() {
           if (shotLabelRef.current) shotLabelRef.current.textContent = shotsByLang[next][index]
           if (captionRef.current) captionRef.current.textContent = captionsByLang[next][Math.min(index, 6)]
         }}>{lang === 'en' ? 'EN / 中' : '中 / EN'}</button>
-        <a className="intro-skip" href="/files/soul">skip to work <span className="intro-skip-arrow">→</span></a>
+        <a className="intro-skip" href="/files/soul">{phone ? (lang === 'zh' ? '跳过' : 'skip') : 'skip to work'} <span className="intro-skip-arrow">→</span></a>
       </nav>
     </div>
   </main>

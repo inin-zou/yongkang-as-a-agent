@@ -165,6 +165,86 @@ html:has(.intro-root), body:has(.intro-root), .intro-root { overflow-anchor: non
   .intro-cap { font-size: 15px; }
 }
 
+/* Only animated portrait phones use a full, uncropped frame. The existing
+   stage is the grid, so desktop/landscape need no DOM or layout changes. */
+@media (max-width: 600px) and (orientation: portrait) {
+  .intro-stage {
+    height: auto;
+    min-height: 100svh;
+    box-sizing: border-box;
+    padding-top: clamp(80px, 16svh, 140px);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+    align-content: start;
+  }
+  .intro-art {
+    grid-area: 1 / 1;
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    top: auto;
+    left: auto;
+    transform: none;
+    outline: 1px solid var(--ink);
+    outline-offset: -1px;
+    touch-action: pan-y pinch-zoom;
+  }
+  .intro-end {
+    grid-area: 1 / 1;
+    position: relative;
+    inset: auto;
+    min-width: 0;
+    min-height: 0;
+  }
+  .intro-end .intro-identity { padding: 12px max(12px, env(safe-area-inset-left)) 12px max(12px, env(safe-area-inset-right)); }
+  .intro-end .intro-identity h1 { font-size: clamp(28px, 8vw, 40px); }
+  .intro-end .intro-identity p { margin: 6px 0 10px; font-size: 12px; line-height: 1.4; }
+  .intro-end .intro-identity a { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; }
+  .intro-hud {
+    grid-area: 2 / 1;
+    position: relative;
+    inset: auto;
+    margin-top: 12px;
+    padding: 0 max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    gap: 12px 8px;
+    justify-content: center;
+    align-items: center;
+  }
+  .intro-caption-unit { display: flex; justify-content: center; margin-right: 0; }
+  .intro-caption-chip { padding: 0; border: 0; background: none; text-align: center; }
+  .intro-hud-shot, .intro-caption-progress { display: none; }
+  .intro-cap { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+  .intro-hud button, .intro-root .intro-hud .intro-skip { border: 0; background: none; }
+  .intro-pagination { flex-basis: 100%; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0 8px; }
+  .intro-pagination small { flex-basis: 100%; text-align: center; color: var(--muted); font: 11px/1.5 'Inter', sans-serif; }
+  .intro-frame-controls {
+    grid-area: 1 / 1;
+    position: relative;
+    z-index: 3;
+    display: flex;
+    justify-content: space-between;
+    padding-inline: max(24px, env(safe-area-inset-left)) max(24px, env(safe-area-inset-right));
+    pointer-events: none;
+    touch-action: pan-y pinch-zoom;
+  }
+  .intro-frame-controls button { width: 44px; min-height: 44px; padding: 0; border: 0; background: none; pointer-events: auto; touch-action: pan-y pinch-zoom; }
+  .intro-frame-controls button:disabled { pointer-events: none; }
+  .intro-end { touch-action: pan-y pinch-zoom; }
+  .intro-art::after { content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 4; }
+  .intro-stage[data-flip='next'] .intro-art::after { animation: intro-paper-edge 0.7s ease-in-out; }
+  .intro-stage[data-flip='previous'] .intro-art::after { animation: intro-paper-edge 0.7s ease-in-out reverse; }
+  @keyframes intro-paper-edge {
+    0%, 100% { opacity: 0; transform: translateX(-100%); }
+    20% { opacity: 0.6; }
+    80% { opacity: 0.6; }
+    99% { transform: translateX(100%); }
+  }
+  .intro-stage[data-flip] .intro-art::after { background: linear-gradient(90deg, transparent 46%, rgb(36 36 33 / 14%) 49%, rgb(242 239 231 / 50%) 50%, transparent 54%); }
+  .intro-stage[data-identity='true'] .intro-caption-chip { visibility: hidden; }
+  .intro-stage .intro-hud :is(button, a) { min-width: 44px; min-height: 44px; box-sizing: border-box; }
+}
+
 .intro-mode-scroll :is(.intro-camera03, .intro-contact03, .intro-hand03, .intro-hand04-left, .intro-hand04-right, .intro-camera05, .intro-hand05, .intro-tower05, .intro-arch05),
 .intro-mode-play :is(.intro-camera03, .intro-contact03, .intro-hand03, .intro-hand04-left, .intro-hand04-right, .intro-camera05, .intro-hand05, .intro-tower05, .intro-arch05) { will-change: transform; }
 .intro-root:not(.intro-static) [data-pose], .intro-root:not(.intro-static) .intro-wall03 { will-change: opacity; }
