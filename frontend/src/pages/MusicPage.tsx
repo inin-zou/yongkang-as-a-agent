@@ -1,10 +1,12 @@
 import { queryKeys } from '../lib/queryKeys'
+import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { fetchMusicTracks } from '../lib/api'
 import ArtistOverview from '../components/music/ArtistOverview'
 import TrackView from '../components/music/TrackView'
 import { usePageMeta } from '../lib/seo'
+import { useMusicPlayer } from '../lib/musicPlayer'
 import '../styles/music.css'
 import '../styles/memory.css'
 
@@ -21,6 +23,16 @@ export default function MusicPage() {
   usePageMeta(currentTrack
     ? { title: `${currentTrack.name} — inhibitor`, description: `${currentTrack.genre ? `${currentTrack.genre}. ` : ''}A track by inhibitor (Yongkang Zou).`, path: `/files/music/${currentTrack.slug}` }
     : { title: 'Music — inhibitor', description: 'inhibitor: alternative RnB and lo-fi, written and sung by Yongkang Zou.', path: '/files/music' })
+
+  // On the list, the tab names the track while it plays (tab title only; the
+  // page's canonical and share tags stay those of /files/music).
+  const { currentTrack: playingTrack, playing } = useMusicPlayer()
+  const listTitle = !item && playing && playingTrack ? `${playingTrack.name} — inhibitor` : null
+  useEffect(() => {
+    if (!listTitle) return
+    document.title = listTitle
+    return () => { document.title = 'Music — inhibitor' }
+  }, [listTitle])
 
   if (!item) return <ArtistOverview tracks={tracks ?? []} />
 

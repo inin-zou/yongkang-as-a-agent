@@ -97,3 +97,23 @@ it('keeps track detail playback, waveform requests, real stats and track editing
   await waitFor(() => expect(screen.queryByRole('button', { name: 'UPDATE' })).toBeNull(), { timeout: 5000 })
   expect(screen.getByText('Production notes')).toBeInTheDocument()
 })
+
+it('names the playing track in the tab on the music list', async () => {
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => {
+    const path = new URL(url, 'http://localhost').pathname
+    if (path === '/api/music-tracks') return Response.json([track])
+    return Response.json({})
+  }))
+  Object.assign(player, { currentTrack: track, playing: true })
+  try {
+    const { rerender } = mount()
+    await waitFor(() => expect(document.title).toBe('Song — inhibitor'))
+    Object.assign(player, { playing: false })
+    rerender(<QueryClientProvider client={clients[0]}><MemoryRouter initialEntries={['/files/music']}><Routes>
+      <Route path="/files/music/:item?" element={<MusicPage />} />
+    </Routes></MemoryRouter></QueryClientProvider>)
+    await waitFor(() => expect(document.title).toBe('Music — inhibitor'))
+  } finally {
+    Object.assign(player, { currentTrack: null, playing: false })
+  }
+})
