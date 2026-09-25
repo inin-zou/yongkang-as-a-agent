@@ -2,18 +2,9 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "cd frontend && npm install && npm run build",
   "outputDirectory": "frontend/dist",
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api"
-    },
-    {
-      "source": "/sitemap.xml",
-      "destination": "/api"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/api"
-    }
+  "routes": [
+    { "src": "^/$", "dest": "/api" },
+    { "handle": "filesystem" },
+    { "src": "^/(.*)$", "dest": "/api" }
   ]
 }
