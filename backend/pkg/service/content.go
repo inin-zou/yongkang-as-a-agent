@@ -33,8 +33,6 @@ var profileLinks = []profileLink{
 	{"GitHub", "https://github.com/inin-zou"},
 	{"LinkedIn", "https://www.linkedin.com/in/yongkang-zou"},
 	{"Hugging Face", "https://huggingface.co/YongkangZOU"},
-	{"CV (PDF, English)", SiteURL + "/cv/yongkang-zou-cv-en.pdf"},
-	{"CV (PDF, Chinese)", SiteURL + "/cv/yongkang-zou-cv-zh.pdf"},
 }
 
 type workItem struct{ Title, Meta, Date, Description, URL string }
@@ -155,9 +153,6 @@ func (s *SEOService) Body(path string) string {
 		s.writeExperience(&d)
 	case path == "/files/skill/hackathons":
 		s.writeHackathons(&d)
-	case path == "/files/skill/cv":
-		d.el("h1", "CV — Yongkang Zou")
-		writeLinks(&d)
 	case path == "/files/music" || (len(parts) == 3 && parts[1] == "music"):
 		s.writeMusic(&d)
 	case path == "/files/contact":
@@ -195,7 +190,7 @@ func writeSiteNav(d *htmlDoc) {
 	for _, l := range []profileLink{
 		{"About", "/files/soul"}, {"Writing", "/files/memory"}, {"Skills", "/files/skill"},
 		{"Experience", "/files/skill/experience"}, {"Hackathons", "/files/skill/hackathons"},
-		{"CV", "/files/skill/cv"}, {"Music", "/files/music"}, {"Contact", "/files/contact"},
+		{"Music", "/files/music"}, {"Contact", "/files/contact"},
 	} {
 		d.raw("<li>" + d.link(l.Label, l.URL) + "</li>\n")
 	}

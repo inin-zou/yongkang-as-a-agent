@@ -76,7 +76,7 @@ git push origin main
 - **AI endpoints:** `POST /api/admin/generate-draft` (idea → HTML) and `POST /api/admin/refine-draft` (content → markdown); images go through the Gemini File API, videos/GIFs are text-only context.
 - **Media upload:** `useBlogMediaUpload` + `MediaUploadBar` → Supabase Storage `blog-media`; HEIC→PNG; audio WAV/FLAC/AIFF→MP3 via lazy ffmpeg.wasm (`mediaConvert.ts`).
 - **Journey intro:** `components/intro/` — GSAP ScrollTrigger scrubs one pinned timeline; bitmap WebP layers (`public/intro/shots/`) + SVG ink for all legible text; `pixelStretch.ts` (WebGL + Canvas 2D fallback) does the horizontal pixel split (01→02 off-centre, 04 centre, 07→08 collapse into rules). Reduced motion gets static keyframes.
-- **CV:** `cv/<lang>/resume.tex` (en: pdfLaTeX, zh: XeLaTeX + `resume.cls`) → `make cv` → `frontend/public/cv/`. `/files/skill/cv` shows the PDF, a download and a "View source (.tex)" view. Never publish phone numbers.
+- **CV:** `cv/<lang>/resume.tex` (en: pdfLaTeX, zh: XeLaTeX + `resume.cls`); `make cv` compiles into `frontend/public/cv/`. The CV page is offline: `/files/skill/cv` redirects (301) to Experience and nothing is published under `/cv/`, so don't commit `make cv` output. Never publish phone numbers.
 - **Knowledge graph:** `/files/soul/graph` (KnowledgeGraph), canvas force-directed graph built from Supabase data.
 - **Hardcoded hackathon counts (UPDATE WHEN ADDING HACKATHONS):** totals are hand-written; update all in lockstep:
   1. `frontend/src/components/skill/HackathonsView.tsx` — `editor-meta` ("N missions. N wins.")

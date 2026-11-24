@@ -45,7 +45,7 @@ export default function SoulReadmeContent({ bio, currently }: { bio: string[]; c
       {bio.map((paragraph, index) => <p className={index === 0 ? 'soul-lead' : 'soul-bio-secondary'} key={index}>{paragraph}</p>)}
       <p className="soul-previously">Previously at <a href="https://epiminds.com/" target="_blank" rel="noreferrer">Epiminds</a> and <a href="https://mozartai.com/" target="_blank" rel="noreferrer">Mozart AI</a>. I also make music as <strong>inhibitor</strong>.</p>
       <p className="document-muted soul-currently">{currently}</p>
-      <nav className="soul-social-links" aria-label="Social links"><a href="mailto:yongkang.zou.ai@gmail.com">email</a><a href="https://github.com/inin-zou" target="_blank" rel="noreferrer">github</a><a href="https://linkedin.com/in/yongkang-zou" target="_blank" rel="noreferrer">linkedin</a><Link to="/files/skill/cv">cv</Link></nav>
+      <nav className="soul-social-links" aria-label="Social links"><a href="mailto:yongkang.zou.ai@gmail.com">email</a><a href="https://github.com/inin-zou" target="_blank" rel="noreferrer">github</a><a href="https://linkedin.com/in/yongkang-zou" target="_blank" rel="noreferrer">linkedin</a></nav>
     </header></SoulReveal>
     <SoulReveal><section id="work" className="soul-section" aria-labelledby="soul-work-title">
       <h2 id="soul-work-title">Selected work</h2><SelectedWorkList />
@@ -62,7 +62,7 @@ export default function SoulReadmeContent({ bio, currently }: { bio: string[]; c
       </article>)}
     </section></SoulReveal>
     <SoulReveal><section id="background" className="soul-section" aria-labelledby="soul-background-title">
-      <div className="soul-section-heading"><h2 id="soul-background-title">A little background</h2><Link to="/files/skill/cv">cv ↗</Link></div>
+      <div className="soul-section-heading"><h2 id="soul-background-title">A little background</h2><Link to="/files/skill/experience">experience ↗</Link></div>
       <div className="soul-background-row"><a href="https://epiminds.com/" target="_blank" rel="noreferrer">Epiminds</a><span>Founding AI Engineer</span><span className="document-muted">2026</span></div>
       <div className="soul-background-row"><a href="https://mozartai.com/" target="_blank" rel="noreferrer">Mozart AI</a><span>AI Engineer</span><span className="document-muted">2025–2026</span></div>
       <p className="soul-education">MSc Computer Science · Université Paris Dauphine–PSL</p>

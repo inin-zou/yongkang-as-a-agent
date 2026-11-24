@@ -19,6 +19,4 @@ export const queryKeys = {
   hackathons: () => ['hackathons'] as const,
   experience: () => ['experience'] as const,
   githubContributions: () => ['github-contributions'] as const,
-  cvPdf: (lang: 'en' | 'zh') => ['cv-pdf', lang] as const,
-  cvSource: (lang: 'en' | 'zh', file: 'tex' | 'cls') => ['cv-source', lang, file] as const,
 }

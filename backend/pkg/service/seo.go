@@ -183,11 +183,9 @@ func resolveSkill(path, item, sub string) PageResolution {
 		return ok(page("Skills — Yongkang Zou", "Skill domains, tools and the projects that tested them.", path))
 	case "experience":
 		return ok(page("Experience — Yongkang Zou", "Where Yongkang Zou has worked, and what shipped there.", path))
-	case "cv":
-		return ok(page("CV — Yongkang Zou", "Yongkang Zou's CV in English and Chinese, as PDF and LaTeX source.", path))
 	case "hackathons":
 		return ok(page("Hackathons — Yongkang Zou", "Hackathons Yongkang Zou has built at, and what came out of them.", path))
-	case "resume":
+	case "resume", "cv": // the CV page is offline
 		return redirect("/files/skill/experience")
 	}
 	return notFound(path)
@@ -352,7 +350,7 @@ func (s *SEOService) Sitemap() ([]byte, error) {
 		"/", "/files/soul", "/files/soul/graph", "/files/soul/commits",
 		"/files/memory", "/files/memory/guestbook",
 		"/files/music",
-		"/files/skill", "/files/skill/experience", "/files/skill/cv", "/files/skill/hackathons",
+		"/files/skill", "/files/skill/experience", "/files/skill/hackathons",
 		"/files/contact",
 	}
 	set := urlSet{Xmlns: "http://www.sitemaps.org/schemas/sitemap/0.9"}

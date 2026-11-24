@@ -57,7 +57,7 @@ func TestResolveStatuses(t *testing.T) {
 		{"/files/admin", "", 200},
 		{"/files/admin/posts", "", 200},
 		{"/files/skill", "", 200},
-		{"/files/skill/cv", "", 200},
+		{"/files/skill/cv", "/files/skill/experience", 301},
 		{"/files/skill/experience", "", 200},
 		{"/files/skill/hackathons", "", 200},
 		{"/files/skill/resume", "/files/skill/experience", 301},
@@ -161,7 +161,7 @@ func TestSitemap(t *testing.T) {
 	for loc, mod := range map[string]string{
 		"https://yongkang.dev/":                                "",
 		"https://yongkang.dev/files/soul":                      "",
-		"https://yongkang.dev/files/skill/cv":                  "",
+		"https://yongkang.dev/files/skill/hackathons":          "",
 		"https://yongkang.dev/files/memory/hackathon":          "",
 		"https://yongkang.dev/files/memory/essays":             "",
 		"https://yongkang.dev/files/memory/hackathon/game-jam": "2026-04-11",

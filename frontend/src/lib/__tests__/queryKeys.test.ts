@@ -27,10 +27,6 @@ describe('query key compatibility', () => {
       [queryKeys.hackathons(), ['hackathons']],
       [queryKeys.experience(), ['experience']],
       [queryKeys.githubContributions(), ['github-contributions']],
-      [queryKeys.cvPdf('en'), ['cv-pdf', 'en']],
-      [queryKeys.cvPdf('zh'), ['cv-pdf', 'zh']],
-      [queryKeys.cvSource('en', 'tex'), ['cv-source', 'en', 'tex']],
-      [queryKeys.cvSource('zh', 'cls'), ['cv-source', 'zh', 'cls']],
     ]
     for (const [actual, literal] of cases) expect(actual).toEqual(literal)
   })

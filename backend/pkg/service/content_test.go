@@ -73,7 +73,6 @@ func TestBodyPages(t *testing.T) {
 		{"/files/memory/technical/voice", []string{"<h1>Voice &lt;agents&gt;</h1>", "Yongkang Zou · 2026-03-01 · technical · voice", "<h2>Why</h2>", "<p>Round trips.</p>"},
 			[]string{"<script", "alert(1)", "<iframe", "onclick", "steal()"}},
 		{"/files/music", []string{`<a href="/files/music/soft-spot">Soft Spot</a> — Lo-Fi RnB`}, nil},
-		{"/files/skill/cv", []string{"/cv/yongkang-zou-cv-en.pdf"}, nil},
 	} {
 		body := s.Body(tc.path)
 		for _, want := range tc.want {
